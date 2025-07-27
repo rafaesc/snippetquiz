@@ -1,0 +1,34 @@
+{
+  "name": "Chrome Extension Dev",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm", 
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "appPort": [3000, 4173, 8080],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "workbench.colorTheme": "oh-lucy",
+        "workbench.iconTheme": "material-icon-theme"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "eamodio.gitlens",
+        "hermitter.oh-lucy-vscode",
+        "pkief.material-icon-theme"
+      ]
+    }
+  },
+  "postStartCommand": "kill $(lsof -t -i:3000) && kill $(lsof -t -i:4173) && kill $(lsof -t -i:8080)",
+  "postCreateCommand": "cd backend && npm install && cd ../frontend && npm install && cd ../extension && npm install",
+  "forwardPorts": [3000, 4173, 8080],
+  "remoteUser": "node"
+}
