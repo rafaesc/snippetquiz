@@ -73,7 +73,7 @@ function Dashboard() {
         {dashboardData?.isAuthenticated && userProfile && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded">
             <h3 className="font-medium">User Profile:</h3>
-            <pre className="text-xs mt-2 overflow-auto">{userProfile.userProfile}</pre>
+            <pre className="text-xs mt-2 overflow-auto">{JSON.stringify(userProfile, null, 2)}</pre>
           </div>
         )}
         
