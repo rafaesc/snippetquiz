@@ -1,10 +1,7 @@
 import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
-import http from 'http';
 import logger from 'morgan';
-import path from 'path';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 dotenv.load();
 import router from './routes';
 
@@ -42,7 +39,7 @@ app.use(function (req, res, next) {
 // Error handlers
 app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
   res.status((err as any).status || 500);
-  res.render('error', {
+  res.json({
     message: err.message,
     error: process.env.NODE_ENV !== 'production' ? err : {}
   });

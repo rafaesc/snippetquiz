@@ -19,7 +19,6 @@ export const apiService = {
   // Get dashboard data from backend root endpoint
   getDashboardData: async (): Promise<DashboardData> => {
     const accessToken = await getAccessToken();
-    console.log('Access Token:', accessToken);
     const response = await fetch(`${API_BASE_URL}/`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -33,8 +32,11 @@ export const apiService = {
 
   // Get user profile data (requires authentication)
   getUserProfile: async (): Promise<UserProfile> => {
+    const accessToken = await getAccessToken();
     const response = await fetch(`${API_BASE_URL}/profile`, {
-      credentials: 'include', // Include cookies for authentication
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
     });
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
