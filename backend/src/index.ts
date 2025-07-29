@@ -7,12 +7,16 @@ import router from './routes';
 
 const app = express();
 
-// CORS configuration
+// CORS configuration based on environment
 const corsOptions = {
-  origin: [
-    'http://localhost:3000', // Your frontend URL
-    'http://127.0.0.1:3000'
-  ],
+  origin: process.env.NODE_ENV === 'development' 
+    ? [
+        'http://localhost:3000', // Your frontend URL
+        'http://127.0.0.1:3000'
+      ]
+    : process.env.ALLOWED_ORIGINS 
+        ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+        : ['https://yourdomain.com'], // fallback if env var not set
   credentials: true, // Allow cookies to be sent
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
@@ -47,4 +51,10 @@ app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('CORS restricted to localhost only');
+  } else {
+    console.log('CORS allowed origins:', corsOptions.origin);
+  }
 });

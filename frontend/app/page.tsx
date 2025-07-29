@@ -5,9 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Chrome, Menu, Bookmark, Share2, Zap, Users, Star, ArrowRight } from "lucide-react"
 
 export default function Home() {
-  return (<>
-    
-    <div className="min-h-screen bg-white">
+  return (<div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -316,41 +314,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <Link
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/"
-        >
-          Home
-        </Link>
-        <Link
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/about"
-        >
-          About
-        </Link>
-        <Link
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/dashboard"
-        >
-          Dashboard
-        </Link>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-      </>
   );
 }
