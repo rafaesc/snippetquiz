@@ -28,19 +28,6 @@ COPY . .
 RUN npm run build
 
 # Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
-
-ENV NODE_ENV production
-
-WORKDIR /dependencies
-
-# Copy package and package-lock 
-COPY --from=build /build/package.json .
-COPY --from=build /build/package-lock.json ./
-
-# Clean install dependencies based package-lock
-RUN npm ci --production
 
 # =======================================
 # Image distroless final
