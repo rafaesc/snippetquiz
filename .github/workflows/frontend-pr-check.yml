@@ -1,14 +1,11 @@
 name: Validate Frontend (Next.js)
 
 on:
-  push:
+  pull_request:
     paths:
       - 'frontend/**'
     branches:
       - master
-  pull_request:
-    paths:
-      - 'frontend/**'
 
 jobs:
   validate-frontend:
