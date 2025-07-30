@@ -8,7 +8,6 @@
       "version": "20"
     }
   },
-  "appPort": [3000, 4173, 8080],
   "customizations": {
     "vscode": {
       "settings": {
@@ -27,8 +26,7 @@
       ]
     }
   },
-  "postStartCommand": "kill $(lsof -t -i:3000) && kill $(lsof -t -i:4173) && kill $(lsof -t -i:8080)",
-  "postCreateCommand": "cd backend && npm install && cd ../frontend && npm install && cd ../extension && npm install",
-  "forwardPorts": [3000, 4173, 8080],
+  "updateContentCommand": "cd backend && npm install && cd ../frontend && npm install && cd ../extension && npm install",
+  "forwardPorts": [3000, 4173, 8080, 3001],
   "remoteUser": "node"
 }
