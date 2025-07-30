@@ -1,3 +1,5 @@
+LABEL org.opencontainers.image.source https://github.com/rafaesc/quizmaster
+
 # Multi-stage Dockerfile to optimize build and production images
 
 # Base image used across all stages

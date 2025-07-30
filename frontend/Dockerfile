@@ -1,3 +1,5 @@
+LABEL org.opencontainers.image.source https://github.com/rafaesc/quizmaster
+
 # Use the official Node.js 18 Alpine image as base
 FROM node:18-alpine AS base
 
