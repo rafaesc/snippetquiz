@@ -19,7 +19,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{PACKAGE_TOKEN}}
+          password: ${{secrets.PACKAGE_TOKEN}}
 
       - name: Build and push Backend
         uses: docker/build-push-action@v5
