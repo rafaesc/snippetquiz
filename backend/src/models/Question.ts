@@ -10,7 +10,7 @@ Model.knex(knex);
 
 export interface QuestionData {
   id?: number;
-  user_id: number;
+  user_id: string;
   quiz_id: number;
   source_id?: number;
   question_text: string;
@@ -28,7 +28,7 @@ export class Question extends Model {
   }
 
   id!: number;
-  user_id!: number;
+  user_id!: string;
   quiz_id!: number;
   source_id?: number;
   question_text!: string;
@@ -41,7 +41,7 @@ export class Question extends Model {
       required: ['user_id', 'quiz_id', 'question_text'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'integer' },
+        user_id: { type: 'string', format: 'uuid' },
         quiz_id: { type: 'integer' },
         source_id: { type: 'integer' },
         question_text: { type: 'string', minLength: 1 },

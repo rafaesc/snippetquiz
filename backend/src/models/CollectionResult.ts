@@ -8,7 +8,7 @@ Model.knex(knex);
 
 export interface CollectionResultData {
   id?: number;
-  user_id: number;
+  user_id: string;
   collection_id: number;
   total_answered: number;
   correct_answers: number;
@@ -25,7 +25,7 @@ export class CollectionResult extends Model {
   }
 
   id!: number;
-  user_id!: number;
+  user_id!: string;
   collection_id!: number;
   total_answered!: number;
   correct_answers!: number;
@@ -37,7 +37,7 @@ export class CollectionResult extends Model {
       required: ['user_id', 'collection_id', 'total_answered', 'correct_answers'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'integer' },
+        user_id: { type: 'string', format: 'uuid' },
         collection_id: { type: 'integer' },
         total_answered: { type: 'integer', minimum: 0 },
         correct_answers: { type: 'integer', minimum: 0 },
@@ -67,7 +67,7 @@ export class CollectionResult extends Model {
     };
   }
 
-  static async findByUserId(userId: number): Promise<CollectionResult[]> {
+  static async findByUserId(userId: string): Promise<CollectionResult[]> {
     return this.query().where('user_id', userId);
   }
 

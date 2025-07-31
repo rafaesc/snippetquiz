@@ -10,10 +10,17 @@ Model.knex(knex);
 
 export interface CollectionData {
   id?: number;
-  user_id: number;
+  user_id: string;
   created_date?: Date;
   name: string;
   updated_date?: Date;
+}
+
+// DTO for API responses
+export interface CollectionDTO {
+  id: number;
+  name: string;
+  updatedDate: Date;
 }
 
 export class Collection extends Model {
@@ -26,7 +33,7 @@ export class Collection extends Model {
   }
 
   id!: number;
-  user_id!: number;
+  user_id!: string;
   created_date!: Date;
   name!: string;
   updated_date!: Date;
@@ -37,7 +44,7 @@ export class Collection extends Model {
       required: ['user_id', 'name'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'integer' },
+        user_id: { type: 'string', format: 'uuid' },
         created_date: { type: 'string', format: 'date-time' },
         name: { type: 'string', minLength: 1, maxLength: 255 },
         updated_date: { type: 'string', format: 'date-time' }
@@ -82,8 +89,29 @@ export class Collection extends Model {
     };
   }
 
-  static async findByUserId(userId: number): Promise<Collection[]> {
+  static async findByUserId(userId: string): Promise<Collection[]> {
     return this.query().where('user_id', userId);
+  }
+
+  static async findByUserIdDTO(userId: string): Promise<CollectionDTO[]> {
+    const collections = await this.query()
+      .select('id', 'name', 'updated_date')
+      .where('user_id', userId);
+    
+    return collections.map(collection => ({
+      id: collection.id,
+      name: collection.name,
+      updatedDate: collection.updated_date
+    }));
+  }
+
+  // Convert instance to DTO
+  toDTO(): CollectionDTO {
+    return {
+      id: this.id,
+      name: this.name,
+      updatedDate: this.updated_date
+    };
   }
 
   static async createCollection(collectionData: Omit<CollectionData, 'id' | 'created_date' | 'updated_date'>): Promise<Collection> {

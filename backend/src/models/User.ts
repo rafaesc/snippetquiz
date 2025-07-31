@@ -5,7 +5,7 @@ import knex from '../db';
 Model.knex(knex);
 
 export interface UserData {
-  id?: number;
+  id?: string;
   external_id: string;
   name: string;
   email: string;
@@ -21,7 +21,7 @@ export class User extends Model {
     return 'id';
   }
 
-  id!: number;
+  id!: string;
   external_id!: string;
   name!: string;
   email!: string;
@@ -32,7 +32,7 @@ export class User extends Model {
       type: 'object',
       required: ['external_id', 'name', 'email'],
       properties: {
-        id: { type: 'integer' },
+        id: { type: 'string', format: 'uuid' },
         external_id: { type: 'string', minLength: 1, maxLength: 255 },
         name: { type: 'string', minLength: 1, maxLength: 255 },
         email: { type: 'string', format: 'email', maxLength: 255 },
@@ -54,11 +54,11 @@ export class User extends Model {
     return this.query().insert(userData);
   }
 
-  static async updateUser(id: number, userData: Partial<UserData>): Promise<User> {
+  static async updateUser(id: string, userData: Partial<UserData>): Promise<User> {
     return this.query().patchAndFetchById(id, userData);
   }
 
-  static async deleteUser(id: number): Promise<number> {
+  static async deleteUser(id: string): Promise<number> {
     return this.query().deleteById(id);
   }
 

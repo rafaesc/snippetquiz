@@ -78,10 +78,15 @@ router.get('/profile', jwtCheck, async function (req: Request<{}, {}, {}>, res: 
         return;
       }
     }
+
+    // Fetch user's collections using DTO
+    const collections = await Collection.findByUserIdDTO(existingUser.id);
+
     res.status(200).json({
       id: existingUser.id,
       name: existingUser.name,
-      email: existingUser.email
+      email: existingUser.email,
+      collections: collections
     });
   } catch (error) {
     console.error('Error in /profile route:', error);

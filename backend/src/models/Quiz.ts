@@ -9,7 +9,7 @@ Model.knex(knex);
 
 export interface QuizData {
   id?: number;
-  user_id: number;
+  user_id: string;
   collection_id: number;
   created_date?: Date;
   updated_date?: Date;
@@ -25,7 +25,7 @@ export class Quiz extends Model {
   }
 
   id!: number;
-  user_id!: number;
+  user_id!: string;
   collection_id!: number;
   created_date!: Date;
   updated_date!: Date;
@@ -36,7 +36,7 @@ export class Quiz extends Model {
       required: ['user_id', 'collection_id'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'integer' },
+        user_id: { type: 'string', format: 'uuid' },
         collection_id: { type: 'integer' },
         created_date: { type: 'string', format: 'date-time' },
         updated_date: { type: 'string', format: 'date-time' }

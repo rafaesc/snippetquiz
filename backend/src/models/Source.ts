@@ -9,7 +9,7 @@ Model.knex(knex);
 
 export interface SourceData {
   id?: number;
-  user_id: number;
+  user_id: string;
   created_date?: Date;
   link_source?: string;
   text?: string;
@@ -28,7 +28,7 @@ export class Source extends Model {
   }
 
   id!: number;
-  user_id!: number;
+  user_id!: string;
   created_date!: Date;
   link_source?: string;
   text?: string;
@@ -42,7 +42,7 @@ export class Source extends Model {
       required: ['user_id'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'integer' },
+        user_id: { type: 'string', format: 'uuid' },
         created_date: { type: 'string', format: 'date-time' },
         link_source: { type: 'string', maxLength: 255 },
         text: { type: 'string' },
