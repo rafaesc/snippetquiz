@@ -36,7 +36,7 @@ services:
       - ./backend/src:/usr/src/backend/src
       - .env:/usr/src/backend/.env
       - /usr/src/backend/node_modules
-    command: npm run dev
+    command: npm run dev && npm run migrate:latest
 
 volumes:
   pgdata:

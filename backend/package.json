@@ -1,5 +1,5 @@
 {
-  "name": "quizmaster backend",
+  "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
   "nodemonConfig": {
@@ -18,7 +18,9 @@
     "dev": "nodemon --legacy-watch src/index.ts",
     "build": "tsc",
     "start": "node dist/src/index.js",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "migrate:latest": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback"
   },
   "keywords": [],
   "author": "",

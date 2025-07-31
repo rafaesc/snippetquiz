@@ -111,7 +111,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "knexfile.ts", "knexfile.ts"  ],
   "exclude": [
     "node_modules",
     "dist",
