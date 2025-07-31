@@ -1,18 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "React Chrome Extension",
+  "name": "QuizMaster",
   "version": "1.0.0",
   "description": "Chrome Extension, TypeScript, Visual Studio Code",
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": ["contextMenus", "storage", "scripting", "activeTab"],
+  "permissions": ["contextMenus", "storage", "scripting", "activeTab", 
+    "cookies"],
 
   "background": {
     "service_worker": "background.js"
   },
-
   "host_permissions": [
-    "<all_urls>"
+    "*://*.quizmaster.com/", "*://localhost:*/*"
   ]
 }
