@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    container_name: local_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: devdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d devdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: db
+      DB_USER: user
+      DB_PASSWORD: pass
+      DB_NAME: devdb
+    volumes:
+      - ./backend/src:/usr/src/backend/src
+      - .env:/usr/src/backend/.env
+      - /usr/src/backend/node_modules
+    command: npm run dev
+
+volumes:
+  pgdata:
