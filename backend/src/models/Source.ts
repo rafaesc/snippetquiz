@@ -14,7 +14,7 @@ export interface SourceData {
   link_source?: string;
   text?: string;
   prompt_summary?: string;
-  type?: string;
+  type?: "link" | "text";
   collection_id?: number;
 }
 
@@ -33,7 +33,7 @@ export class Source extends Model {
   link_source?: string;
   text?: string;
   prompt_summary?: string;
-  type?: string;
+  type?: "link" | "text";
   collection_id?: number;
 
   static get jsonSchema() {
