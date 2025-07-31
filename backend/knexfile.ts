@@ -20,11 +20,11 @@ const config: { [key: string]: Knex.Config } = {
       max: parseInt(process.env.DB_POOL_MAX || '10'),
     },
     migrations: {
-      directory: process.env.DB_MIGRATIONS_DIRECTORY || './src/migrations',
+      directory: process.env.DB_MIGRATIONS_DIRECTORY || './db/migrations',
       extension: 'ts',
     },
     seeds: {
-      directory: process.env.DB_SEEDS_DIRECTORY || './src/seeds',
+      directory: process.env.DB_SEEDS_DIRECTORY || './db/seeds',
       extension: 'ts',
     },
   },
@@ -44,11 +44,11 @@ const config: { [key: string]: Knex.Config } = {
       max: parseInt(process.env.DB_POOL_MAX || '10'),
     },
     migrations: {
-      directory: process.env.DB_MIGRATIONS_DIRECTORY || './src/migrations',
+      directory: process.env.DB_MIGRATIONS_DIRECTORY || './db/migrations',
       extension: 'ts',
     },
     seeds: {
-      directory: process.env.DB_SEEDS_DIRECTORY || './src/seeds',
+      directory: process.env.DB_SEEDS_DIRECTORY || './db/seeds',
       extension: 'ts',
     },
   },
@@ -68,11 +68,11 @@ const config: { [key: string]: Knex.Config } = {
       max: 5,
     },
     migrations: {
-      directory: process.env.DB_MIGRATIONS_DIRECTORY || './src/migrations',
+      directory: process.env.DB_MIGRATIONS_DIRECTORY || './db/migrations',
       extension: 'ts',
     },
     seeds: {
-      directory: process.env.DB_SEEDS_DIRECTORY || './src/seeds',
+      directory: process.env.DB_SEEDS_DIRECTORY || './db/seeds',
       extension: 'ts',
     },
   },

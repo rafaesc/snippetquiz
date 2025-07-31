@@ -110,8 +110,10 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "src/**/*"
-, "knexfile.ts", "knexfile.ts"  ],
+    "src/**/*",
+    "knexfile.ts",
+    "db/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",

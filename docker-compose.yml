@@ -9,8 +9,6 @@ services:
       POSTGRES_DB: devdb
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d devdb"]
       interval: 10s
@@ -36,7 +34,4 @@ services:
       - ./backend/src:/usr/src/backend/src
       - .env:/usr/src/backend/.env
       - /usr/src/backend/node_modules
-    command: npm run dev && npm run migrate:latest
-
-volumes:
-  pgdata:
+    command: npm run dev
