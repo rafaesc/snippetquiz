@@ -15,6 +15,17 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    volumes: 
+      - ./local/db:/var/lib/postgresql/data
+  
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass redispass
+    volumes: 
+      - ./local/cache:/data
 
   backend:
     build: 
@@ -23,6 +34,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cache:
+        condition: service_started
     ports:
       - "3001:3001"
     environment:
@@ -30,6 +43,9 @@ services:
       DB_USER: user
       DB_PASSWORD: pass
       DB_NAME: devdb
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redispass
     volumes:
       - ./backend/src:/usr/src/backend/src
       - .env:/usr/src/backend/.env
