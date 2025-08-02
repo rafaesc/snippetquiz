@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -25,7 +26,7 @@ interface ResendVerificationResponse {
   message: string;
 }
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error' | 'expired'>('pending');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isResending, setIsResending] = useState(false);
@@ -231,5 +232,32 @@ export default function VerifyEmailPage() {
     <div className="w-full max-w-md mx-auto">
       {renderContent()}
     </div>
+  );
+}
+
+// Loading fallback component
+function VerifyEmailLoading() {
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <Card className="w-full">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          </div>
+          <CardTitle>Loading...</CardTitle>
+          <CardDescription>
+            Please wait while we load the verification page.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<VerifyEmailLoading />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

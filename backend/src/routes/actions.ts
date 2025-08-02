@@ -70,13 +70,12 @@ router.post('/sources', authenticateJWT, sourceCreationLimiter, async function (
 
     res.status(201).json({
       id: newSource.id,
-      user_id: newSource.user_id,
+      bank_id: newSource.bank_id,
       source_url: newSource.source_url,
       content: newSource.content,
       page_title: newSource.page_title,
-      type: newSource.type,
-      bank_id: newSource.bank_id,
-      created_date: newSource.created_date
+      content_type: newSource.content_type,
+      created_at: newSource.created_at
     });
   } catch (error) {
     console.error('Error creating source:', error);
@@ -87,8 +86,8 @@ router.post('/sources', authenticateJWT, sourceCreationLimiter, async function (
 // GET route to retrieve user's collections
 router.get('/content-bank', async function (req: Request, res: Response, next: NextFunction) {
   try {
-    // Fetch user's collections using the DTO method for clean response
-    const contentBanks = await ContentBank.findByUserIdDTO((req.user as any).id);
+    // Fetch user's collections using the correct method name
+    const contentBanks = await ContentBank.findByUserId((req.user as any).id);
 
     res.status(200).json({
       contentBanks: contentBanks
