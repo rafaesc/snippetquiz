@@ -4,6 +4,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
+import { redisService } from '../services/redis';
 
 // JWT Secret keys (should be in environment variables)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -18,9 +19,6 @@ export interface JwtPayload {
   iat?: number;
   exp?: number;
 }
-
-// Store refresh tokens (in production, use Redis or database)
-export const refreshTokens: Set<string> = new Set();
 
 // Cookie extractor function
 const cookieExtractor = function(req: Request) {
@@ -88,8 +86,8 @@ export const generateTokens = (user: any) => {
   const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
   const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN } as jwt.SignOptions);
 
-  // Store refresh token
-  refreshTokens.add(refreshToken);
+  // Store refresh token in Redis
+  redisService.storeRefreshToken(refreshToken, user.id, JWT_REFRESH_EXPIRES_IN);
 
   return { accessToken, refreshToken };
 };
@@ -111,7 +109,7 @@ export const setTokenCookies = (res: Response, accessToken: string, refreshToken
     httpOnly: true,
     secure: isProduction,
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+    maxAge: 365 * 24 * 60 * 60 * 1000 // 365 days in milliseconds
   });
 };
 
@@ -121,19 +119,27 @@ export const clearTokenCookies = (res: Response) => {
   res.clearCookie('refreshToken');
 };
 
-export const verifyRefreshToken = (token: string): Promise<JwtPayload> => {
-  return new Promise((resolve, reject) => {
-    if (!refreshTokens.has(token)) {
-      return reject(new Error('Invalid refresh token'));
-    }
-
-    jwt.verify(token, JWT_REFRESH_SECRET, (err, decoded) => {
-      if (err) {
-        refreshTokens.delete(token); // Remove invalid token
-        return reject(err);
+export const verifyRefreshToken = async (token: string): Promise<JwtPayload> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // First check if token exists in Redis
+      const userId = await redisService.validateRefreshToken(token);
+      if (!userId) {
+        return reject(new Error('Invalid refresh token'));
       }
-      resolve(decoded as JwtPayload);
-    });
+
+      // Then verify JWT signature
+      jwt.verify(token, JWT_REFRESH_SECRET, (err, decoded) => {
+        if (err) {
+          // Remove invalid token from Redis
+          redisService.removeRefreshToken(token);
+          return reject(err);
+        }
+        resolve(decoded as JwtPayload);
+      });
+    } catch (error) {
+      reject(error);
+    }
   });
 };
 

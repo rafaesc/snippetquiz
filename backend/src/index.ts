@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 dotenv.load();
 import authRoutes from './routes/auth';
 import router from './routes';
+import { redisService } from './services/redis';
+import { generalLimiter } from './middleware/rateLimiter';
 
 const app = express();
 
@@ -28,12 +30,18 @@ const corsOptions = {
 // Apply CORS middleware before other middleware
 app.use(cors(corsOptions));
 
+// Apply general rate limiting to all requests
+app.use(generalLimiter);
+
 app.use(logger('dev'));
 //app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
+app.use(express.json({ limit: '40kb' }));
 app.use(cookieParser()); // Add this line to parse cookies
 
 const port = process.env.PORT || 3001;
+
+// Initialize Redis connection
+redisService.connect().catch(console.error);
 
 app.use(passport.initialize());
 
@@ -65,4 +73,17 @@ app.listen(port, () => {
   } else {
     console.log('CORS allowed origins:', corsOptions.origin);
   }
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await redisService.disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down gracefully...');
+  await redisService.disconnect();
+  process.exit(0);
 });

@@ -7,10 +7,10 @@ import {
   generateTokens,
   setTokenCookies,
   clearTokenCookies,
-  verifyRefreshToken,
-  refreshTokens,
-  JwtPayload
+  verifyRefreshToken
 } from '../middleware/auth';
+import { redisService } from '../services/redis';
+import { authLimiter, registerLimiter, passwordChangeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -37,8 +37,8 @@ interface ChangePasswordRequest {
 
 // Routes
 
-// Register route
-router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Response) => {
+// Register route with rate limiting
+router.post('/register', registerLimiter, async (req: Request<{}, {}, RegisterRequest>, res: Response) => {
   try {
     const { name, email, password } = req.body;
 
@@ -86,8 +86,8 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
   }
 });
 
-// Login route
-router.post('/login', (req: Request<{}, {}, LoginRequest>, res: Response, next: NextFunction) => {
+// Login route with rate limiting
+router.post('/login', authLimiter, (req: Request<{}, {}, LoginRequest>, res: Response, next: NextFunction) => {
   passport.authenticate('local', { session: false }, (err: any, user: any, info: any) => {
     if (err) {
       return res.status(500).json({ error: 'Internal server error' });
@@ -114,8 +114,8 @@ router.post('/login', (req: Request<{}, {}, LoginRequest>, res: Response, next: 
   })(req, res, next);
 });
 
-// Refresh token route
-router.post('/refresh', async (req: Request, res: Response) => {
+// Refresh token route with auth rate limiting
+router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
@@ -123,7 +123,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Refresh token is required' });
     }
 
-    // Verify refresh token
+    // Verify refresh token using Redis
     const decoded = await verifyRefreshToken(refreshToken);
     
     // Get user from database
@@ -132,8 +132,8 @@ router.post('/refresh', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    // Remove old refresh token
-    refreshTokens.delete(refreshToken);
+    // Remove old refresh token from Redis
+    await redisService.removeRefreshToken(refreshToken);
 
     // Generate new tokens
     const tokens = generateTokens(user);
@@ -141,28 +141,27 @@ router.post('/refresh', async (req: Request, res: Response) => {
     // Set new tokens in cookies
     setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
 
-    res.json({
-      message: 'Tokens refreshed successfully'
-    });
+    res.json({ message: 'Token refreshed successfully' });
   } catch (error) {
-    console.error('Token refresh error:', error);
+    console.error('Refresh token error:', error);
     res.status(401).json({ error: 'Invalid refresh token' });
   }
 });
 
-// Logout route
-router.post('/logout', authenticateJWT, (req: Request, res: Response) => {
+// Logout route (no additional rate limiting needed as it's already protected by JWT)
+router.post('/logout', authenticateJWT, async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     
     if (refreshToken) {
-      refreshTokens.delete(refreshToken);
+      // Remove refresh token from Redis
+      await redisService.removeRefreshToken(refreshToken);
     }
     
-    // Clear token cookies
+    // Clear cookies
     clearTokenCookies(res);
-
-    res.json({ message: 'Logout successful' });
+    
+    res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -193,8 +192,8 @@ router.get('/verify', authenticateJWT, (req: Request, res: Response) => {
   });
 });
 
-// Change password route
-router.post('/change-password', authenticateJWT, async (req: Request<{}, {}, ChangePasswordRequest>, res: Response) => {
+// Change password route with strict rate limiting
+router.post('/change-password', passwordChangeLimiter, authenticateJWT, async (req: Request<{}, {}, ChangePasswordRequest>, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = (req.user as any).id;
@@ -224,6 +223,17 @@ router.post('/change-password', authenticateJWT, async (req: Request<{}, {}, Cha
     await User.query()
       .findById(userId)
       .patch({ password: newPassword });
+
+      
+    const refreshToken = req.cookies.refreshToken;
+    
+    if (refreshToken) {
+      // Remove refresh token from Redis
+      await redisService.removeRefreshToken(refreshToken);
+    }
+    
+    // Clear cookies
+    clearTokenCookies(res);
 
     res.json({
       message: 'Password changed successfully'

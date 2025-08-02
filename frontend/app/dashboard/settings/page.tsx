@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiService } from '../../../lib/api-service';
 import { useToast } from '../../../hooks/use-toast';
 
@@ -10,6 +11,7 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,13 +40,18 @@ export default function Settings() {
       await apiService.changePassword(currentPassword, newPassword);
       toast({
         title: 'Success',
-        description: 'Password changed successfully',
+        description: 'Password changed successfully. Please log in again.',
       });
       
       // Clear form
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      
+      // Redirect to login after a short delay to show the success message
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 2000);
     } catch (error) {
       toast({
         title: 'Error',

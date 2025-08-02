@@ -1,6 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { authenticateJWT } from './auth';
+import {
+  authenticateJWT
+} from '../middleware/auth';
 import { ContentBank, ContentEntry } from '../models';
+import { createUserSpecificLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -13,10 +16,15 @@ interface CreateSourceRequest {
   bankId: number;
 }
 
+export const sourceCreationLimiter = createUserSpecificLimiter(
+  5 * 60 * 1000, // 5 minutes
+  10 // 10 sources per user
+);
+
 // POST route to create a new source
-router.post('/sources', authenticateJWT, async function (req: Request<{}, {}, CreateSourceRequest>, res: Response, next: NextFunction) {
+router.post('/sources', authenticateJWT, sourceCreationLimiter, async function (req: Request<{}, {}, CreateSourceRequest>, res: Response, next: NextFunction) {
   try {
-    const { sourceUrl, content, type, pageTitle, bankId } = req.body;   
+    const { sourceUrl, content, type, pageTitle, bankId } = req.body;
     const user = req.user!; // getUserMiddleware ensures user exists
 
     // Validation
