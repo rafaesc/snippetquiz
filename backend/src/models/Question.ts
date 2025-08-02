@@ -1,21 +1,17 @@
-import { Model } from 'objection';
+import { Model, RelationMappings } from 'objection';
 import knex from '../db';
-import { User } from './User';
-import { Quiz } from './Quiz';
-import { Source } from './Source';
-import { Alternative } from './Alternative';
+import ContentEntry from './ContentEntry';
+import QuestionOption from './QuestionOption';
+import QuestionResponse from './QuestionResponse';
 
-// Bind the model to the knex instance
 Model.knex(knex);
 
 export interface QuestionData {
   id?: number;
-  user_id: string;
-  quiz_id: number;
-  source_id?: number;
-  question_text: string;
-  created_date?: Date;
-  updated_date?: Date;
+  prompt: string;
+  explanation?: string;
+  source_content_id?: number;
+  created_at?: Date;
 }
 
 export class Question extends Model {
@@ -28,72 +24,66 @@ export class Question extends Model {
   }
 
   id!: number;
-  user_id!: string;
-  quiz_id!: number;
-  source_id?: number;
-  question_text!: string;
-  created_date!: Date;
-  updated_date!: Date;
+  prompt!: string;
+  explanation?: string;
+  source_content_id?: number;
+  created_at!: Date;
+
+  // Relations
+  sourceContent?: ContentEntry;
+  options?: QuestionOption[];
+  responses?: QuestionResponse[];
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['user_id', 'quiz_id', 'question_text'],
+      required: ['prompt'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'string', format: 'uuid' },
-        quiz_id: { type: 'integer' },
-        source_id: { type: 'integer' },
-        question_text: { type: 'string', minLength: 1 },
-        created_date: { type: 'string', format: 'date-time' },
-        updated_date: { type: 'string', format: 'date-time' }
+        prompt: { type: 'string', minLength: 1 },
+        explanation: { type: 'string' },
+        source_content_id: { type: 'integer' },
+        created_at: { type: 'string', format: 'date-time' }
       }
     };
   }
 
-  static get relationMappings() {
+  static get relationMappings(): RelationMappings {
     return {
-      user: {
+      sourceContent: {
         relation: Model.BelongsToOneRelation,
-        modelClass: User,
+        modelClass: ContentEntry,
         join: {
-          from: 'questions.user_id',
-          to: 'users.id'
+          from: 'questions.source_content_id',
+          to: 'content_entries.id'
         }
       },
-      quiz: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: Quiz,
-        join: {
-          from: 'questions.quiz_id',
-          to: 'quizzes.id'
-        }
-      },
-      source: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: Source,
-        join: {
-          from: 'questions.source_id',
-          to: 'source.id'
-        }
-      },
-      alternatives: {
+      options: {
         relation: Model.HasManyRelation,
-        modelClass: Alternative,
+        modelClass: QuestionOption,
         join: {
           from: 'questions.id',
-          to: 'alternatives.question_id'
+          to: 'question_options.question_id'
+        }
+      },
+      responses: {
+        relation: Model.HasManyRelation,
+        modelClass: QuestionResponse,
+        join: {
+          from: 'questions.id',
+          to: 'question_responses.question_id'
         }
       }
     };
   }
 
-  static async findByQuizId(quizId: number): Promise<Question[]> {
-    return this.query().where('quiz_id', quizId);
+  static async createQuestion(data: Omit<QuestionData, 'id' | 'created_at'>): Promise<Question> {
+    return this.query().insert(data);
   }
 
-  static async createQuestion(questionData: Omit<QuestionData, 'id' | 'created_date' | 'updated_date'>): Promise<Question> {
-    return this.query().insert(questionData);
+  async getCorrectOption(): Promise<QuestionOption | undefined> {
+    const options = await this.$relatedQuery('options').where('is_correct', true);
+    return options[0];
   }
 }
 

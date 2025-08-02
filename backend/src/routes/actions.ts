@@ -1,70 +1,73 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateJWT } from './auth';
-import { Collection } from '../models/Collection';
-import { Source } from '../models/Source';
+import { ContentBank, ContentEntry } from '../models';
 
 const router = Router();
 
 // Interface for source creation request
 interface CreateSourceRequest {
-  linkSource?: string;
-  text?: string;
-  type: 'link' | 'text';
-  collectionId: number;
+  sourceUrl?: string;
+  content?: string;
+  type: 'full_html' | 'selected_text';
+  pageTitle?: string;
+  bankId: number;
 }
 
 // POST route to create a new source
 router.post('/sources', authenticateJWT, async function (req: Request<{}, {}, CreateSourceRequest>, res: Response, next: NextFunction) {
   try {
-    const { linkSource, text, type, collectionId } = req.body;
+    const { sourceUrl, content, type, pageTitle, bankId } = req.body;   
     const user = req.user!; // getUserMiddleware ensures user exists
 
     // Validation
-    if (!type || !['link', 'text'].includes(type)) {
-      return res.status(400).json({ error: 'Type must be either "link" or "text"' });
+    if (!type || !['full_html', 'selected_text'].includes(type)) {
+      return res.status(400).json({ error: 'Type must be either "full_html" or "selected_text"' });
     }
 
-    if (!collectionId) {
-      return res.status(400).json({ error: 'Collection ID is required' });
+    if (!bankId) {
+      return res.status(400).json({ error: 'Bank ID is required' });
     }
 
     // Validate type-specific requirements
-    if (type === 'link' && !linkSource) {
-      return res.status(400).json({ error: 'Link source is required when type is "link"' });
+    if (type === 'full_html' && !sourceUrl) {
+      return res.status(400).json({ error: 'Source URL is required when type is "full_html"' });
     }
 
-    if (type === 'text' && !text) {
-      return res.status(400).json({ error: 'Text is required when type is "text"' });
+    if (type === 'selected_text' && !content) {
+      return res.status(400).json({ error: 'Content is required when type is "selected_text"' });
     }
 
-    // Verify that the collection belongs to the user
-    const collection = await Collection.query()
-      .where('id', collectionId)
+    // Verify that the bank belongs to the user 
+    const contentBank = await ContentBank.query()
+      .where('id', bankId)
       .where('user_id', (req.user as any).id)
       .first();
 
-    if (!collection) {
-      return res.status(404).json({ error: 'Collection not found or does not belong to user' });
+    if (!contentBank) {
+      return res.status(404).json({ error: 'Content bank not found or does not belong to user' });
     }
 
     // Create the source
     const sourceData = {
       user_id: (req.user as any).id,
-      link_source: type === 'link' ? linkSource : undefined,
-      text: type === 'text' ? text : undefined,
+      content_type: type,
+      source_url: sourceUrl,
+      content: content,
       type: type,
-      collection_id: collectionId
+      page_title: pageTitle,
+      bank_id: contentBank.id
     };
 
-    const newSource = await Source.createSource(sourceData);
+    const newSource = await ContentEntry.createEntry(sourceData);
 
     res.status(201).json({
       id: newSource.id,
       user_id: newSource.user_id,
-      link_source: newSource.link_source,
-      text: newSource.text,
+      source_url: newSource.source_url,
+      content: newSource.content,
+      page_title: newSource.page_title,
       type: newSource.type,
-      collection_id: newSource.collection_id,
+      bank_id: newSource.bank_id,
       created_date: newSource.created_date
     });
   } catch (error) {
@@ -74,16 +77,16 @@ router.post('/sources', authenticateJWT, async function (req: Request<{}, {}, Cr
 });
 
 // GET route to retrieve user's collections
-router.get('/collections', async function (req: Request, res: Response, next: NextFunction) {
+router.get('/content-bank', async function (req: Request, res: Response, next: NextFunction) {
   try {
     // Fetch user's collections using the DTO method for clean response
-    const collections = await Collection.findByUserIdDTO((req.user as any).id);
+    const contentBanks = await ContentBank.findByUserIdDTO((req.user as any).id);
 
     res.status(200).json({
-      collections: collections
+      contentBanks: contentBanks
     });
   } catch (error) {
-    console.error('Error fetching collections:', error);
+    console.error('Error fetching content banks:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

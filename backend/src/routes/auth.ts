@@ -5,7 +5,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
-import { Collection } from '../models/Collection';
+import { ContentBank } from '../models';
 
 const router = Router();
 
@@ -185,7 +185,7 @@ router.post('/register', async (req: Request<{}, {}, RegisterRequest>, res: Resp
     });
 
       // Create a default collection for the new user
-      await Collection.createCollection({
+      await ContentBank.createBank({
         user_id: newUser.id,
         name: 'Default'
       });
@@ -296,12 +296,12 @@ router.post('/logout', authenticateJWT, (req: Request, res: Response) => {
 // Protected route example
 router.get('/profile', authenticateJWT, async (req: Request, res: Response) => {
   // Fetch user's collections using DTO
-  const collections = await Collection.findByUserIdDTO((req.user as any).id);
+  const banks = await ContentBank.findByUserId((req.user as any).id);
   
   res.json({
     message: 'Protected route accessed successfully',
     user: req.user,
-    collections: collections
+    banks: banks
   });
 });
 

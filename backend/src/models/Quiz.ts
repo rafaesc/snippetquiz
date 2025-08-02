@@ -1,18 +1,18 @@
-import { Model } from 'objection';
+import { Model, RelationMappings } from 'objection';
 import knex from '../db';
-import { User } from './User';
-import { Collection } from './Collection';
-import { Question } from './Question';
+import ContentBank from './ContentBank';
+import User from './User';
+import QuizCompletion from './QuizCompletion';
+import QuizContentEntry from './QuizContentEntry';
 
-// Bind the model to the knex instance
 Model.knex(knex);
 
 export interface QuizData {
   id?: number;
-  user_id: string;
-  collection_id: number;
-  created_date?: Date;
-  updated_date?: Date;
+  bank_id: number;
+  created_at?: Date;
+  content_entries_count?: number;
+  user_id?: string;
 }
 
 export class Quiz extends Model {
@@ -25,27 +25,41 @@ export class Quiz extends Model {
   }
 
   id!: number;
-  user_id!: string;
-  collection_id!: number;
-  created_date!: Date;
-  updated_date!: Date;
+  bank_id!: number;
+  created_at!: Date;
+  content_entries_count!: number;
+  user_id?: string;
+
+  // Relations
+  contentBank?: ContentBank;
+  user?: User;
+  completions?: QuizCompletion[];
+  quizContentEntries?: QuizContentEntry[];
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['user_id', 'collection_id'],
+      required: ['bank_id'],
       properties: {
         id: { type: 'integer' },
-        user_id: { type: 'string', format: 'uuid' },
-        collection_id: { type: 'integer' },
-        created_date: { type: 'string', format: 'date-time' },
-        updated_date: { type: 'string', format: 'date-time' }
+        bank_id: { type: 'integer' },
+        created_at: { type: 'string', format: 'date-time' },
+        content_entries_count: { type: 'integer', minimum: 0 },
+        user_id: { type: 'string' }
       }
     };
   }
 
-  static get relationMappings() {
+  static get relationMappings(): RelationMappings {
     return {
+      contentBank: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: ContentBank,
+        join: {
+          from: 'quizzes.bank_id',
+          to: 'content_banks.id'
+        }
+      },
       user: {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
@@ -54,31 +68,35 @@ export class Quiz extends Model {
           to: 'users.id'
         }
       },
-      collection: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: Collection,
-        join: {
-          from: 'quizzes.collection_id',
-          to: 'collections.id'
-        }
-      },
-      questions: {
+      completions: {
         relation: Model.HasManyRelation,
-        modelClass: Question,
+        modelClass: QuizCompletion,
         join: {
           from: 'quizzes.id',
-          to: 'questions.quiz_id'
+          to: 'quiz_completions.quiz_id'
+        }
+      },
+      quizContentEntries: {
+        relation: Model.HasManyRelation,
+        modelClass: QuizContentEntry,
+        join: {
+          from: 'quizzes.id',
+          to: 'quiz_content_entries.quiz_id'
         }
       }
     };
   }
 
-  static async findByCollectionId(collectionId: number): Promise<Quiz[]> {
-    return this.query().where('collection_id', collectionId);
+  static async findByBankId(bankId: number): Promise<Quiz[]> {
+    return this.query().where('bank_id', bankId);
   }
 
-  static async createQuiz(quizData: Omit<QuizData, 'id' | 'created_date' | 'updated_date'>): Promise<Quiz> {
-    return this.query().insert(quizData);
+  static async findByUserId(userId: string): Promise<Quiz[]> {
+    return this.query().where('user_id', userId);
+  }
+
+  static async createQuiz(data: Omit<QuizData, 'id' | 'created_at'>): Promise<Quiz> {
+    return this.query().insert(data);
   }
 }
 
