@@ -67,7 +67,21 @@ export default function AuthPage() {
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: LoginFormData) => 
       apiService.login(email, password),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Check if verification is required
+      if (data.requiresVerification) {
+        toast({
+          title: "Email Verification Required",
+          description: "Please check your email and verify your account before logging in.",
+          variant: "destructive",
+        });
+        // Redirect to verify-email page with email parameter
+        const email = loginForm.getValues('email');
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+      
+      // Normal successful login
       toast({
         title: "Success!",
         description: "You have been logged in successfully.",

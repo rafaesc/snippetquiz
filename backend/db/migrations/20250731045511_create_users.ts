@@ -8,6 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('password', 255).notNullable();
     table.timestamp('created_date').defaultTo(knex.fn.now());
     table.timestamp('password_updated_at').nullable();
+    table.boolean('verified').notNullable().defaultTo(false);
     
     // Add indexes
     table.index('email');

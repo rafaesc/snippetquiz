@@ -11,6 +11,7 @@ export interface UserData {
   password?: string;
   password_updated_at?: Date;
   created_date?: Date;
+  verified?: boolean;
 }
 
 export interface CreateUser {
@@ -34,6 +35,7 @@ export class User extends Model {
   password?: string;
   password_updated_at?: Date;
   created_date!: Date;
+  verified!: boolean;
 
   static get jsonSchema() {
     return {
@@ -45,7 +47,8 @@ export class User extends Model {
         email: { type: 'string', format: 'email', maxLength: 255 },
         password: { type: 'string', minLength: 6, maxLength: 255 },
         password_updated_at: { type: 'string', format: 'date-time' },
-        created_date: { type: 'string', format: 'date-time' }
+        created_date: { type: 'string', format: 'date-time' },
+        verified: { type: 'boolean' }
       }
     };
   }
@@ -105,6 +108,12 @@ export class User extends Model {
 
   static async deleteUser(id: string): Promise<number> {
     return this.query().deleteById(id);
+  }
+
+  static async verifyUser(id: string): Promise<User> {
+    return this.query().patchAndFetchById(id, { 
+      verified: true
+    });
   }
 
   // Update password specifically

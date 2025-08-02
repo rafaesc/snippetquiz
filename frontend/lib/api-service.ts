@@ -176,4 +176,41 @@ export const apiService = {
     
     return response;
   },
+  
+  // Verify email
+  verifyEmail: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/verify-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ token }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Email verification failed');
+    }
+    
+    return response.json();
+  },
+
+  // Resend verification email
+  resendVerificationEmail: async (email: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to resend verification email');
+    }
+    
+    return response.json();
+  },
 };
