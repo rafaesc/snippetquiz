@@ -107,6 +107,42 @@ export const apiService = {
     return response.json();
   },
   
+  // Change Password
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    let response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    
+    // If token expired, try to refresh
+    if (response.status === 401) {
+      try {
+        await tokenService.refreshAccessToken();
+        response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+      } catch (error) {
+        throw new Error('Authentication failed');
+      }
+    }
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to change password');
+    }
+    
+    return response.json();
+  },
+  
   // Logout
   logout: async () => {
     try {
