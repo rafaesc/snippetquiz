@@ -2,7 +2,10 @@ import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 import logger from 'morgan';
 import cors from 'cors';
+import passport from 'passport';
+import cookieParser from 'cookie-parser';
 dotenv.load();
+import authRoutes from './routes/auth';
 import router from './routes';
 
 const app = express();
@@ -28,10 +31,15 @@ app.use(cors(corsOptions));
 app.use(logger('dev'));
 //app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use(cookieParser()); // Add this line to parse cookies
 
 const port = process.env.PORT || 3001;
 
+app.use(passport.initialize());
+
 app.use('/', router);
+
+app.use('/api/auth', authRoutes);
 
 // Catch 404 and forward to error handler
 app.use(function (req, res, next) {

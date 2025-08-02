@@ -1,21 +1,62 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { auth0 } from "../../lib/auth0";
+import { apiService, tokenService } from "@/lib/api-service";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-async function DashboardLayout({
+function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Get the user session from Auth0
-  const session  = await auth0.getSession();
-  
-  // If there's no user or there's an error, redirect to login
-  if (!session) {
-    redirect("/auth/login");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const userProfile = await apiService.getUserProfile();
+        setUser(userProfile);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Authentication check failed:', error);
+        setIsAuthenticated(false);
+        router.push('/auth/login');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Clear tokens anyway and redirect
+      router.push('/auth/login');
+    }
+  };
+
+  // Show loading while checking authentication
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
+  // If not authenticated, the useEffect will redirect
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -26,7 +67,7 @@ async function DashboardLayout({
             <Image
               className="dark:invert"
               src="/next.svg"
-              alt="LinkWrite logo"
+              alt="QuizMaster logo"
               width={100}
               height={20}
               priority
@@ -54,22 +95,27 @@ async function DashboardLayout({
               Settings
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-sm">{session.user.name || session.user.email}</span>
-              <Link 
-                href="/auth/logout" 
-                className="text-sm hover:text-gray-600 dark:hover:text-gray-300"
+              {user && (
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Welcome, {user.name}
+                </span>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout}
               >
                 Logout
-              </Link>
+              </Button>
             </div>
           </nav>
         </div>
       </header>
       
-      {/* Dashboard Content */}
-      <div className="flex-1 container mx-auto px-4 py-6">
+      {/* Main Content */}
+      <main className="flex-1 container mx-auto px-4 py-6">
         {children}
-      </div>
+      </main>
     </div>
   );
 }

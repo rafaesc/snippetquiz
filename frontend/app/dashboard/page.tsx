@@ -4,18 +4,7 @@ import Link from "next/link";
 import { useQuery } from '@tanstack/react-query';
 import { apiService } from '../../lib/api-service';
 
-function Dashboard() {
-  // Query for dashboard data
-  const { 
-    data: dashboardData, 
-    isLoading: isDashboardLoading, 
-    error: dashboardError 
-  } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: apiService.getDashboardData,
-  });
-
-  // Query for user profile (optional, only if user is authenticated)
+function Dashboard() {  // Query for user profile (optional, only if user is authenticated)
   const { 
     data: userProfile, 
     isLoading: isProfileLoading, 
@@ -23,34 +12,7 @@ function Dashboard() {
   } = useQuery({
     queryKey: ['userProfile'],
     queryFn: apiService.getUserProfile,
-    enabled: dashboardData?.isAuthenticated || false, // Only fetch if authenticated
   });
-
-  if (isDashboardLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-        </div>
-        <div className="text-center py-8">
-          <p>Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (dashboardError) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-        </div>
-        <div className="text-center py-8 text-red-500">
-          <p>Error loading dashboard: {dashboardError.message}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -67,21 +29,21 @@ function Dashboard() {
       {/* Display backend data */}
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
         <h2 className="text-lg font-medium mb-2">Backend Status</h2>
-        <p className="text-sm">Title: {dashboardData?.title}</p>
-        <p className="text-sm">Authentication Status: {dashboardData?.isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</p>
+        <p className="text-sm">Title: </p>
+        <p className="text-sm">Authentication Status: </p>
         
-        {dashboardData?.isAuthenticated && userProfile && (
+        {userProfile && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded">
             <h3 className="font-medium">User Profile:</h3>
             <pre className="text-xs mt-2 overflow-auto">{JSON.stringify(userProfile, null, 2)}</pre>
           </div>
         )}
         
-        {dashboardData?.isAuthenticated && isProfileLoading && (
+        {isProfileLoading && (
           <p className="text-sm mt-2">Loading profile...</p>
         )}
         
-        {dashboardData?.isAuthenticated && profileError && (
+        {profileError && (
           <p className="text-sm mt-2 text-red-500">Profile error: {profileError.message}</p>
         )}
       </div>
