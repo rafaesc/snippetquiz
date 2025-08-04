@@ -7,7 +7,7 @@ Model.knex(knex);
 
 export interface AiTopicData {
   id?: number;
-  user_id?: string;
+  user_id: string;
   topic: string;
   created_at?: Date;
 }
@@ -22,7 +22,7 @@ export class AiTopic extends Model {
   }
 
   id!: number;
-  user_id?: string;
+  user_id!: string;
   topic!: string;
   created_at!: Date;
 
@@ -33,7 +33,7 @@ export class AiTopic extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['topic'],
+      required: ['user_id', 'topic'],
       properties: {
         id: { type: 'integer' },
         user_id: { type: 'string' },

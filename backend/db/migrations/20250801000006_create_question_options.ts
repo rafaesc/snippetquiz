@@ -5,6 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     table.bigIncrements('id').primary();
     table.bigInteger('question_id').notNullable();
     table.text('option_text').notNullable();
+    table.text('option_explanation').notNullable();
     table.boolean('is_correct').notNullable().defaultTo(false);
     
     table.foreign('question_id').references('id').inTable('questions').onDelete('CASCADE').onUpdate('CASCADE');

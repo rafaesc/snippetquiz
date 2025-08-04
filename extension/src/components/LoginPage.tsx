@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -199,12 +199,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
                   </Button>
-                  <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-center text-gray-600 ">
                     Don't have an account?{" "}
                     <button
                       type="button"
                       onClick={() => setActiveTab("register")}
-                      className="text-blue-600 hover:underline dark:text-blue-400"
+                      className="text-blue-600 hover:underline "
                     >
                       Sign up
                     </button>
@@ -332,12 +332,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Account
                   </Button>
-                  <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-center text-gray-600 ">
                     Already have an account?{" "}
                     <button
                       type="button"
                       onClick={() => setActiveTab("login")}
-                      className="text-blue-600 hover:underline dark:text-blue-400"
+                      className="text-blue-600 hover:underline "
                     >
                       Sign in
                     </button>
