@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.text('topic').notNullable();
     table.timestamp('created_at').defaultTo(knex.fn.now());
     
-    table.foreign('user_id').references('id').inTable('users').onDelete('SET NULL').onUpdate('CASCADE');
+    table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE');
   });
 }
 

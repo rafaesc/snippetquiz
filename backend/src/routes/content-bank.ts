@@ -21,14 +21,25 @@ export const contentBankLimiter = createUserSpecificLimiter(
   20 // 20 operations per user
 );
 
-// GET route to retrieve user's content banks
+// GET route to retrieve user's content banks with pagination
 router.get('/', authenticateJWT, async function (req: Request, res: Response, next: NextFunction) {
   try {
-    // Fetch user's content banks using the correct method name
-    const contentBanks = await ContentBank.findByUserId((req.user as any).id);
+    const { page = 1, limit = 10 } = req.query;
+    const userId = (req.user as any).id;
+
+    // Fetch user's content banks with pagination
+    const contentBanks = await ContentBank.query()
+      .where('user_id', userId)
+      .orderBy('created_at', 'desc')
+      .page(Number(page) - 1, Number(limit));
 
     res.status(200).json({
-      contentBanks: contentBanks
+      contentBanks: contentBanks.results,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: contentBanks.total
+      }
     });
   } catch (error) {
     console.error('Error fetching content banks:', error);
@@ -40,7 +51,6 @@ router.get('/', authenticateJWT, async function (req: Request, res: Response, ne
 router.post('/', authenticateJWT, contentBankLimiter, async function (req: Request<{}, {}, CreateContentBankRequest>, res: Response, next: NextFunction) {
   try {
     const { name } = req.body;
-    const user = req.user!;
 
     // Validation
     if (!name || name.trim().length === 0) {

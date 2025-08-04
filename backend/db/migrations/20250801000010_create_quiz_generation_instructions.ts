@@ -7,7 +7,6 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('user_id').nullable();
     table.timestamp('updated_at').defaultTo(knex.fn.now());
     
-    
     table.foreign('user_id').references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE');
   });
 }

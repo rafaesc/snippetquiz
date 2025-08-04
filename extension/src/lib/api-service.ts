@@ -51,6 +51,98 @@ export const apiService = {
     
     return response.json();
   },
+
+  // Content Bank CRUD operations
+  contentBank: {
+    // Get all content banks for the user
+    getAll: async (): Promise<{ contentBanks: ContentBank[] }> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-bank`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch content banks');
+      }
+      
+      return response.json();
+    },
+
+    // Create a new content bank
+    create: async (name: string): Promise<ContentBank> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-bank`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create content bank');
+      }
+      
+      return response.json();
+    },
+
+    // Update/rename a content bank
+    update: async (id: number, name: string): Promise<ContentBank> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-bank/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update content bank');
+      }
+      
+      return response.json();
+    },
+
+    // Delete a content bank
+    delete: async (id: number): Promise<{ message: string }> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-bank/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete content bank');
+      }
+      
+      return response.json();
+    },
+  },
+
+  // Content Entry CRUD operations
+  contentEntry: {
+    // Create a new content entry
+    create: async (data: CreateContentEntryRequest): Promise<ContentEntry> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-entry`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create content entry');
+      }
+      
+      return response.json();
+    },
+  },
 };
 
 
@@ -70,4 +162,28 @@ export interface UserProfile {
   created_date: string;
   verified: boolean;
   banks: ContentBank[];
+}
+
+// Additional type definitions for the new services
+export type ContentType = 'selected_text' | 'full_html';
+
+export interface ContentEntry {
+  id: number;
+  bank_id: number;
+  content_type: ContentType;
+  content?: string;
+  bucket_object_url?: string;
+  source_url?: string;
+  page_title?: string;
+  created_at: string;
+  prompt_summary?: string;
+  ai_topic_id?: number;
+}
+
+export interface CreateContentEntryRequest {
+  sourceUrl?: string;
+  content?: string;
+  type: ContentType;
+  pageTitle?: string;
+  bankId: number;
 }

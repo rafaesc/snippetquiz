@@ -1,6 +1,6 @@
 import { Model, RelationMappings } from 'objection';
 import knex from '../db';
-import QuizCompletion from './QuizCompletion';
+import Quiz from './Quiz';
 import Question from './Question';
 import QuestionOption from './QuestionOption';
 
@@ -8,11 +8,11 @@ Model.knex(knex);
 
 export interface QuestionResponseData {
   id?: number;
-  completion_id: number;
-  question_id: number;
+  quiz_id: number;
+  question_id?: number;
+  selected_option_id?: number;
   is_correct: boolean;
   response_time: string; // interval as string
-  selected_option_id?: number;
 }
 
 export class QuestionResponse extends Model {
@@ -25,40 +25,40 @@ export class QuestionResponse extends Model {
   }
 
   id!: number;
-  completion_id!: number;
-  question_id!: number;
+  quiz_id!: number;
+  question_id?: number;
+  selected_option_id?: number;
   is_correct!: boolean;
   response_time!: string;
-  selected_option_id?: number;
 
   // Relations
-  completion?: QuizCompletion;
+  quiz?: Quiz;
   question?: Question;
   selectedOption?: QuestionOption;
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['completion_id', 'question_id', 'is_correct', 'response_time'],
+      required: ['quiz_id', 'is_correct', 'response_time'], // Updated required fields
       properties: {
         id: { type: 'integer' },
-        completion_id: { type: 'integer' },
+        quiz_id: { type: 'integer' },
         question_id: { type: 'integer' },
+        selected_option_id: { type: 'integer' },
         is_correct: { type: 'boolean' },
-        response_time: { type: 'string' },
-        selected_option_id: { type: 'integer' }
+        response_time: { type: 'string' }
       }
     };
   }
 
   static get relationMappings(): RelationMappings {
     return {
-      completion: {
+      quiz: { // Changed from completion to quiz
         relation: Model.BelongsToOneRelation,
-        modelClass: QuizCompletion,
+        modelClass: Quiz,
         join: {
-          from: 'question_responses.completion_id',
-          to: 'quiz_completions.id'
+          from: 'question_responses.quiz_id',
+          to: 'quizzes.id'
         }
       },
       question: {
@@ -84,8 +84,8 @@ export class QuestionResponse extends Model {
     return this.query().insert(data);
   }
 
-  static async findByCompletionId(completionId: number): Promise<QuestionResponse[]> {
-    return this.query().where('completion_id', completionId);
+  static async findByQuizId(quizId: number): Promise<QuestionResponse[]> {
+    return this.query().where('quiz_id', quizId);
   }
 }
 

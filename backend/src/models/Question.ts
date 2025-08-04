@@ -8,8 +8,7 @@ Model.knex(knex);
 
 export interface QuestionData {
   id?: number;
-  prompt: string;
-  explanation?: string;
+  content: string;
   source_content_id?: number;
   created_at?: Date;
 }
@@ -24,8 +23,7 @@ export class Question extends Model {
   }
 
   id!: number;
-  prompt!: string;
-  explanation?: string;
+  content!: string;
   source_content_id?: number;
   created_at!: Date;
 
@@ -37,11 +35,10 @@ export class Question extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['prompt'],
+      required: ['content'],
       properties: {
         id: { type: 'integer' },
-        prompt: { type: 'string', minLength: 1 },
-        explanation: { type: 'string' },
+        content: { type: 'string', minLength: 1 },
         source_content_id: { type: 'integer' },
         created_at: { type: 'string', format: 'date-time' }
       }

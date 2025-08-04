@@ -2,16 +2,16 @@ import { Model, RelationMappings } from 'objection';
 import knex from '../db';
 import ContentBank from './ContentBank';
 import User from './User';
-import QuizCompletion from './QuizCompletion';
-import QuizContentEntry from './QuizContentEntry';
 
 Model.knex(knex);
 
 export interface QuizData {
   id?: number;
-  bank_id: number;
+  bank_id?: number;
+  bank_name?: string;
   created_at?: Date;
   content_entries_count?: number;
+  completed_at?: Date;
   user_id?: string;
 }
 
@@ -25,26 +25,28 @@ export class Quiz extends Model {
   }
 
   id!: number;
-  bank_id!: number;
+  bank_id?: number;
+  bank_name?: string;
   created_at!: Date;
   content_entries_count!: number;
+  completed_at?: Date;
   user_id?: string;
 
   // Relations
   contentBank?: ContentBank;
   user?: User;
-  completions?: QuizCompletion[];
-  quizContentEntries?: QuizContentEntry[];
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['bank_id'],
+      required: [],
       properties: {
         id: { type: 'integer' },
         bank_id: { type: 'integer' },
+        bank_name: { type: 'string' },
         created_at: { type: 'string', format: 'date-time' },
         content_entries_count: { type: 'integer', minimum: 0 },
+        completed_at: { type: 'string', format: 'date-time' },
         user_id: { type: 'string' }
       }
     };
@@ -68,22 +70,6 @@ export class Quiz extends Model {
           to: 'users.id'
         }
       },
-      completions: {
-        relation: Model.HasManyRelation,
-        modelClass: QuizCompletion,
-        join: {
-          from: 'quizzes.id',
-          to: 'quiz_completions.quiz_id'
-        }
-      },
-      quizContentEntries: {
-        relation: Model.HasManyRelation,
-        modelClass: QuizContentEntry,
-        join: {
-          from: 'quizzes.id',
-          to: 'quiz_content_entries.quiz_id'
-        }
-      }
     };
   }
 

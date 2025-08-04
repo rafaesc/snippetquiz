@@ -25,26 +25,26 @@ function Dashboard() {
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
                     <header className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-bold text-gray-900">
                             QuizMaster Extension
                         </h1>
-                        <p className="mt-2 text-gray-600 dark:text-gray-400">
+                        <p className="mt-2 text-gray-600 ">
                             Welcome back! You are successfully logged in.
                         </p>
                     </header>
 
                     {userProfile && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                        <div className="bg-white  rounded-lg shadow p-6 mb-6">
                             <h2 className="text-xl font-semibold mb-4">User Profile</h2>
-                            <pre className="text-sm bg-gray-100 dark:bg-gray-700 p-4 rounded overflow-auto">
+                            <pre className="text-sm bg-gray-100  p-4 rounded overflow-auto">
                                 {JSON.stringify(userProfile, null, 2)}
                             </pre>
                         </div>
                     )}
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="bg-white  rounded-lg shadow p-6">
                         <h2 className="text-xl font-semibold mb-4">Extension Features</h2>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-gray-600 ">
                             Your extension content will go here. You can now build features that require authentication.
                         </p>
                     </div>

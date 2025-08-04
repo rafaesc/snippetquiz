@@ -9,6 +9,7 @@ export interface QuestionOptionData {
   id?: number;
   question_id: number;
   option_text: string;
+  option_explanation: string;
   is_correct?: boolean;
 }
 
@@ -24,6 +25,7 @@ export class QuestionOption extends Model {
   id!: number;
   question_id!: number;
   option_text!: string;
+  option_explanation!: string;
   is_correct!: boolean;
 
   // Relations
@@ -33,11 +35,12 @@ export class QuestionOption extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['question_id', 'option_text'],
+      required: ['question_id', 'option_text', 'option_explanation'],
       properties: {
         id: { type: 'integer' },
         question_id: { type: 'integer' },
         option_text: { type: 'string', minLength: 1 },
+        option_explanation: { type: 'string', minLength: 1 },
         is_correct: { type: 'boolean' }
       }
     };
