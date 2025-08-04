@@ -44,9 +44,7 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.16.3",
-    "redis": "^5.7.0",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "redis": "^5.7.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
