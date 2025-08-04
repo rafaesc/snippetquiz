@@ -22,7 +22,7 @@ export const sourceCreationLimiter = createUserSpecificLimiter(
 );
 
 // POST route to create a new source
-router.post('/sources', authenticateJWT, sourceCreationLimiter, async function (req: Request<{}, {}, CreateSourceRequest>, res: Response, next: NextFunction) {
+router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Request<{}, {}, CreateSourceRequest>, res: Response, next: NextFunction) {
   try {
     const { sourceUrl, content, type, pageTitle, bankId } = req.body;
     const user = req.user!; // getUserMiddleware ensures user exists
@@ -83,17 +83,4 @@ router.post('/sources', authenticateJWT, sourceCreationLimiter, async function (
   }
 });
 
-// GET route to retrieve user's collections
-router.get('/content-bank', async function (req: Request, res: Response, next: NextFunction) {
-  try {
-    // Fetch user's collections using the correct method name
-    const contentBanks = await ContentBank.findByUserId((req.user as any).id);
-
-    res.status(200).json({
-      contentBanks: contentBanks
-    });
-  } catch (error) {
-    console.error('Error fetching content banks:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+export default router;

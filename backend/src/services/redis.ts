@@ -14,7 +14,7 @@ class RedisService {
     });
 
     this.client.on('error', (err) => {
-      console.error('Redis Client Error:', err);
+      console.error('Redis Client Error:', process.env.REDIS_HOST, process.env.REDIS_PORT, err);
     });
 
     this.client.on('connect', () => {

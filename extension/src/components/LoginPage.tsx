@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -35,6 +35,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 interface LoginPageProps {
   onLoginSuccess: () => void;
 }
+
+
 
 export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [activeTab, setActiveTab] = useState("login");
@@ -80,7 +82,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: ({ name, email, password }: Omit<RegisterFormData, 'confirmPassword'>) => 
+    mutationFn: ({ name, email, password }: Omit<RegisterFormData, 'confirmPassword'>) =>
       apiService.register(name, email, password),
     onSuccess: () => {
       toast({
@@ -120,7 +122,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             Your intelligent quiz companion
           </p>
         </div>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
@@ -143,7 +145,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <Input

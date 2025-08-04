@@ -40,7 +40,7 @@ export const apiService = {
   },
   
   // Get user profile
-  getUserProfile: async () => {
+  getUserProfile: async (): Promise<UserProfile> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
       credentials: 'include',
     });
@@ -52,3 +52,22 @@ export const apiService = {
     return response.json();
   },
 };
+
+
+// Type definitions for API responses
+export interface ContentBank {
+  id: number;
+  user_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  created_date: string;
+  verified: boolean;
+  banks: ContentBank[];
+}
