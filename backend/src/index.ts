@@ -5,10 +5,15 @@ import cors from 'cors';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 dotenv.load();
+
 import authRoutes from './routes/auth';
+import contentBankRoutes from './routes/content-bank';
+import contentEntryRoutes from './routes/content-entry';
+
 import router from './routes';
 import { redisService } from './services/redis';
 import { generalLimiter } from './middleware/rateLimiter';
+import { setupSwagger } from './swagger';
 
 const app = express();
 
@@ -45,9 +50,14 @@ redisService.connect().catch(console.error);
 
 app.use(passport.initialize());
 
+// Setup Swagger documentation
+setupSwagger(app);
+
 app.use('/', router);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/content-bank', contentBankRoutes);
+app.use('/api/content-entry', contentEntryRoutes);
 
 // Catch 404 and forward to error handler
 app.use(function (req, res, next) {

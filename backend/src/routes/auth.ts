@@ -30,9 +30,9 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((error, success) => {
     if (error) {
-        console.log(error)
+        console.log("Email transporter verification error:", process.env.EMAIL_USERNAME, process.env.EMAIL_PASSWORD, error)
     } else {
-        console.log("Server is ready to take messages")
+        console.log("Email transporter is ready to take messages")
     }
 })
 

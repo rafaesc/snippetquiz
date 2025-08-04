@@ -1,31 +1,14 @@
 version: '3.8'
 services:
   db:
-    image: postgres:15
-    container_name: local_postgres
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: devdb
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d devdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    volumes: 
-      - ./local/db:/var/lib/postgresql/data
+    extends:
+      file: docker-compose.persistent.yml
+      service: db
   
   cache:
-    image: redis:6.2-alpine
-    restart: always
-    ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass redispass
-    volumes: 
-      - ./local/cache:/data
+    extends:
+      file: docker-compose.persistent.yml
+      service: cache
 
   backend:
     build: 
@@ -51,3 +34,7 @@ services:
       - .env:/usr/src/backend/.env
       - /usr/src/backend/node_modules
     command: npm run dev
+
+networks:
+  default: 
+    name: quizmaster

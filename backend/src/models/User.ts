@@ -80,7 +80,6 @@ export class User extends Model {
   // Password hashing method
   private async hashPassword(password: string): Promise<string> {
     const saltRounds = 12;
-    console.log("hash", password)
     return bcrypt.hash(password, saltRounds);
   }
 
@@ -89,7 +88,6 @@ export class User extends Model {
     if (!this.password) {
       return false;
     }
-    console.log("compare", password)
     return bcrypt.compare(password, this.password);
   }
 

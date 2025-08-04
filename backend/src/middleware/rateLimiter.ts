@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response } from 'express';
 
 // General API rate limiter
@@ -57,9 +57,9 @@ export const createUserSpecificLimiter = (windowMs: number, max: number) => {
     windowMs,
     max,
     keyGenerator: (req: Request): string => {
-      // Use user ID if authenticated, otherwise fall back to IP
+      // Use user ID if authenticated, otherwise fall back to IP with proper IPv6 handling
       const user = (req as any).user;
-      return user ? `user_${user.id}` : req.ip || 'unknown';
+      return user ? `user_${user.id}` : ipKeyGenerator(req.ip || 'unknown');
     },
     message: {
       error: 'Too many requests, please try again later.',
