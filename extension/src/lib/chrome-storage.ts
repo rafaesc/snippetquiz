@@ -176,15 +176,6 @@ export const chromeStorage = {
     getBytesInUse: (keys?: string | string[] | null) => ChromeStorage.getBytesInUse(keys, 'local'),
   },
   
-  // Sync storage shortcuts
-  sync: {
-    get: <T = any>(keys?: string | string[] | null) => ChromeStorage.get<T>(keys, 'sync'),
-    set: (data: StorageData) => ChromeStorage.set(data, 'sync'),
-    remove: (keys: string | string[]) => ChromeStorage.remove(keys, 'sync'),
-    clear: () => ChromeStorage.clear('sync'),
-    getBytesInUse: (keys?: string | string[] | null) => ChromeStorage.getBytesInUse(keys, 'sync'),
-  },
-  
   // Change listeners
   addChangeListener: ChromeStorage.addChangeListener,
   removeChangeListener: ChromeStorage.removeChangeListener,

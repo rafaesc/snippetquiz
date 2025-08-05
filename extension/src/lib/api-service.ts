@@ -55,8 +55,8 @@ export const apiService = {
   // Content Bank CRUD operations
   contentBank: {
     // Get all content banks for the user
-    getAll: async (): Promise<{ contentBanks: ContentBank[] }> => {
-      const response = await fetch(`${API_BASE_URL}/api/content-bank`, {
+    getAll: async (page: number = 1, limit: number = 10): Promise<{ contentBanks: ContentBank[], pagination: { page: number, limit: number, total: number } }> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-bank?page=${page}&limit=${limit}`, {
         credentials: 'include',
       });
       
@@ -88,7 +88,7 @@ export const apiService = {
     },
 
     // Update/rename a content bank
-    update: async (id: number, name: string): Promise<ContentBank> => {
+    update: async (id: string, name: string): Promise<ContentBank> => {
       const response = await fetch(`${API_BASE_URL}/api/content-bank/${id}`, {
         method: 'PUT',
         headers: {
@@ -107,7 +107,7 @@ export const apiService = {
     },
 
     // Delete a content bank
-    delete: async (id: number): Promise<{ message: string }> => {
+    delete: async (id: string): Promise<{ message: string }> => {
       const response = await fetch(`${API_BASE_URL}/api/content-bank/${id}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -124,6 +124,34 @@ export const apiService = {
 
   // Content Entry CRUD operations
   contentEntry: {
+    // Get all content entries for a specific bank
+    getByBank: async (bankId: string, page: number = 1, limit: number = 10): Promise<{ entries: ContentEntry[], pagination: { page: number, limit: number, total: number } }> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-entry/bank/${bankId}?page=${page}&limit=${limit}`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch content entries');
+      }
+      
+      return response.json();
+    },
+
+    // Get a single content entry by ID
+    getById: async (id: number): Promise<ContentEntry> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-entry/${id}`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch content entry');
+      }
+      
+      return response.json();
+    },
+
     // Create a new content entry
     create: async (data: CreateContentEntryRequest): Promise<ContentEntry> => {
       const response = await fetch(`${API_BASE_URL}/api/content-entry`, {
@@ -142,13 +170,28 @@ export const apiService = {
       
       return response.json();
     },
+
+    // Delete a content entry
+    delete: async (id: number): Promise<{ message: string }> => {
+      const response = await fetch(`${API_BASE_URL}/api/content-entry/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete content entry');
+      }
+      
+      return response.json();
+    },
   },
 };
 
 
 // Type definitions for API responses
 export interface ContentBank {
-  id: number;
+  id: string;
   user_id: string;
   name: string;
   created_at: string;
@@ -169,15 +212,13 @@ export type ContentType = 'selected_text' | 'full_html';
 
 export interface ContentEntry {
   id: number;
-  bank_id: number;
-  content_type: ContentType;
+  bankId?: number;
+  contentType: ContentType;
   content?: string;
-  bucket_object_url?: string;
-  source_url?: string;
-  page_title?: string;
-  created_at: string;
-  prompt_summary?: string;
-  ai_topic_id?: number;
+  sourceUrl?: string;
+  pageTitle?: string;
+  createdAt: string;
+  aiTopicId?: number;
 }
 
 export interface CreateContentEntryRequest {
