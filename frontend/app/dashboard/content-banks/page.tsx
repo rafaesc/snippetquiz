@@ -402,13 +402,6 @@ export default function ContentBanks() {
         />
       </div>
 
-      {/* Loading state */}
-      {banksLoading && (
-        <div className="flex justify-center py-8">
-          <div className="text-muted-foreground">Loading content banks...</div>
-        </div>
-      )}
-
       {/* Error state */}
       {banksError && (
         <div className="flex justify-center py-8">
@@ -417,7 +410,7 @@ export default function ContentBanks() {
       )}
 
       {/* Banks Grid */}
-      {!banksLoading && !banksError && (
+      {!banksError && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentBanks.map((bank) => (
             <Card key={bank.id} className="hover:shadow-md transition-shadow">
