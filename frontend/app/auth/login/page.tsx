@@ -65,7 +65,7 @@ export default function AuthPage() {
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: ({ email, password }: LoginFormData) => 
+    mutationFn: ({ email, password }: LoginFormData) =>
       apiService.login(email, password),
     onSuccess: (data) => {
       // Check if verification is required
@@ -80,7 +80,7 @@ export default function AuthPage() {
         router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
         return;
       }
-      
+
       // Normal successful login
       toast({
         title: "Success!",
@@ -99,7 +99,7 @@ export default function AuthPage() {
 
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: ({ name, email, password }: Omit<RegisterFormData, 'confirmPassword'>) => 
+    mutationFn: ({ name, email, password }: Omit<RegisterFormData, 'confirmPassword'>) =>
       apiService.register(name, email, password),
     onSuccess: () => {
       toast({
@@ -132,239 +132,210 @@ export default function AuthPage() {
   const error = loginMutation.error?.message || registerMutation.error?.message;
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="register">Register</TabsTrigger>
-        </TabsList>
+    <Card className="shadow-elegant dark:shadow-none">
+      <CardHeader className="text-center pb-6">
+        <CardTitle className="text-2xl font-display font-bold">Welcome to QuizMaster</CardTitle>
+        <CardDescription>
+          Sign in to your account or create a new one to get started
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login" className="transition-all duration-200">Login</TabsTrigger>
+            <TabsTrigger value="register" className="transition-all duration-200">Register</TabsTrigger>
+          </TabsList>
 
-        {/* Login Tab */}
-        <TabsContent value="login">
-          <Card>
-            <CardHeader>
-              <CardTitle>Welcome back</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your account
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={loginForm.handleSubmit(onLogin)}>
-              <CardContent className="space-y-4">
-                {error && activeTab === "login" && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    {...loginForm.register("email")}
-                    disabled={isLoading}
-                  />
-                  {loginForm.formState.errors.email && (
-                    <p className="text-sm text-red-500">
-                      {loginForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
+          {/* Login Tab */}
+          <TabsContent value="login" className="space-y-4">
+            <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+              {error && activeTab === "login" && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="login-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      {...loginForm.register("password")}
-                      disabled={isLoading}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  {loginForm.formState.errors.password && (
-                    <p className="text-sm text-red-500">
-                      {loginForm.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+              <div className="space-y-2">
+                <Label htmlFor="login-email">Email</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  {...loginForm.register("email")}
                   disabled={isLoading}
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Sign In
-                </Button>
-                <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-                  Don't have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("register")}
-                    className="text-blue-600 hover:underline dark:text-blue-400"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </CardFooter>
-            </form>
-          </Card>
-        </TabsContent>
-
-        {/* Register Tab */}
-        <TabsContent value="register">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create an account</CardTitle>
-              <CardDescription>
-                Enter your information to get started
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={registerForm.handleSubmit(onRegister)}>
-              <CardContent className="space-y-4">
-                {error && activeTab === "register" && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+                />
+                {loginForm.formState.errors.email && (
+                  <p className="text-sm text-red-500">
+                    {loginForm.formState.errors.email.message}
+                  </p>
                 )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="register-name">Full Name</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <div className="relative">
                   <Input
-                    id="register-name"
-                    type="text"
-                    placeholder="Enter your full name"
-                    {...registerForm.register("name")}
+                    id="login-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    {...loginForm.register("password")}
                     disabled={isLoading}
                   />
-                  {registerForm.formState.errors.name && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.name.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    {...registerForm.register("email")}
-                    disabled={isLoading}
-                  />
-                  {registerForm.formState.errors.email && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="register-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
-                      {...registerForm.register("password")}
-                      disabled={isLoading}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  {registerForm.formState.errors.password && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="register-confirm-password">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="register-confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
-                      {...registerForm.register("confirmPassword")}
-                      disabled={isLoading}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      disabled={isLoading}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  {registerForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.confirmPassword.message}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading}
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Account
-                </Button>
-                <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-                  Already have an account?{" "}
-                  <button
+                  <Button
                     type="button"
-                    onClick={() => setActiveTab("login")}
-                    className="text-blue-600 hover:underline dark:text-blue-400"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
-                    Sign in
-                  </button>
-                </p>
-              </CardFooter>
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {loginForm.formState.errors.password && (
+                  <p className="text-sm text-red-500">
+                    {loginForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="text-right">
+                <button type="button" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                  Forgot Password?
+                </button>
+              </div>
+
+
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
             </form>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsContent>
+
+          {/* Register Tab */}
+          <TabsContent value="register" className="space-y-4">
+            <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+
+              {error && activeTab === "register" && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="register-name">Full Name</Label>
+                <Input
+                  id="register-name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  {...registerForm.register("name")}
+                  disabled={isLoading}
+                />
+                {registerForm.formState.errors.name && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="register-email">Email</Label>
+                <Input
+                  id="register-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  {...registerForm.register("email")}
+                  disabled={isLoading}
+                />
+                {registerForm.formState.errors.email && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="register-password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="register-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    {...registerForm.register("password")}
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {registerForm.formState.errors.password && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="register-confirm-password">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="register-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    {...registerForm.register("confirmPassword")}
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {registerForm.formState.errors.confirmPassword && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                disabled={isLoading}
+              >
+                {isLoading ? "Creating account..." : "Create Account"}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }
