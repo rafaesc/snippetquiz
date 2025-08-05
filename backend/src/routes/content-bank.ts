@@ -32,22 +32,33 @@ router.get('/', authenticateJWT, async function (req: Request, res: Response, ne
     const { page = 1, limit = 10, name } = req.query;
     const userId = (req.user as any).id;
 
-    // Build query for user's content banks
+    // Build query for user's content banks with entry count
     let query = ContentBank.query()
-      .where('user_id', userId);
+      .select('content_banks.*')
+      .leftJoin('content_entries_bank', 'content_banks.id', 'content_entries_bank.content_bank_id')
+      .groupBy('content_banks.id')
+      .count('content_entries_bank.content_entry_id as entry_count')
+      .where('content_banks.user_id', userId);
 
     // Add name filter if provided
     if (name && typeof name === 'string') {
-      query = query.where('name', 'ilike', `%${name.trim()}%`);
+      query = query.where('content_banks.name', 'ilike', `%${name.trim()}%`);
     }
 
     // Fetch user's content banks with pagination
     const contentBanks = await query
-      .orderBy('created_at', 'desc')
+      .orderBy('content_banks.created_at', 'desc')
       .page(Number(page) - 1, Number(limit));
 
     res.status(200).json({
-      contentBanks: contentBanks.results,
+      contentBanks: contentBanks.results.map(bank => ({
+        id: bank.id,
+        name: bank.name,
+        user_id: bank.user_id,
+        created_at: bank.created_at,
+        updated_at: bank.updated_at,
+        entry_count: Number((bank as any).entry_count) || 0
+      })),
       pagination: {
         page: Number(page),
         limit: Number(limit),
