@@ -26,7 +26,7 @@ function DashboardLayout({
       } catch (error) {
         console.error('Authentication check failed:', error);
         setIsAuthenticated(false);
-        router.push('/auth/login');
+        redirect('/auth/login');
       }
     };
 

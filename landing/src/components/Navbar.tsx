@@ -71,7 +71,7 @@ const Navbar = () => {
               <Chrome size={16} className="mr-2" />
               Install Extension
             </a>
-            <a href={DASHBOARD_URL} target="_blank" rel="noopener noreferrer" className="bg-mustard-400 hover:bg-mustard-500 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 text-sm">
+            <a href={DASHBOARD_URL} className="bg-mustard-400 hover:bg-mustard-500 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 text-sm">
               Go to Dashboard
             </a>
           </div>
