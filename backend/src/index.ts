@@ -9,6 +9,7 @@ dotenv.load();
 import authRoutes from './routes/auth';
 import contentBankRoutes from './routes/content-bank';
 import contentEntryRoutes from './routes/content-entry';
+import instructionRoutes from './routes/instructions';
 
 import router from './routes';
 import { redisService } from './services/redis';
@@ -54,6 +55,7 @@ app.use('/', router);
 app.use('/api/auth', authRoutes);
 app.use('/api/content-bank', contentBankRoutes);
 app.use('/api/content-entry', contentEntryRoutes);
+app.use('/api/instructions', instructionRoutes);
 
 // Catch 404 and forward to error handler
 app.use(function (req, res, next) {

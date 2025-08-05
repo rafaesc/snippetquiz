@@ -1,4 +1,3 @@
-
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -12,9 +11,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -23,6 +24,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -69,6 +71,7 @@
     opacity: 0;
     transform: translateY(30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -85,32 +88,36 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
-  .button-primary, .button-secondary {
+
+  .button-primary,
+  .button-secondary {
     padding: 0.75rem 1.25rem;
     font-size: 0.875rem;
-    width: 100%; /* Full width buttons on mobile */
+    width: 100%;
+    /* Full width buttons on mobile */
   }
-  
+
   /* Enhanced padding for mobile */
   .section-container {
     padding: 1.5rem 1rem;
   }
-  
+
   /* Better touch targets for mobile */
-  .nav-link, button, a {
+  .nav-link,
+  button,
+  a {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
-  
+
   /* Adjust text sizes for mobile */
   .section-title {
     font-size: 1.75rem !important;
     line-height: 1.2 !important;
   }
-  
+
   .section-subtitle {
     font-size: 1rem !important;
   }
@@ -147,27 +154,31 @@
   .robot-image-container {
     border-radius: 16px;
   }
-  
+
   .feature-grid {
     grid-template-columns: 1fr;
   }
-  
+
   /* Optimize spacing in card layouts */
-  .card, .feature-card {
+  .card,
+  .feature-card {
     padding: 1.25rem;
   }
-  
+
   /* Better form inputs on mobile */
-  input, textarea, select {
-    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    /* Prevents iOS zoom on focus */
     padding: 0.75rem !important;
   }
-  
+
   /* Fix for mobile overflow issues */
   .overflow-hidden {
     overflow-x: hidden;
   }
-  
+
   /* Make rounded corners more subtle on mobile */
   .rounded-3xl {
     border-radius: 1rem !important;
