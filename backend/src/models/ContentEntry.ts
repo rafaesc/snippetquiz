@@ -4,7 +4,7 @@ import Question from './Question';
 
 Model.knex(knex);
 
-export type ContentType = 'selected_text' | 'full_html';
+export type ContentType = 'selected_text' | 'full_html' | 'video_transcript';
 
 export interface ContentEntryData {
   id?: number;
@@ -44,7 +44,7 @@ export class ContentEntry extends Model {
       required: ['content_type'],
       properties: {
         id: { type: 'integer' },
-        content_type: { type: 'string', enum: ['selected_text', 'full_html'] },
+        content_type: { type: 'string', enum: ['selected_text', 'full_html', 'video_transcript'] },
         content: { type: 'string' },
         source_url: { type: 'string' },
         bucket_object_url: { type: 'string' },
