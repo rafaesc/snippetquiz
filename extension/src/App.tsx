@@ -3,6 +3,7 @@ import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import { apiService } from './lib/api-service';
 import { Loader2 } from 'lucide-react';
+import Layout from './Layout';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -38,11 +39,19 @@ function App() {
 
   // Show login page if not authenticated
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <Layout>
+        <LoginPage onLoginSuccess={handleLoginSuccess} />
+      </Layout>
+    );
   }
 
   // Show dashboard if authenticated
-  return <Dashboard />;
+  return (
+    <Layout>
+      <Dashboard />
+    </Layout>
+  );
 }
 
 export default App;

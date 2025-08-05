@@ -55,7 +55,14 @@ router.get('/bank/:bankId', authenticateJWT, async function (req: Request, res: 
       .page(Number(page) - 1, Number(limit));
 
     res.json({
-      entries: contentEntries.results,
+      entries: contentEntries.results.map(entry => ({
+        id: entry.id,
+        contentType: entry.content_type,
+        content: entry.content,
+        sourceUrl: entry.source_url,
+        pageTitle: entry.page_title,
+        createdAt: entry.created_at
+      })),
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -88,11 +95,11 @@ router.get('/:id', authenticateJWT, async function (req: Request, res: Response,
 
     res.json({
       id: contentEntry.id,
-      source_url: contentEntry.source_url,
+      sourceUrl: contentEntry.source_url,
       content: contentEntry.content,
-      page_title: contentEntry.page_title,
-      content_type: contentEntry.content_type, 
-      created_at: contentEntry.created_at
+      pageTitle: contentEntry.page_title,
+      contentType: contentEntry.content_type, 
+      createdAt: contentEntry.created_at
     });
   } catch (error) {
     console.error('Error fetching content entry:', error);
@@ -149,11 +156,11 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
 
     res.status(201).json({
       id: newSource.id,
-      source_url: newSource.source_url,
+      sourceUrl: newSource.source_url,
       content: newSource.content,
-      page_title: newSource.page_title,
-      content_type: newSource.content_type,
-      created_at: newSource.created_at
+      pageTitle: newSource.page_title,
+      contentType: newSource.content_type,
+      createdAt: newSource.created_at
     });
   } catch (error) {
     console.error('Error creating source:', error);
