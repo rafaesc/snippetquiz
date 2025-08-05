@@ -7,6 +7,8 @@ import Image from "next/image";
 import { apiService, tokenService } from "@/lib/api-service";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import DashboardHeader from "@/components/DashboardHeader";
+import DashboardSidebar from "@/components/DashboardSidebar";
 
 function DashboardLayout({
   children,
@@ -47,7 +49,7 @@ function DashboardLayout({
   // Show loading while checking authentication
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -59,61 +61,15 @@ function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Dashboard Header/Navigation */}
-      <header className="border-b border-gray-200 dark:border-gray-800">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Image
-              className="dark:invert"
-              src="/next.svg"
-              alt="QuizMaster logo"
-              width={100}
-              height={20}
-              priority
-            />
-            <span className="font-semibold">Dashboard</span>
-          </Link>
-          
-          <nav className="flex items-center gap-6">
-            <Link 
-              href="/dashboard" 
-              className="text-sm hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              Overview
-            </Link>
-            <Link 
-              href="/dashboard/content" 
-              className="text-sm hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              Content
-            </Link>
-            <Link 
-              href="/dashboard/settings" 
-              className="text-sm hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              Settings
-            </Link>
-            <div className="flex items-center gap-4">
-              {user && (
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Welcome, {user.name}
-                </span>
-              )}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
-            </div>
-          </nav>
-        </div>
-      </header>
-      
+    <div className="min-h-screen bg-background">
+      <DashboardHeader />
+
+      <div className="flex">
+        <DashboardSidebar />
+      </div>
+
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <main className="flex-1 lg:ml-64 pb-16 lg:pb-0">
         {children}
       </main>
     </div>

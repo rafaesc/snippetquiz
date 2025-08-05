@@ -1,21 +1,93 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiService } from '../../../lib/api-service';
 import { useToast } from '../../../hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [globalInstructions, setGlobalInstructions] = useState('');
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  // Query to fetch existing instructions
+  const { data: instructionsData, isLoading: isLoadingInstructions } = useQuery({
+    queryKey: ['quiz-instructions'],
+    queryFn: apiService.getInstructions,
+  });
+
+  // Set instructions when data is loaded
+  useEffect(() => {
+    if (instructionsData?.instruction) {
+      setGlobalInstructions(instructionsData.instruction);
+    }
+  }, [instructionsData]);
+
+  // Mutation for saving global instructions
+  const saveInstructionsMutation = useMutation({
+    mutationFn: async (instructions: string) => {
+      return await apiService.updateInstructions(instructions);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Global instructions saved successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save instructions',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Mutation for changing password
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+      return await apiService.changePassword(currentPassword, newPassword);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Password changed successfully. Please log in again.',
+      });
+      
+      // Clear form
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      // Redirect to login after a short delay to show the success message
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 2000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to change password',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleSaveInstructions = () => {
+    if (!globalInstructions.trim()) return;
+    saveInstructionsMutation.mutate(globalInstructions);
+  };
+
+  const handleUpdatePassword = () => {
     if (newPassword !== confirmPassword) {
       toast({
         title: 'Error',
@@ -34,143 +106,100 @@ export default function Settings() {
       return;
     }
     
-    setIsChangingPassword(true);
-    
-    try {
-      await apiService.changePassword(currentPassword, newPassword);
-      toast({
-        title: 'Success',
-        description: 'Password changed successfully. Please log in again.',
-      });
-      
-      // Clear form
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      
-      // Redirect to login after a short delay to show the success message
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 2000);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to change password',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsChangingPassword(false);
-    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
-      
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 shadow-sm">
-        <h2 className="text-lg font-medium mb-4">Account Settings</h2>
-        
-        <form className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
-            <input 
-              type="text" 
-              id="name" 
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              placeholder="Your name"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              placeholder="your.email@example.com"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium mb-1">Bio</label>
-            <textarea 
-              id="bio" 
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              placeholder="Tell us about yourself"
-            ></textarea>
-          </div>
-          
-          <button 
-            type="submit"
-            className="rounded-full bg-foreground text-background px-4 py-2 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-          >
-            Save Changes
-          </button>
-        </form>
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight dark:text-white">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
       </div>
 
+      {/* Global Quiz Instructions Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Global Quiz Instructions</CardTitle>
+          <CardDescription>
+            Set account-level AI prompts that will be used for all quiz generation.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="instructions">Instructions</Label>
+            <Textarea
+              id="instructions"
+              placeholder="Enter your default instructions for quiz generation..."
+              value={globalInstructions}
+              onChange={(e) => setGlobalInstructions(e.target.value)}
+              className="min-h-[120px]"
+              disabled={isLoadingInstructions}
+            />
+            <p className="text-sm text-muted-foreground">
+              These instructions will apply to all quizzes you generate.
+            </p>
+          </div>
+          <Button
+            onClick={handleSaveInstructions}
+            disabled={saveInstructionsMutation.isPending || !globalInstructions.trim() || isLoadingInstructions}
+          >
+            {saveInstructionsMutation.isPending ? "Saving..." : "Use for all future quizzes"}
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Change Password Section */}
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 shadow-sm">
-        <h2 className="text-lg font-medium mb-4">Change Password</h2>
-        
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
-              Current Password
-            </label>
-            <input 
-              type="password" 
-              id="currentPassword" 
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+          <CardDescription>
+            Update your account password for enhanced security.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="current-password">Current Password</Label>
+            <Input
+              id="current-password"
+              type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              placeholder="Enter your current password"
-              required
+              placeholder="Enter current password"
             />
           </div>
           
-          <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
-              New Password
-            </label>
-            <input 
-              type="password" 
-              id="newPassword" 
+          <div className="space-y-2">
+            <Label htmlFor="new-password">New Password</Label>
+            <Input
+              id="new-password"
+              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              placeholder="Enter your new password"
-              minLength={6}
-              required
+              placeholder="Enter new password"
             />
           </div>
           
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-              Confirm New Password
-            </label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
+          <div className="space-y-2">
+            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <Input
+              id="confirm-password"
+              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              placeholder="Confirm your new password"
-              minLength={6}
-              required
+              placeholder="Confirm new password"
             />
           </div>
-          
-          <button 
-            type="submit"
-            disabled={isChangingPassword}
-            className="rounded-full bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+
+          <Button
+            onClick={handleUpdatePassword}
+            disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
           >
-            {isChangingPassword ? 'Changing Password...' : 'Change Password'}
-          </button>
-        </form>
-      </div>
+            {changePasswordMutation.isPending ? "Updating..." : "Update Password"}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

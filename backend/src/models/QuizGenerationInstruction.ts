@@ -8,7 +8,7 @@ export interface QuizGenerationInstructionData {
   id?: number;
   instruction: string;
   user_id?: string;
-  updated_at?: Date;
+  updated_at?: string;
 }
 
 export class QuizGenerationInstruction extends Model {
@@ -23,7 +23,7 @@ export class QuizGenerationInstruction extends Model {
   id!: number;
   instruction!: string;
   user_id?: string;
-  updated_at!: Date;
+  updated_at!: string;
 
   // Relations
   user?: User;

@@ -31,6 +31,28 @@ export const tokenService = {
   }
 };
 
+// Helper function to make authenticated requests with automatic token refresh
+const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
+  const defaultOptions: RequestInit = {
+    credentials: 'include',
+    ...options,
+  };
+  
+  let response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
+  
+  // If token expired, try to refresh
+  if (response.status === 401) {
+    try {
+      await tokenService.refreshAccessToken();
+      response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
+    } catch (error) {
+      throw new Error('Authentication failed');
+    }
+  }
+  
+  return response;
+};
+
 export interface DashboardData {
   title: string;
   isAuthenticated: boolean;
@@ -42,25 +64,22 @@ export interface UserProfile {
   email: string;
 }
 
+export interface GetInstructionsResponse {
+  instruction: string;
+  updatedAt: string; // ISO date string
+}
+
+export interface UpdateInstructionsResponse {
+  id: number;
+  instruction: string;
+  updatedAt: string; // ISO date string
+}
+
 // API service functions
 export const apiService = {
   // Get user profile data (requires authentication)
   getUserProfile: async (): Promise<UserProfile> => {
-    let response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-      credentials: 'include', // Include cookies
-    });
-    
-    // If token expired, try to refresh
-    if (response.status === 401) {
-      try {
-        await tokenService.refreshAccessToken();
-        response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-          credentials: 'include',
-        });
-      } catch (error) {
-        throw new Error('Authentication failed');
-      }
-    }
+    const response = await makeAuthenticatedRequest('/api/auth/profile');
     
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
@@ -109,31 +128,13 @@ export const apiService = {
   
   // Change Password
   changePassword: async (currentPassword: string, newPassword: string) => {
-    let response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+    const response = await makeAuthenticatedRequest('/api/auth/change-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include',
       body: JSON.stringify({ currentPassword, newPassword }),
     });
-    
-    // If token expired, try to refresh
-    if (response.status === 401) {
-      try {
-        await tokenService.refreshAccessToken();
-        response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({ currentPassword, newPassword }),
-        });
-      } catch (error) {
-        throw new Error('Authentication failed');
-      }
-    }
     
     if (!response.ok) {
       const error = await response.json();
@@ -157,24 +158,7 @@ export const apiService = {
   
   // Generic API call with automatic token refresh
   apiCall: async (url: string, options: RequestInit = {}) => {
-    const defaultOptions: RequestInit = {
-      credentials: 'include',
-      ...options,
-    };
-    
-    let response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
-    
-    // If token expired, try to refresh
-    if (response.status === 401) {
-      try {
-        await tokenService.refreshAccessToken();
-        response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
-      } catch (error) {
-        throw new Error('Authentication failed');
-      }
-    }
-    
-    return response;
+    return makeAuthenticatedRequest(url, options);
   },
   
   // Verify email
@@ -209,6 +193,36 @@ export const apiService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to resend verification email');
+    }
+    
+    return response.json();
+  },
+
+  // Get quiz generation instructions
+  getInstructions: async (): Promise<GetInstructionsResponse> => {
+    const response = await makeAuthenticatedRequest('/api/instructions');
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch quiz generation instructions');
+    }
+    
+    return response.json();
+  },
+
+  // Update quiz generation instructions
+  updateInstructions: async (instruction: string): Promise<UpdateInstructionsResponse> => {
+    const response = await makeAuthenticatedRequest('/api/instructions', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ instruction }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update quiz generation instructions');
     }
     
     return response.json();
