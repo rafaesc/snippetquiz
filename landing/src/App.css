@@ -1,0 +1,183 @@
+
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Stacking cards effect */
+.perspective-1000 {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Improve animation performance */
+.absolute {
+  backface-visibility: hidden;
+}
+
+/* Card shadows */
+.shadow-elegant {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-elegant-hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Add new card animation */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .button-primary, .button-secondary {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    width: 100%; /* Full width buttons on mobile */
+  }
+  
+  /* Enhanced padding for mobile */
+  .section-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  /* Better touch targets for mobile */
+  .nav-link, button, a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Adjust text sizes for mobile */
+  .section-title {
+    font-size: 1.75rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem !important;
+  }
+}
+
+/* Robot Showcase Section */
+.robot-image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  transition: transform 0.5s ease;
+}
+
+.robot-image-container:hover {
+  transform: scale(1.02);
+}
+
+.feature-item {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Enhanced mobile optimizations */
+@media (max-width: 640px) {
+  .robot-image-container {
+    border-radius: 16px;
+  }
+  
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Optimize spacing in card layouts */
+  .card, .feature-card {
+    padding: 1.25rem;
+  }
+  
+  /* Better form inputs on mobile */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+    padding: 0.75rem !important;
+  }
+  
+  /* Fix for mobile overflow issues */
+  .overflow-hidden {
+    overflow-x: hidden;
+  }
+  
+  /* Make rounded corners more subtle on mobile */
+  .rounded-3xl {
+    border-radius: 1rem !important;
+  }
+}
+
+/* Disable parallax on mobile for better performance */
+@media (max-width: 768px) {
+  .parallax {
+    transform: none !important;
+    transition: none !important;
+  }
+}

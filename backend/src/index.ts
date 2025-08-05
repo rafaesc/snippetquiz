@@ -13,7 +13,6 @@ import contentEntryRoutes from './routes/content-entry';
 import router from './routes';
 import { redisService } from './services/redis';
 import { generalLimiter } from './middleware/rateLimiter';
-import { setupSwagger } from './swagger';
 
 const app = express();
 
@@ -43,15 +42,12 @@ app.use(logger('dev'));
 app.use(express.json({ limit: '40kb' }));
 app.use(cookieParser()); // Add this line to parse cookies
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 5000;
 
 // Initialize Redis connection
 redisService.connect().catch(console.error);
 
 app.use(passport.initialize());
-
-// Setup Swagger documentation
-setupSwagger(app);
 
 app.use('/', router);
 
