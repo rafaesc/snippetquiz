@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
-      port: 3000,
+      port: 4000,
 
       open: isDev ? '/index.dev.html' : '/index.html',
     },

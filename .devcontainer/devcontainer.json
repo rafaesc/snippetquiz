@@ -27,6 +27,6 @@
     }
   },
   "updateContentCommand": "cd backend && npm install && cd ../frontend && npm install && cd ../extension && npm install",
-  "forwardPorts": [3000, 4173, 8080, 3001],
+  "forwardPorts": [3000, 4173, 8080, 5000],
   "remoteUser": "node"
 }

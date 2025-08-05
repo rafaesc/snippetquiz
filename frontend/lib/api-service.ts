@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:5000';
 
 // Token management (now using cookies instead of localStorage)
 export const tokenService = {

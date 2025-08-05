@@ -20,7 +20,7 @@ services:
       cache:
         condition: service_started
     ports:
-      - "3001:3001"
+      - "5000:5000"
     environment:
       DB_HOST: db
       DB_USER: user
