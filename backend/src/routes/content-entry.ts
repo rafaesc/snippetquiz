@@ -50,7 +50,8 @@ router.get('/bank/:bankId', authenticateJWT, async function (req: Request, res: 
     let query = ContentEntry.query()
       .select('content_entries.id', 'content_entries.content_type', 'content_entries.content', 'content_entries.source_url', 'content_entries.page_title', 'content_entries.created_at')
       .join('content_entries_bank', 'content_entries.id', 'content_entries_bank.content_entry_id')
-      .where('content_entries_bank.content_bank_id', bankId);
+      .where('content_entries_bank.content_bank_id', bankId)
+      .withGraphFetched('topics');
 
     // Add name filter if provided (search in page_title)
     if (name && typeof name === 'string') {
@@ -69,7 +70,8 @@ router.get('/bank/:bankId', authenticateJWT, async function (req: Request, res: 
         content: entry.content,
         sourceUrl: entry.source_url,
         pageTitle: entry.page_title,
-        createdAt: entry.created_at
+        createdAt: entry.created_at,
+        topics: entry.topics?.map(topic => topic.topic) || []
       })),
       pagination: {
         page: Number(page),

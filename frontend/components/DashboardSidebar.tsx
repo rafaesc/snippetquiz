@@ -25,7 +25,7 @@ const navigation = [
   },
   {
     name: 'Content Banks',
-    href: '/dashboard/content',
+    href: '/dashboard/content-banks',
     icon: Database
   },
   {

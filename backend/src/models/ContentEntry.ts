@@ -1,6 +1,7 @@
 import { Model, RelationMappings } from 'objection';
 import knex from '../db';
 import Question from './Question';
+import AiTopic from './AiTopic';
 
 Model.knex(knex);
 
@@ -37,6 +38,7 @@ export class ContentEntry extends Model {
 
   // Relations
   questions?: Question[];
+  topics?: AiTopic[];
 
   static get jsonSchema() {
     return {
@@ -63,6 +65,18 @@ export class ContentEntry extends Model {
         join: {
           from: 'content_entries.id',
           to: 'questions.source_content_id'
+        }
+      },
+      topics: {
+        relation: Model.ManyToManyRelation,
+        modelClass: AiTopic,
+        join: {
+          from: 'content_entries.id',
+          through: {
+            from: 'content_entry_topics.content_entry_id',
+            to: 'content_entry_topics.ai_topic_id'
+          },
+          to: 'ai_topics.id'
         }
       }
     };
