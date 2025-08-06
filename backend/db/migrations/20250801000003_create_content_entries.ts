@@ -11,7 +11,8 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.text('prompt_summary').nullable();
     
-    table.check('content_type in (\'selected_text\', \'full_html\')', [], 'content_entries_content_type_check');
+    table.check('content_type in (\'selected_text\', \'full_html\', \'video_transcript\')', [], 'content_entries_content_type_check');
+
   });
 }
 

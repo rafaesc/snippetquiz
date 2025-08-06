@@ -7,6 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('bank_name').nullable();
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.integer('content_entries_count').notNullable().defaultTo(0);
+    table.integer('questions_count').notNullable().defaultTo(0);
     table.timestamp('completed_at').nullable();
     table.uuid('user_id').nullable();
     
