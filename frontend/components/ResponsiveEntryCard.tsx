@@ -30,6 +30,12 @@ export const ResponsiveEntryCard: React.FC<ResponsiveEntryCardProps> = ({
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-sm leading-tight break-words">
               {entry.pageTitle}
+              {entry.contentType === 'selected_text' && (
+                <div className="text-xs text-muted-foreground">
+                  {entry.content}
+                </div>
+              )}
+
             </h3>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">

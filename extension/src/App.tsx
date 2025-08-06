@@ -28,6 +28,52 @@ function App() {
     setIsAuthenticated(true);
   };
 
+  // Add this useEffect to handle messages from background script
+  useEffect(() => {
+    const handleMessage = async (request: any, _: any, sendResponse: any) => {
+      if (request.action === 'createContentEntry') {
+        try {
+          // Get default bank ID from storage or user settings
+          const result = await chrome.storage.local.get('defaultBankId');
+          const bankId = result.defaultBankId;
+          
+          if (!bankId) {
+            sendResponse({
+              success: false,
+              error: 'No default bank ID found. Please set a default bank.'
+            });
+            return;
+          }
+          
+          // Create content entry using API service
+          const contentEntry = await apiService.contentEntry.create({
+            ...request.data,
+            bankId: bankId
+          });
+          
+          sendResponse({
+            success: true,
+            data: contentEntry
+          });
+        } catch (error) {
+          sendResponse({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+
+          });
+        }
+      }
+      
+      return true; // Keep message channel open for async response
+    };
+    
+    chrome.runtime.onMessage.addListener(handleMessage);
+    
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, []);
+
   // Show loading while checking authentication
   if (isAuthenticated === null) {
     return (

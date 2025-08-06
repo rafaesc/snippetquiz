@@ -258,6 +258,7 @@ router.post('/login', authLimiter, (req: Request<{}, {}, LoginRequest>, res: Res
 
     res.json({
       message: 'Login successful',
+      tokens,
       user: {
         id: user.id,
         name: user.name,
@@ -295,7 +296,8 @@ router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
     // Set new tokens in cookies
     setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
 
-    res.json({ message: 'Token refreshed successfully' });
+    res.json({ message: 'Token refreshed successfully', tokens });
+
   } catch (error) {
     console.error('Refresh token error:', error);
     res.status(401).json({ error: 'Invalid refresh token' });
