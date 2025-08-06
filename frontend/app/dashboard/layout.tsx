@@ -70,7 +70,9 @@ function DashboardLayout({
 
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 pb-16 lg:pb-0">
-        {children}
+        <div className="container">
+          {children}
+        </div>
       </main>
     </div>
   );

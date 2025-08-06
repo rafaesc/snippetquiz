@@ -52,12 +52,11 @@ router.get('/', authenticateJWT, async function (req: Request, res: Response, ne
 
     res.status(200).json({
       contentBanks: contentBanks.results.map(bank => ({
-        id: bank.id,
+        id: Number(bank.id),
         name: bank.name,
-        user_id: bank.user_id,
-        created_at: bank.created_at,
-        updated_at: bank.updated_at,
-        entry_count: Number((bank as any).entry_count) || 0
+        createdAt: bank.created_at,
+        updatedAt: bank.updated_at,
+        entryCount: Number((bank as any).entry_count) || 0
       })),
       pagination: {
         page: Number(page),
@@ -301,6 +300,39 @@ router.post('/:id/duplicate', authenticateJWT, contentBankLimiter, async functio
     });
   } catch (error) {
     console.error('Error duplicating content bank:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET route to retrieve a specific content bank by ID
+router.get('/:id', authenticateJWT, async function (req: Request<{ id: string }>, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const userId = (req.user as any).id;
+
+    // Find the content bank by ID and ensure it belongs to the user
+    const contentBank = await ContentBank.query()
+      .select('content_banks.*')
+      .leftJoin('content_entries_bank', 'content_banks.id', 'content_entries_bank.content_bank_id')
+      .groupBy('content_banks.id')
+      .count('content_entries_bank.content_entry_id as entry_count')
+      .where('content_banks.id', id)
+      .where('content_banks.user_id', userId)
+      .first();
+
+    if (!contentBank) {
+      return res.status(404).json({ error: 'Content bank not found or does not belong to user' });
+    }
+
+    res.status(200).json({
+      id: Number(contentBank.id),
+      name: contentBank.name,
+      createdAt: contentBank.created_at,
+      updatedAt: contentBank.updated_at,
+      entryCount: Number((contentBank as any).entry_count) || 0
+    });
+  } catch (error) {
+    console.error('Error fetching content bank:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

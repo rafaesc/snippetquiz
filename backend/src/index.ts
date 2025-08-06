@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import contentBankRoutes from './routes/content-bank';
 import contentEntryRoutes from './routes/content-entry';
 import instructionRoutes from './routes/instructions';
+import quizRoutes from './routes/quiz';
 
 import router from './routes';
 import { redisService } from './services/redis';
@@ -21,8 +22,9 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'development' 
     ? [
-        'http://localhost:3000', // Your frontend URL
-        'http://127.0.0.1:3000'
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:4000' // extension
       ]
     : process.env.ALLOWED_ORIGINS 
         ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
@@ -56,6 +58,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/content-bank', contentBankRoutes);
 app.use('/api/content-entry', contentEntryRoutes);
 app.use('/api/instructions', instructionRoutes);
+app.use('/api/quiz', quizRoutes);
 
 // Catch 404 and forward to error handler
 app.use(function (req, res, next) {

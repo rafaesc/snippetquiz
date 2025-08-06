@@ -27,7 +27,8 @@ function BankSelector({ banks, onBankChange, selectedBankId }: BankSelectorProps
     // Mutation for updating bank name
     const updateBankMutation = useMutation({
         mutationFn: ({ id, name }: { id: string; name: string }) =>
-            apiService.contentBank.update(id, name),
+            apiService.contentBank.update(id, { name }),
+
         onSuccess: (updatedBank) => {
             // Update the cache directly instead of invalidating
             queryClient.setQueryData(['userProfile'], (oldData: UserProfile | undefined) => {
@@ -51,7 +52,7 @@ function BankSelector({ banks, onBankChange, selectedBankId }: BankSelectorProps
 
     // Mutation for creating a new bank
     const createBankMutation = useMutation({
-        mutationFn: (name: string) => apiService.contentBank.create(name),
+        mutationFn: (name: string) => apiService.contentBank.create({ name }),
         onSuccess: (newBank) => {
             // Update the cache directly
             queryClient.setQueryData(['userProfile'], (oldData: UserProfile | undefined) => {

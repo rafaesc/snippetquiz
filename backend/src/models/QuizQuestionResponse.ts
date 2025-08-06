@@ -12,6 +12,7 @@ export interface QuizQuestionResponseData {
   quiz_question_id: number;
   quiz_question_option_id: number;
   is_correct: boolean;
+  correct_answer: string;
   response_time: string; // interval as string
 }
 
@@ -29,6 +30,8 @@ export class QuizQuestionResponse extends Model {
   quiz_question_id!: number;
   quiz_question_option_id!: number;
   is_correct!: boolean;
+  correct_answer!: string;
+
   response_time!: string;
 
   // Relations
@@ -39,13 +42,14 @@ export class QuizQuestionResponse extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['quiz_id', 'quiz_question_id', 'quiz_question_option_id', 'is_correct', 'response_time'],
+      required: ['quiz_id', 'quiz_question_id', 'quiz_question_option_id', 'is_correct', 'correct_answer', 'response_time'],
       properties: {
         id: { type: 'integer' },
         quiz_id: { type: 'integer' },
         quiz_question_id: { type: 'integer' },
         quiz_question_option_id: { type: 'integer' },
         is_correct: { type: 'boolean' },
+        correct_answer: { type: 'string' },
         response_time: { type: 'string' }
       }
     };

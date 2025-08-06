@@ -1,45 +1,55 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QuizMaster</title>
-    <script>
-      console.log("Index, demo")
-      window.chrome = {
-        storage: {
-          local: {
-            get: (keys, fn) => {
-              fn(localStorage.getItem(keys) || {})
-            },
-            set: (data, fn) => {
-              localStorage.setItem(data.key, data.value)
-              fn()
-            },
-            remove: (keys, fn) => {
-              localStorage.removeItem(keys)
-              fn()
-            },
-            clear: (fn) => {
-              localStorage.clear()
-              fn()
-            },
-            getBytesInUse: (keys) => Promise.resolve(0),
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizMaster</title>
+  <script>
+    console.log("Index, demo")
+    window.chrome = {
+      storage: {
+        local: {
+          get: (keys, fn) => {
+            var response = {}
+            keys.forEach(key => {
+              response[key] = localStorage.getItem(key)
+            })
+            fn(response)
           },
+          set: (data, fn) => {
+            Object.keys(data).map(key => {
+              localStorage.setItem(key, data[key])
+            })
+            fn()
+          },
+          remove: (keys, fn) => {
+            localStorage.removeItem(keys[0])
+
+            fn()
+          },
+          clear: (fn) => {
+            localStorage.clear()
+            fn()
+          },
+          getBytesInUse: (keys) => Promise.resolve(0),
         },
-        runtime: {
-          getManifest: () => ({
-            name: 'QuizMaster',
-            version: '1.0.0',
-            manifest_version: 3,
-          }),
-        },
-      };
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+      },
+      runtime: {
+        getManifest: () => ({
+          name: 'QuizMaster',
+          version: '1.0.0',
+          manifest_version: 3,
+        }),
+      },
+    };
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
