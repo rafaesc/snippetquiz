@@ -1,14 +1,14 @@
 import { Model, RelationMappings } from 'objection';
 import knex from '../db';
 import ContentEntry from './ContentEntry';
-import AiTopic from './AiTopic';
+import Topic from './Topic';
 
 Model.knex(knex);
 
 export interface ContentEntryTopicsData {
   id?: number;
   content_entry_id: number;
-  ai_topic_id: number;
+  topic_id: number;
 }
 
 export class ContentEntryTopics extends Model {
@@ -22,20 +22,20 @@ export class ContentEntryTopics extends Model {
 
   id!: number;
   content_entry_id!: number;
-  ai_topic_id!: number;
+  topic_id!: number;
 
   // Relations
   contentEntry?: ContentEntry;
-  aiTopic?: AiTopic;
+  Topic?: Topic;
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['content_entry_id', 'ai_topic_id'],
+      required: ['content_entry_id', 'topic_id'],
       properties: {
         id: { type: 'integer' },
         content_entry_id: { type: 'integer' },
-        ai_topic_id: { type: 'integer' }
+        topic_id: { type: 'integer' }
       }
     };
   }
@@ -50,12 +50,12 @@ export class ContentEntryTopics extends Model {
           to: 'content_entries.id'
         }
       },
-      aiTopic: {
+      Topic: {
         relation: Model.BelongsToOneRelation,
-        modelClass: AiTopic,
+        modelClass: Topic,
         join: {
-          from: 'content_entry_topics.ai_topic_id',
-          to: 'ai_topics.id'
+          from: 'content_entry_topics.topic_id',
+          to: 'topics.id'
         }
       }
     };

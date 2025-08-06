@@ -1,7 +1,7 @@
 import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTable('ai_topics', (table) => {
+  return knex.schema.createTable('topics', (table) => {
     table.bigIncrements('id').primary();
     table.uuid('user_id').notNullable();
     table.text('topic').notNullable();
@@ -12,5 +12,5 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTable('ai_topics');
+  return knex.schema.dropTable('topics');
 }

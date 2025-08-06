@@ -7,7 +7,7 @@ Model.knex(knex);
 export interface QuizTopicsData {
   id?: number;
   quiz_id: number;
-  ai_topic_name: string;
+  topic_name: string;
 }
 
 export class QuizTopics extends Model {
@@ -21,7 +21,7 @@ export class QuizTopics extends Model {
 
   id!: number;
   quiz_id!: number;
-  ai_topic_name!: string;
+  topic_name!: string;
 
   // Relations
   quiz?: Quiz;
@@ -29,11 +29,11 @@ export class QuizTopics extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['quiz_id', 'ai_topic_name'],
+      required: ['quiz_id', 'topic_name'],
       properties: {
         id: { type: 'integer' },
         quiz_id: { type: 'integer' },
-        ai_topic_name: { type: 'string' }
+        topic_name: { type: 'string' }
       }
     };
   }

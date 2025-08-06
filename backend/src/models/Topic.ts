@@ -5,16 +5,16 @@ import ContentEntry from './ContentEntry';
 
 Model.knex(knex);
 
-export interface AiTopicData {
+export interface TopicData {
   id?: number;
   user_id: string;
   topic: string;
   created_at?: Date;
 }
 
-export class AiTopic extends Model {
+export class Topic extends Model {
   static get tableName() {
-    return 'ai_topics';
+    return 'topics';
   }
 
   static get idColumn() {
@@ -49,7 +49,7 @@ export class AiTopic extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: 'ai_topics.user_id',
+          from: 'topics.user_id',
           to: 'users.id'
         }
       },
@@ -57,20 +57,20 @@ export class AiTopic extends Model {
         relation: Model.HasManyRelation,
         modelClass: ContentEntry,
         join: {
-          from: 'ai_topics.id',
-          to: 'content_entries.ai_topic_id'
+          from: 'topics.id',
+          to: 'content_entries.topic_id'
         }
       }
     };
   }
 
-  static async findByUserId(userId: string): Promise<AiTopic[]> {
+  static async findByUserId(userId: string): Promise<Topic[]> {
     return this.query().where('user_id', userId);
   }
 
-  static async createTopic(data: Omit<AiTopicData, 'id' | 'created_at'>): Promise<AiTopic> {
+  static async createTopic(data: Omit<TopicData, 'id' | 'created_at'>): Promise<Topic> {
     return this.query().insert(data);
   }
 }
 
-export default AiTopic;
+export default Topic;

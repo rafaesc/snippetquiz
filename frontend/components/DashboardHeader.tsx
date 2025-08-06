@@ -88,7 +88,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
 
   return (
     
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b bg-gray-900/95 backdrop-blur  shadow-lg">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Mobile menu and Logo */}
         <div className="flex items-center space-x-2">
@@ -107,7 +107,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           </Sheet>
           
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="font-bold text-xl text-foreground">QuizMaster</span>
+            <span className="text-xl font-display font-bold text-white">QuizMaster</span>
           </Link>
         </div>
 
@@ -119,7 +119,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="h-9 w-9"
+              className="h-9 w-9 text-white"
             >
               {theme === 'dark' ? (
                 <Sun className="h-4 w-4" />
@@ -141,9 +141,10 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
             variant="outline"
             size="sm"
             onClick={logout}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-1 text-black dark:text-white rounded-full"
+
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4" />
             <span className="hidden sm:inline">Logout</span>
           </Button>
         </div>
