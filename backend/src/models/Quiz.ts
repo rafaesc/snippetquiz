@@ -11,6 +11,8 @@ export interface QuizData {
   bank_name?: string;
   created_at?: Date;
   content_entries_count?: number;
+  questions_count?: number;
+  questions_completed?: number;
   completed_at?: Date;
   user_id?: string;
 }
@@ -29,6 +31,8 @@ export class Quiz extends Model {
   bank_name?: string;
   created_at!: Date;
   content_entries_count!: number;
+  questions_count!: number;
+  questions_completed!: number;
   completed_at?: Date;
   user_id?: string;
 
@@ -46,6 +50,8 @@ export class Quiz extends Model {
         bank_name: { type: 'string' },
         created_at: { type: 'string', format: 'date-time' },
         content_entries_count: { type: 'integer', minimum: 0 },
+        questions_count: { type: 'integer', minimum: 0 },
+        questions_completed: { type: 'integer', minimum: 0 },
         completed_at: { type: 'string', format: 'date-time' },
         user_id: { type: 'string' }
       }

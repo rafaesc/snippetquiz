@@ -59,9 +59,17 @@ export interface DashboardData {
 }
 
 export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    created_date: string;
+    verified: boolean;
+  }
+  banks: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export interface GetInstructionsResponse {
@@ -70,7 +78,7 @@ export interface GetInstructionsResponse {
 }
 
 export interface UpdateInstructionsResponse {
-  id: number;
+  id: string;
   instruction: string;
   updatedAt: string; // ISO date string
 }
@@ -78,12 +86,12 @@ export interface UpdateInstructionsResponse {
 
 // Content Bank Types
 export interface ContentBank {
-  id: number;
+  id: string;
   name: string;
-  user_id: number;
-  created_at: string;
-  updated_at: string;
-  entry_count?: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  entryCount?: number;
 }
 
 export interface ContentBanksResponse {
@@ -109,7 +117,7 @@ export interface DuplicateContentBankRequest {
 
 // Content Entry Types
 export interface ContentEntry {
-  id: number;
+  id: string;
   contentType: 'full_html' | 'selected_text' | 'video_transcript';
   content?: string;
   sourceUrl?: string;
@@ -132,7 +140,50 @@ export interface CreateContentEntryRequest {
   content?: string;
   type: 'full_html' | 'selected_text' | 'video_transcript';
   pageTitle?: string;
-  bankId: number;
+  bankId: string;
+}
+
+// Quiz Types
+export interface Quiz {
+  id: string;
+  createdAt: string;
+  questionsCompleted: number;
+  contentEntriesCount: number;
+  topics: string[];
+  totalQuestions: number;
+}
+
+export interface QuizzesResponse {
+  quizzes: Quiz[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
+export interface QuizResponse {
+  isCorrect: boolean;
+  question: string;
+  answer: string;
+  correctAnswer: string;
+  explanation: string;
+  sourceUrl: string;
+}
+
+export interface QuizResponsesResponse {
+  responses: QuizResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
+export interface QuizSummaryResponse {
+  topics: string[];
+  totalQuestions: number;
+  totalCorrectAnswers: number;
 }
 
 // API service functions
@@ -326,7 +377,7 @@ export const apiService = {
     return response.json();
   },
 
-  updateContentBank: async (id: number, data: UpdateContentBankRequest): Promise<ContentBank> => {
+  updateContentBank: async (id: string, data: UpdateContentBankRequest): Promise<ContentBank> => {
     const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`, {
       method: 'PUT',
       headers: {
@@ -343,7 +394,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteContentBank: async (id: number): Promise<{ message: string }> => {
+  deleteContentBank: async (id: string): Promise<{ message: string }> => {
     const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`, {
       method: 'DELETE',
     });
@@ -356,7 +407,7 @@ export const apiService = {
     return response.json();
   },
 
-  duplicateContentBank: async (id: number, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
+  duplicateContentBank: async (id: string, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
     const response = await makeAuthenticatedRequest(`/api/content-bank/${id}/duplicate`, {
       method: 'POST',
       headers: {
@@ -374,7 +425,7 @@ export const apiService = {
   },
 
   // Content Entry API methods
-  getContentEntries: async (bankId: number, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
+  getContentEntries: async (bankId: string, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -411,7 +462,7 @@ export const apiService = {
     return response.json();
   },
 
-  cloneContentEntry: async (id: number, bankId: number): Promise<ContentEntry & { message: string }> => {
+  cloneContentEntry: async (id: string, bankId: string): Promise<ContentEntry & { message: string }> => {
     const response = await makeAuthenticatedRequest(`/api/content-entry/${id}/clone-to/${bankId}`, {
       method: 'POST',
     });
@@ -424,7 +475,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteContentEntry: async (id: number): Promise<{ message: string }> => {
+  deleteContentEntry: async (id: string): Promise<{ message: string }> => {
     const response = await makeAuthenticatedRequest(`/api/content-entry/${id}`, {
       method: 'DELETE',
     });
@@ -432,6 +483,74 @@ export const apiService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to delete content entry');
+    }
+
+    return response.json();
+  },
+
+  // Quiz API methods
+  getQuizzes: async (page = 1, limit = 10): Promise<QuizzesResponse> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    const response = await makeAuthenticatedRequest(`/api/quiz?${params}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch quizzes');
+    }
+
+    return response.json();
+  },
+
+  getQuiz: async (id: string): Promise<Quiz> => {
+    const response = await makeAuthenticatedRequest(`/api/quiz/${id}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch quiz');
+    }
+
+    return response.json();
+  },
+
+  getQuizResponses: async (id: string, page = 1, limit = 10): Promise<QuizResponsesResponse> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    const response = await makeAuthenticatedRequest(`/api/quiz/${id}/responses?${params}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch quiz responses');
+    }
+
+    return response.json();
+  },
+
+  getQuizSummary: async (id: string): Promise<QuizSummaryResponse> => {
+    const response = await makeAuthenticatedRequest(`/api/quiz/${id}/summary`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch quiz summary');
+    }
+
+    return response.json();
+  },
+
+  deleteQuiz: async (id: string): Promise<{ message: string }> => {
+    const response = await makeAuthenticatedRequest(`/api/quiz/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete quiz');
     }
 
     return response.json();

@@ -69,7 +69,7 @@ export const DashboardSidebar = () => {
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:pt-16 lg:bg-background lg:border-r">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-[#171c28]">
           <NavItems />
         </div>
       </aside>

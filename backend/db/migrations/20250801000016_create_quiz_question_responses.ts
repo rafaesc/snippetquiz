@@ -8,6 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.bigInteger('quiz_question_option_id').notNullable();
 
     table.boolean('is_correct').notNullable();
+    table.text('correct_answer').notNullable();
     table.specificType('response_time', 'interval').notNullable();
     
     table.foreign('quiz_id').references('id').inTable('quizzes').onDelete('CASCADE').onUpdate('CASCADE');

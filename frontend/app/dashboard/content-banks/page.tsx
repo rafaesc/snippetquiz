@@ -35,7 +35,7 @@ export default function ContentBanks() {
   const [currentView, setCurrentView] = useState<View>('list');
   const [selectedBank, setSelectedBank] = useState<ContentBank | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingBankId, setEditingBankId] = useState<number | null>(null);
+  const [editingBankId, setEditingBankId] = useState<string | null>(null);
   const [editingBankName, setEditingBankName] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [currentBankPage, setCurrentBankPage] = useState(1);
@@ -87,7 +87,7 @@ export default function ContentBanks() {
 
   // Update content bank mutation
   const updateBankMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name: string } }) =>
+    mutationFn: ({ id, data }: { id: string; data: { name: string } }) =>
       apiService.updateContentBank(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -128,7 +128,7 @@ export default function ContentBanks() {
 
   // Duplicate content bank mutation
   const duplicateBankMutation = useMutation({
-    mutationFn: ({ id, name }: { id: number; name?: string }) =>
+    mutationFn: ({ id, name }: { id: string; name?: string }) =>
       apiService.duplicateContentBank(id, name ? { name } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -168,7 +168,7 @@ export default function ContentBanks() {
 
   // Clone content entry mutation
   const cloneEntryMutation = useMutation({
-    mutationFn: ({ id, bankId }: { id: number; bankId: number }) =>
+    mutationFn: ({ id, bankId }: { id: string; bankId: string }) =>
       apiService.cloneContentEntry(id, bankId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
@@ -478,7 +478,7 @@ export default function ContentBanks() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Content Bank</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{bank.name}"? This will permanently delete all {bank.entry_count || 0} entries in this bank. This action cannot be undone.
+                                  Are you sure you want to delete "{bank.name}"? This will permanently delete all {bank.entryCount || 0} entries in this bank. This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -501,8 +501,8 @@ export default function ContentBanks() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{bank.entry_count || 0} entries</span>
-                    <span>Created {new Date(bank.created_at).toLocaleDateString()}</span>
+                    <span>{bank.entryCount || 0} entries</span>
+                    <span>Created {new Date(bank.createdAt).toLocaleDateString()}</span>
                   </div>
                   <Button
                     variant="outline"

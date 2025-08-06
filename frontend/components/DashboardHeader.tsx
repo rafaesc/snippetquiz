@@ -88,7 +88,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
 
   return (
     
-    <header className="sticky top-0 z-40 w-full border-b bg-gray-900/95 backdrop-blur  shadow-lg">
+    <header className="sticky top-0 z-40 w-full bg-gray-900/95 backdrop-blur shadow-lg">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Mobile menu and Logo */}
         <div className="flex items-center space-x-2">
