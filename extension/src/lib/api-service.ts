@@ -208,7 +208,8 @@ export interface UserProfile {
 }
 
 // Additional type definitions for the new services
-export type ContentType = 'selected_text' | 'full_html';
+export type ContentType = 'selected_text' | 'full_html' | 'video_transcript';
+
 
 export interface ContentEntry {
   id: number;
@@ -218,7 +219,7 @@ export interface ContentEntry {
   sourceUrl?: string;
   pageTitle?: string;
   createdAt: string;
-  aiTopicId?: number;
+  topics: string[];
 }
 
 export interface CreateContentEntryRequest {

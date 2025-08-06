@@ -87,7 +87,7 @@ export default function ContentBanks() {
 
   // Update content bank mutation
   const updateBankMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name: string } }) => 
+    mutationFn: ({ id, data }: { id: number; data: { name: string } }) =>
       apiService.updateContentBank(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -128,7 +128,7 @@ export default function ContentBanks() {
 
   // Duplicate content bank mutation
   const duplicateBankMutation = useMutation({
-    mutationFn: ({ id, name }: { id: number; name?: string }) => 
+    mutationFn: ({ id, name }: { id: number; name?: string }) =>
       apiService.duplicateContentBank(id, name ? { name } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -168,7 +168,7 @@ export default function ContentBanks() {
 
   // Clone content entry mutation
   const cloneEntryMutation = useMutation({
-    mutationFn: ({ id, bankId }: { id: number; bankId: number }) => 
+    mutationFn: ({ id, bankId }: { id: number; bankId: number }) =>
       apiService.cloneContentEntry(id, bankId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
@@ -227,9 +227,9 @@ export default function ContentBanks() {
   };
 
   const handleDuplicateBank = (bank: ContentBank) => {
-    duplicateBankMutation.mutate({ 
-      id: bank.id, 
-      name: `${bank.name} (Copy)` 
+    duplicateBankMutation.mutate({
+      id: bank.id,
+      name: `${bank.name} (Copy)`
     });
   };
 
@@ -243,9 +243,9 @@ export default function ContentBanks() {
 
   const handleCloneEntry = (entry: ContentEntry) => {
     if (selectedBank) {
-      cloneEntryMutation.mutate({ 
-        id: entry.id, 
-        bankId: selectedBank.id 
+      cloneEntryMutation.mutate({
+        id: entry.id,
+        bankId: selectedBank.id
       });
     }
   };
@@ -264,7 +264,7 @@ export default function ContentBanks() {
               variant="ghost"
               size="sm"
               onClick={handleBackToList}
-              className="flex items-center space-x-2"
+              className="flex items-center w-fit"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back to Banks</span>
@@ -357,7 +357,7 @@ export default function ContentBanks() {
         </div>
         <Dialog open={showCreateBankDialog} onOpenChange={setShowCreateBankDialog}>
           <DialogTrigger asChild>
-            <Button className="flex items-center space-x-2">
+            <Button className="flex items-center w-fit rounded-full">
               <Plus className="h-4 w-4" />
               <span>Create New Bank</span>
             </Button>
@@ -376,10 +376,13 @@ export default function ContentBanks() {
                 }}
               />
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowCreateBankDialog(false)}>
+                <Button
+                  className="w-fit rounded-full"
+                  variant="outline" onClick={() => setShowCreateBankDialog(false)}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
+                  className="w-fit rounded-full"
                   onClick={handleCreateBank}
                   disabled={createBankMutation.isPending || !newBankName.trim()}
                 >
@@ -428,8 +431,8 @@ export default function ContentBanks() {
                         }}
                         autoFocus
                       />
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={handleSaveEdit}
                         disabled={updateBankMutation.isPending}
                       >
@@ -457,7 +460,7 @@ export default function ContentBanks() {
                             <Edit className="mr-2 h-4 w-4" />
                             Rename
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDuplicateBank(bank)}
                             disabled={duplicateBankMutation.isPending}
                           >
@@ -480,7 +483,7 @@ export default function ContentBanks() {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction 
+                                <AlertDialogAction
                                   onClick={() => handleDeleteBank(bank)}
                                   disabled={deleteBankMutation.isPending}
                                 >
@@ -505,7 +508,7 @@ export default function ContentBanks() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleViewBank(bank)}
-                    className="w-full"
+                    className="w-fit rounded-full"
                   >
                     View Contents
                   </Button>

@@ -142,6 +142,7 @@ export default function Settings() {
             </p>
           </div>
           <Button
+            className="w-fit rounded-full"
             onClick={handleSaveInstructions}
             disabled={saveInstructionsMutation.isPending || !globalInstructions.trim() || isLoadingInstructions}
           >
@@ -193,6 +194,7 @@ export default function Settings() {
           </div>
 
           <Button
+            className="w-fit rounded-full"
             onClick={handleUpdatePassword}
             disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
           >

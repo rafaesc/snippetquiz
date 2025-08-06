@@ -1,7 +1,7 @@
 export { default as User } from './User';
 export { default as ContentBank } from './ContentBank';
 export { default as ContentEntry } from './ContentEntry';
-export { default as AiTopic } from './AiTopic';
+export { default as Topic } from './Topic';
 export { default as Quiz } from './Quiz';
 export { default as Question } from './Question';
 export { default as QuestionOption } from './QuestionOption';
@@ -15,7 +15,7 @@ export { default as QuizTopics } from './QuizTopics';
 export type { UserData, CreateUser } from './User';
 export type { ContentBankData } from './ContentBank';
 export type { ContentEntryData, ContentType } from './ContentEntry';
-export type { AiTopicData } from './AiTopic';
+export type { TopicData } from './Topic';
 export type { QuizData } from './Quiz';
 export type { QuestionData } from './Question';
 export type { QuestionOptionData } from './QuestionOption';
