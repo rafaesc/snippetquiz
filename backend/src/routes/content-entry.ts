@@ -67,7 +67,7 @@ router.get('/bank/:bankId', authenticateJWT, async function (req: Request, res: 
       entries: contentEntries.results.map(entry => ({
         id: entry.id,
         contentType: entry.content_type,
-        content: entry.content,
+        content: entry.content ? (entry.content.length > 300 ? entry.content.substring(0, 300) + "..." : entry.content) : null,
         sourceUrl: entry.source_url,
         pageTitle: entry.page_title,
         createdAt: entry.created_at,
@@ -106,7 +106,7 @@ router.get('/:id', authenticateJWT, async function (req: Request, res: Response,
     res.json({
       id: contentEntry.id,
       sourceUrl: contentEntry.source_url,
-      content: contentEntry.content,
+      content: contentEntry.content?.substring(0, 100),
       pageTitle: contentEntry.page_title,
       contentType: contentEntry.content_type, 
       createdAt: contentEntry.created_at
@@ -131,6 +131,12 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
       return res.status(400).json({ error: 'Bank ID is required' });
     }
 
+    // Convert bankId to integer and validate it's a valid number
+    const bankIdInt = parseInt(String(bankId), 10);
+    if (isNaN(bankIdInt)) {
+      return res.status(400).json({ error: 'Bank ID must be a valid integer' });
+    }
+
     // Validate type-specific requirements
     if (type === 'full_html' && !sourceUrl) {
       return res.status(400).json({ error: 'Source URL is required when type is "full_html"' });
@@ -146,7 +152,7 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
     
     // Verify that the bank belongs to the user 
     const contentBank = await ContentBank.query()
-      .where('id', bankId)
+      .where('id', bankIdInt)
       .where('user_id', (req.user as any).id)
       .first();
 
@@ -163,9 +169,10 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
 
     const newSource = await ContentEntry.query().insert(sourceData);
 
+    // Ensure both IDs are integers before insertion
     await ContentEntriesBank.query().insert({
-      content_entry_id: newSource.id,
-      content_bank_id: bankId
+      content_entry_id: parseInt(String(newSource.id), 10),
+      content_bank_id: bankIdInt
     });
 
     res.status(201).json({

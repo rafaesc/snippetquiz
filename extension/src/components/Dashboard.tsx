@@ -366,7 +366,7 @@ function Dashboard() {
                                                     disabled={(contentBanks?.contentBanks?.length || 0) <= 1 || deleteBankMutation.isPending}
                                                     onClick={() => handleDeleteBank(bank.id)}
                                                 >
-                                                    <Trash2 size={14} />
+                                                    <Trash2 size={14} className="text-destructive" />
                                                 </Button>
                                             </>
                                         )}
@@ -456,7 +456,7 @@ function Dashboard() {
                         <Collapsible open={isContentExpanded} onOpenChange={setIsContentExpanded}>
                             <CollapsibleTrigger className="flex items-center space-x-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
                                 {isContentExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                <span>📄 Saved Content ({savedContent.length})</span>
+                                <span>📄 Saved Content ({contentEntries?.pagination.total})</span>
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-3 mt-3">
                                 <div className="space-y-2">

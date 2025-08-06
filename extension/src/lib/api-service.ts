@@ -1,28 +1,68 @@
-const API_BASE_URL = import.meta.env.API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// Token management (now using cookies instead of localStorage)
+// Token management for Chrome Extension (using chrome.storage instead of cookies)
 export const tokenService = {
-  // Since tokens are now httpOnly cookies, we can't access them directly
-  // We'll rely on the browser to automatically send them with requests
+  // Get access token from chrome storage
+  getAccessToken: async (): Promise<string | null> => {
+    const result = await chrome.storage.local.get('accessToken');
+    return result.accessToken || null;
+  },
 
+  // Get refresh token from chrome storage
+  getRefreshToken: async (): Promise<string | null> => {
+    const result = await chrome.storage.local.get('refreshToken');
+    return result.refreshToken || null;
+  },
+
+  // Store tokens in chrome storage
+  setTokens: async (accessToken: string, refreshToken: string) => {
+    await chrome.storage.local.set({
+      accessToken,
+      refreshToken
+    });
+  },
+
+  // Clear tokens from chrome storage
+  clearTokens: async () => {
+    await chrome.storage.local.remove(['accessToken', 'refreshToken']);
+  },
+
+  // Refresh access token using stored refresh token
   refreshAccessToken: async () => {
+    const refreshToken = await tokenService.getRefreshToken();
+    
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
-      credentials: 'include', // Important: include cookies in request
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
+      await tokenService.clearTokens();
       throw new Error('Failed to refresh token');
     }
 
-    return response.json();
+    const data = await response.json();
+    await tokenService.setTokens(data.accessToken, data.refreshToken);
+    return data;
   },
 
-  // Check if user is authenticated by calling verify endpoint
+  // Check if user is authenticated
   isAuthenticated: async (): Promise<boolean> => {
     try {
+      const accessToken = await tokenService.getAccessToken();
+      if (!accessToken) return false;
+
       const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
       });
       return response.ok;
     } catch {
@@ -33,9 +73,18 @@ export const tokenService = {
 
 // Helper function to make authenticated requests with automatic token refresh
 const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
+  let accessToken = await tokenService.getAccessToken();
+  
+  if (!accessToken) {
+    throw new Error('No access token available');
+  }
+
   const defaultOptions: RequestInit = {
-    credentials: 'include',
     ...options,
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      ...options.headers,
+    },
   };
 
   let response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
@@ -44,8 +93,16 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
   if (response.status === 401) {
     try {
       await tokenService.refreshAccessToken();
+      accessToken = await tokenService.getAccessToken();
+      
+      // Retry with new token
+      defaultOptions.headers = {
+        'Authorization': `Bearer ${accessToken}`,
+        ...options.headers,
+      };
       response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
     } catch (error) {
+      await tokenService.clearTokens();
       throw new Error('Authentication failed');
     }
   }
@@ -129,7 +186,6 @@ export const apiService = {
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
 
@@ -138,7 +194,14 @@ export const apiService = {
       throw new Error(error.error || 'Login failed');
     }
 
-    return response.json();
+    const data = await response.json();
+    
+    // Store tokens in chrome storage
+    if (data.tokens.accessToken && data.tokens.refreshToken) {
+      await tokenService.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+    }
+
+    return data;
   },
 
   // Register
@@ -148,7 +211,6 @@ export const apiService = {
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include',
       body: JSON.stringify({ name, email, password }),
     });
 
@@ -157,26 +219,38 @@ export const apiService = {
       throw new Error(error.error || 'Registration failed');
     }
 
-    return response.json();
+    const data = await response.json();
+    
+    // Store tokens in chrome storage if provided
+    if (data.tokens.accessToken && data.tokens.refreshToken) {
+      await tokenService.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+    }
+
+    return data;
   },
 
-  // Logout
+  // Logout - clear tokens from chrome storage
   logout: async () => {
     try {
-      await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include', // Include cookies
-      });
+      const accessToken = await tokenService.getAccessToken();
+      if (accessToken) {
+        await fetch(`${API_BASE_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+      }
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
+      await tokenService.clearTokens();
     }
   },
 
   // Get user profile
   getUserProfile: async (): Promise<UserProfile> => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-      credentials: 'include',
-    });
+    const response = await makeAuthenticatedRequest('/api/auth/profile');
 
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
@@ -261,7 +335,6 @@ export const apiService = {
     // Get all content banks for the user
     get: async (id?: string): Promise<ContentBank> => {
       const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`);
-
 
       if (!response.ok) {
         const error = await response.json();

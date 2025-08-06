@@ -469,7 +469,7 @@ export default function ContentBanks() {
                           </DropdownMenuItem>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
                               </DropdownMenuItem>
@@ -486,6 +486,7 @@ export default function ContentBanks() {
                                 <AlertDialogAction
                                   onClick={() => handleDeleteBank(bank)}
                                   disabled={deleteBankMutation.isPending}
+                                  className="bg-destructive hover:bg-destructive/90"
                                 >
                                   {deleteBankMutation.isPending ? 'Deleting...' : 'Delete Bank'}
                                 </AlertDialogAction>
