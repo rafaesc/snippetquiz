@@ -28,4 +28,4 @@ services:
 
 networks:
   default: 
-    name: quizmaster
+    name: snippetquiz

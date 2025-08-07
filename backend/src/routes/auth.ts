@@ -106,7 +106,7 @@ router.post('/register', registerLimiter, async (req: Request<{}, {}, RegisterRe
     const mailOptions = {
       from: process.env.EMAIL_USERNAME,
       to: email,
-      subject: 'Verify Your Email - QuizMaster',
+      subject: 'Verify Your Email - SnippetQuiz',
       html: getVerificationEmailTemplate({
         name,
         verificationUrl,
@@ -214,7 +214,7 @@ router.post('/resend-verification', authLimiter, async (req: Request, res: Respo
     const mailOptions = {
       from: process.env.EMAIL_USERNAME,
       to: email,
-      subject: 'Verify Your Email - QuizMaster',
+      subject: 'Verify Your Email - SnippetQuiz',
       html: getResendVerificationEmailTemplate({
         name: user.name,
         verificationUrl,
@@ -272,7 +272,8 @@ router.post('/login', authLimiter, (req: Request<{}, {}, LoginRequest>, res: Res
 // Refresh token route with auth rate limiting
 router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
 
     if (!refreshToken) {
       return res.status(401).json({ error: 'Refresh token is required' });

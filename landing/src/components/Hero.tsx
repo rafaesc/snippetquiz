@@ -107,7 +107,7 @@ const Hero = () => {
             style={{ animationDelay: "0.5s" }} 
             className="section-subtitle mb-8 leading-relaxed opacity-0 animate-fade-in text-gray-300 font-normal text-base sm:text-lg max-w-2xl"
           >
-            QuizMaster transforms articles, videos, and web content into personalized AI-generated quizzes. Save content, let AI tag topics, and practice with intelligent quizzes that adapt to your learning style.
+            SnippetQuiz transforms articles, videos, and web content into personalized AI-generated quizzes. Save content, let AI tag topics, and practice with intelligent quizzes that adapt to your learning style.
           </p>
           
           <div 
@@ -134,7 +134,7 @@ const Hero = () => {
                   <div className="text-center text-white/80">
                     <Play className="w-16 h-16 mx-auto mb-4 text-turquoise-400" />
                     <p className="text-lg font-medium">Demo Video</p>
-                    <p className="text-sm text-gray-400 mt-2">See QuizMaster in action</p>
+                    <p className="text-sm text-gray-400 mt-2">See SnippetQuiz in action</p>
                   </div>
                 </div>
               </div>
@@ -142,7 +142,7 @@ const Hero = () => {
             
             <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "1.1s" }}>
               <p className="text-gray-300 text-lg leading-relaxed">
-                Watch how QuizMaster transforms any web content into interactive learning experiences that adapt to your pace and style
+                Watch how SnippetQuiz transforms any web content into interactive learning experiences that adapt to your pace and style
               </p>
             </div>
           </div>

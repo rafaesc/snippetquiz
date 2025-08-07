@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QuizMaster",
-  description: "QuizMaster is a platform for creating and playing quizzes",
+  title: "SnippetQuiz",
+  description: "SnippetQuiz is a platform for creating and playing quizzes",
 };
 
 export default function RootLayout({

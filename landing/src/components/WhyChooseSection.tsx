@@ -45,10 +45,10 @@ const WhyChooseSection = () => {
           <h2 className="section-title text-white mb-6">
             Why Choose
             <br className="hidden sm:inline" />
-            <span className="text-transparent bg-gradient-to-r from-turquoise-400 to-mustard-400 bg-clip-text">QuizMaster?</span>
+            <span className="text-transparent bg-gradient-to-r from-turquoise-400 to-mustard-400 bg-clip-text">SnippetQuiz?</span>
           </h2>
           <p className="section-subtitle text-gray-300 mx-auto">
-            Discover the features that make QuizMaster the ultimate learning companion for students, professionals, and lifelong learners.
+            Discover the features that make SnippetQuiz the ultimate learning companion for students, professionals, and lifelong learners.
           </p>
         </div>
 

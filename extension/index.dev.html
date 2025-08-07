@@ -5,44 +5,76 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuizMaster</title>
+  <title>SnippetQuiz Demo</title>
   <script>
-    console.log("Index, demo")
     window.chrome = {
       storage: {
         local: {
-          get: (keys, fn) => {
+          get: (keys, getFn) => {
             var response = {}
-            keys.forEach(key => {
-              response[key] = localStorage.getItem(key)
-            })
-            fn(response)
+            var keysArray = keys
+            if (typeof keys === 'string') {
+              keysArray = [keys]
+            }
+            if (keysArray) {
+              keysArray.forEach(key => {
+                response[key] = localStorage.getItem(key)
+              })
+            }
+            console.log('Getting data from chrome storage:', keys, response)
+            if (getFn) {
+              getFn(response)
+            }
           },
-          set: (data, fn) => {
+          set: (data, setFn) => {
+            console.log('Setting data in chrome storage:', data)
+
             Object.keys(data).map(key => {
               localStorage.setItem(key, data[key])
             })
-            fn()
+            if (setFn) {
+              setFn()
+            }
           },
-          remove: (keys, fn) => {
-            localStorage.removeItem(keys[0])
-
-            fn()
+          remove: (keys, removeFn) => {
+            if (typeof keys === 'string') {
+              keys = [keys]
+            }
+            keys.forEach(key => {
+              localStorage.removeItem(key)
+            })
+            if (removeFn) {
+              removeFn()
+            }
           },
-          clear: (fn) => {
+          clear: (clearFn) => {
             localStorage.clear()
-            fn()
+            if (clearFn) {
+              clearFn()
+            }
           },
           getBytesInUse: (keys) => Promise.resolve(0),
         },
       },
       runtime: {
         getManifest: () => ({
-          name: 'QuizMaster',
+          name: 'SnippetQuiz',
           version: '1.0.0',
           manifest_version: 3,
         }),
+
+        onMessage: {
+          addListener: (event) => {
+          },
+          removeListener: (event) => {
+          }
+        }
       },
+      tabs: {
+        create: ({ url }) => {
+          window.open(url, '_blank')
+        }
+      }
     };
   </script>
 </head>

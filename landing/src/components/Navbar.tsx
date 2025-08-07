@@ -56,14 +56,14 @@ const Navbar = () => {
             e.preventDefault();
             scrollToTop();
           }}
-          aria-label="QuizMaster"
+          aria-label="SnippetQuiz"
         >
-          <h1 className="text-xl font-display font-bold text-white">QuizMaster</h1>
+          <h1 className="text-xl font-display font-bold text-white">SnippetQuiz</h1>
         </a>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <a href="https://github.com/rafaesc/quizmaster" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-turquoise-400 transition-colors p-2">
+          <a href="https://github.com/rafaesc/snippetquiz" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-turquoise-400 transition-colors p-2">
             <Github size={20} />
           </a>
           <div className="flex items-center space-x-3">
@@ -93,7 +93,7 @@ const Navbar = () => {
         isMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full pointer-events-none"
       )}>
         <nav className="flex flex-col space-y-6 items-center mt-8">
-          <a href="https://github.com/rafaesc/quizmaster" target="_blank" rel="noopener noreferrer" className="flex items-center py-3 px-6 text-white/80 hover:text-turquoise-400 transition-colors text-lg font-medium">
+          <a href="https://github.com/rafaesc/snippetquiz" target="_blank" rel="noopener noreferrer" className="flex items-center py-3 px-6 text-white/80 hover:text-turquoise-400 transition-colors text-lg font-medium">
             <Github size={20} className="mr-2" />
             GitHub
           </a>

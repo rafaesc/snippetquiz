@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for QuizMaster
+				// Custom colors for SnippetQuiz
 				turquoise: {
 					"50": "#f0fdff",
 					"100": "#ccf7fe",

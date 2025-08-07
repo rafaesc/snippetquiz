@@ -1,1 +1,1 @@
-# quizmaster
+# snippetquiz

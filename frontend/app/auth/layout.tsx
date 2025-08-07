@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Authentication - QuizMaster",
-  description: "Login or register to access QuizMaster",
+  title: "Authentication - SnippetQuiz",
+  description: "Login or register to access SnippetQuiz",
 };
 export default function AuthLayout({
   children,

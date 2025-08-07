@@ -1,22 +1,24 @@
+
+import chromeStorage from '../lib/chrome-storage';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Token management for Chrome Extension (using chrome.storage instead of cookies)
 export const tokenService = {
   // Get access token from chrome storage
   getAccessToken: async (): Promise<string | null> => {
-    const result = await chrome.storage.local.get('accessToken');
+    const result = await chromeStorage.local.get('accessToken');
     return result.accessToken || null;
   },
 
   // Get refresh token from chrome storage
   getRefreshToken: async (): Promise<string | null> => {
-    const result = await chrome.storage.local.get('refreshToken');
+    const result = await chromeStorage.local.get('refreshToken');
     return result.refreshToken || null;
   },
 
   // Store tokens in chrome storage
   setTokens: async (accessToken: string, refreshToken: string) => {
-    await chrome.storage.local.set({
+    await chromeStorage.local.set({
       accessToken,
       refreshToken
     });
@@ -24,7 +26,7 @@ export const tokenService = {
 
   // Clear tokens from chrome storage
   clearTokens: async () => {
-    await chrome.storage.local.remove(['accessToken', 'refreshToken']);
+    await chromeStorage.local.remove(['accessToken', 'refreshToken']);
   },
 
   // Refresh access token using stored refresh token
@@ -89,6 +91,8 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
 
   let response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
 
+  console.log("response.status", response.status, response.status === 401)
+
   // If token expired, try to refresh
   if (response.status === 401) {
     try {
@@ -100,6 +104,7 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
         'Authorization': `Bearer ${accessToken}`,
         ...options.headers,
       };
+      console.log("defaultOptions", defaultOptions)
       response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
     } catch (error) {
       await tokenService.clearTokens();

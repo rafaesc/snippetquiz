@@ -36,7 +36,7 @@ const StepsSection = () => {
             <span className="text-transparent bg-gradient-to-r from-turquoise-500 to-mustard-500 bg-clip-text">Smarter Learning</span>
           </h2>
           <p className="section-subtitle text-gray-600 mx-auto">
-            Transform your browsing habits into powerful learning sessions with QuizMaster's intuitive three-step process.
+            Transform your browsing habits into powerful learning sessions with SnippetQuiz's intuitive three-step process.
           </p>
         </div>
 

@@ -3,9 +3,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&display=swap');
 
 @font-face {
-  font-family: 'Brockmann';
-  src: url('/brockmann-medium-webfont.ttf') format('truetype'),
-       url('/brockmann-medium.otf') format('opentype');
+  font-family: 'Poppins';
+  src: url('/poppins-bold.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -15,7 +14,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* BrainFuel Chrome Extension Design System */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
 
 @layer base {
   :root {

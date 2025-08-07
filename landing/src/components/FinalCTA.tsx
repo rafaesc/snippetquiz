@@ -25,7 +25,7 @@ const FinalCTA = () => {
           </h2>
           
           <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Stop passively consuming content. Start actively learning with QuizMaster's AI-powered quiz generation. Your future self will thank you.
+            Stop passively consuming content. Start actively learning with SnippetQuiz's AI-powered quiz generation. Your future self will thank you.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

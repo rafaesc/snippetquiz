@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, ContentBank } from '../lib/api-service';
+import { apiService, ContentBank, tokenService } from '../lib/api-service';
 import chromeStorage from '../lib/chrome-storage';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -83,7 +83,7 @@ function Dashboard() {
     });
 
     const updateBankMutation = useMutation({
-        mutationFn: ({ id, name }: { id: string; name: string }) => 
+        mutationFn: ({ id, name }: { id: string; name: string }) =>
             apiService.contentBank.update(id, { name }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -217,7 +217,7 @@ function Dashboard() {
     const totalPages = contentEntries?.pagination.total ? Math.ceil(contentEntries.pagination.total / itemsPerPage) : 1;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    
+
     const currentBanks = contentBanks?.contentBanks || [];
     const totalBankPages = contentBanks?.pagination.total ? Math.ceil(contentBanks.pagination.total / banksPerPage) : 1;
     const bankStartIndex = (bankPage - 1) * banksPerPage;
@@ -229,7 +229,7 @@ function Dashboard() {
         return (
             <div className="w-full">
                 {/* Header */}
-            <div className="bg-gray-900/95 px-4 py-3 flex items-center justify-between">
+                <div className="bg-gray-900/95 px-4 py-3 flex items-center justify-between">
                     <h1 className="text-md font-semibold text-white">Content Banks</h1>
                     <Button
                         variant="ghost"
@@ -259,15 +259,15 @@ function Dashboard() {
                                 autoFocus
                             />
                             <div className="flex space-x-2">
-                                <Button 
+                                <Button
                                     onClick={handleCreateBank}
                                     disabled={!newBankName.trim() || createBankMutation.isPending}
                                     className="flex-1"
                                 >
                                     {createBankMutation.isPending ? 'Creating...' : 'Create'}
                                 </Button>
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={() => {
                                         setShowCreateBank(false);
                                         setNewBankName('');
@@ -279,7 +279,7 @@ function Dashboard() {
                             </div>
                         </div>
                     ) : (
-                        <Button 
+                        <Button
                             className="w-full"
                             onClick={() => setShowCreateBank(true)}
                         >
@@ -291,11 +291,10 @@ function Dashboard() {
                         {currentBanks.map((bank) => (
                             <div
                                 key={bank.id}
-                                className={`p-3 border rounded-lg transition-colors ${
-                                    bank.id === selectedBank
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border hover:bg-muted/50'
-                                }`}
+                                className={`p-3 border rounded-lg transition-colors ${bank.id === selectedBank
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:bg-muted/50'
+                                    }`}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1 min-w-0">
@@ -416,7 +415,7 @@ function Dashboard() {
         <div className="w-full flex flex-col h-[600px]">
             {/* Header */}
             <div className="bg-gray-900/95 px-4 py-3 flex items-center justify-between">
-                <h1 className="text-md font-display font-bold text-white">QuizMaster</h1>
+                <h1 className="text-md font-display font-bold text-white">SnippetQuiz</h1>
                 <div className="flex items-center space-x-2">
                     <span className="text-sm text-white">Hello, {user?.name}</span>
                     <Button
@@ -472,9 +471,9 @@ function Dashboard() {
                                                         <span className="truncate">{item.sourceUrl || 'No URL'}</span>
                                                     </div>
                                                 </div>
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     className="ml-2 flex-shrink-0"
                                                     onClick={() => handleDeleteEntry(item.id)}
                                                     disabled={deleteEntryMutation.isPending}
@@ -537,7 +536,12 @@ function Dashboard() {
                         Note: Content analysis is limited to 5MB per capture.
                     </p>
                     <br />
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={async () => {
+                        const token = await tokenService.getAccessToken();
+                        chrome.tabs.create({
+                            url: `${import.meta.env.VITE_DASHBOARD_URL}?token=${token}`
+                        });
+                    }}>
                         <ExternalLink size={16} className="mr-2" />
                         Generate Quiz
                     </Button>

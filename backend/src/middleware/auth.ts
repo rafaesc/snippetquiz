@@ -20,13 +20,16 @@ export interface JwtPayload {
   exp?: number;
 }
 
-// Cookie extractor function
-const cookieExtractor = function(req: Request) {
-  let token = null;
-  if (req && req.cookies) {
-    token = req.cookies['accessToken'];
+// Access token extractor function
+const cookieExtractor = function (req: Request) {
+  if (req && req.cookies && req.cookies['accessToken']) {
+    return req.cookies['accessToken'];
   }
-  return token;
+
+  if (req && req.headers && req.headers['authorization']) {
+    return req.headers['authorization']?.split(' ')[1];
+  }
+  return null
 };
 
 // Passport Local Strategy
@@ -38,14 +41,14 @@ passport.use(new LocalStrategy(
   async (email: string, password: string, done) => {
     try {
       const user = await User.query().where('email', email).first();
-      
+
       if (!user) {
         return done(null, false, { message: 'Invalid email or password' });
       }
 
       // Use the User model's verifyPassword method instead of direct bcrypt.compare
       const isValidPassword = await user.verifyPassword(password);
-      
+
       if (!isValidPassword) {
         return done(null, false, { message: 'Invalid email or password' });
       }
@@ -95,7 +98,7 @@ export const generateTokens = (user: any) => {
 // Helper function to set token cookies
 export const setTokenCookies = (res: Response, accessToken: string, refreshToken: string) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  
+
   // Set access token cookie (15 minutes)
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
@@ -103,7 +106,7 @@ export const setTokenCookies = (res: Response, accessToken: string, refreshToken
     sameSite: 'strict',
     maxAge: 15 * 60 * 1000 // 15 minutes in milliseconds
   });
-  
+
   // Set refresh token cookie (7 days)
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,

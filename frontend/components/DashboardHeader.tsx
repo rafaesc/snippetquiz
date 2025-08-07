@@ -107,7 +107,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           </Sheet>
           
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-display font-bold text-white">QuizMaster</span>
+            <span className="text-xl font-display font-bold text-white">SnippetQuiz</span>
           </Link>
         </div>
 

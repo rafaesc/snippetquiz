@@ -134,7 +134,7 @@ export default function AuthPage() {
   return (
     <Card className="shadow-elegant dark:shadow-none">
       <CardHeader className="text-center pb-6">
-        <CardTitle className="text-2xl font-display font-bold">Welcome to QuizMaster</CardTitle>
+        <CardTitle className="text-2xl font-display font-bold">Welcome to SnippetQuiz</CardTitle>
         <CardDescription>
           Sign in to your account or create a new one to get started
         </CardDescription>
