@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardSidebar from "@/components/DashboardSidebar";
 
-function DashboardLayout({
+function DashboardContent({
   children,
 }: {
   children: React.ReactNode;
@@ -112,6 +112,27 @@ function DashboardLayout({
         </div>
       </main>
     </div>
+  );
+}
+
+function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">
+            Loading dashboard...
+          </p>
+        </div>
+      </div>
+    }>
+      <DashboardContent>{children}</DashboardContent>
+    </Suspense>
   );
 }
 

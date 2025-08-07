@@ -41,8 +41,18 @@ app.use(cors(corsOptions));
 app.use(generalLimiter);
 
 app.use(logger('dev'));
-//app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '40kb' }));
+
+// Apply JSON parsing with size limit, but exclude content-entry POST endpoint
+app.use((req, res, next) => {
+  if (req.path === '/api/content-entry' && req.method === 'POST') {
+    // No size limit for content-entry POST requests
+    express.json({ limit: '10000kb' })(req, res, next);
+  } else {
+    // 40kb limit for all other requests
+    express.json({ limit: '40kb' })(req, res, next);
+  }
+});
+
 app.use(cookieParser()); // Add this line to parse cookies
 
 const port = process.env.PORT || 5000;

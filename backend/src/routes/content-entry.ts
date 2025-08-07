@@ -4,6 +4,9 @@ import {
 } from '../middleware/auth';
 import { ContentBank, ContentEntry, ContentEntriesBank } from '../models';
 import { createUserSpecificLimiter } from '../middleware/rateLimiter';
+import { Readability } from '@mozilla/readability';
+import { JSDOM } from 'jsdom';
+import DOMPurify from 'dompurify';
 
 const router = Router();
 
@@ -108,7 +111,7 @@ router.get('/:id', authenticateJWT, async function (req: Request, res: Response,
       sourceUrl: contentEntry.source_url,
       content: contentEntry.content?.substring(0, 100),
       pageTitle: contentEntry.page_title,
-      contentType: contentEntry.content_type, 
+      contentType: contentEntry.content_type,
       createdAt: contentEntry.created_at
     });
   } catch (error) {
@@ -149,7 +152,7 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
     if (type === 'video_transcript' && !sourceUrl) {
       return res.status(400).json({ error: 'Source URL is required when type is "video_transcript"' });
     }
-    
+
     // Verify that the bank belongs to the user 
     const contentBank = await ContentBank.query()
       .where('id', bankIdInt)
@@ -160,28 +163,81 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
       return res.status(404).json({ error: 'Content bank not found or does not belong to user' });
     }
 
-    const sourceData = {
-      content_type: type,
-      source_url: sourceUrl,
-      content: content,
-      page_title: pageTitle
-    };
+    let processedContent = content;
 
-    const newSource = await ContentEntry.query().insert(sourceData);
+    // Extract plain text from HTML when type is 'full_html'
+    if (type === 'full_html' && content) {
+      try {
+        const window = new JSDOM('').window;
+        const purify = DOMPurify(window);
+        const clean = purify.sanitize(content);
+        const dom = new JSDOM(clean);
+        let reader = new Readability(dom.window.document);
+        const article = reader.parse();
+        processedContent = article?.textContent || content;
+      } catch (error) {
+        console.error('Error processing HTML content:', error);
+        // Fall back to original content if processing fails
+        processedContent = content;
+      }
+    }
 
-    // Ensure both IDs are integers before insertion
-    await ContentEntriesBank.query().insert({
-      content_entry_id: parseInt(String(newSource.id), 10),
-      content_bank_id: bankIdInt
-    });
+    // Check if there's an existing content entry with the same sourceUrl and type 'full_html'
+    // Only check for full_html type to avoid duplicates of the same webpage
+    let existingEntry = null;
+    if (type === 'full_html' && sourceUrl) {
+      // Find existing entry in the same bank with same sourceUrl and type
+      existingEntry = await ContentEntry.query()
+        .join('content_entries_bank', 'content_entries.id', 'content_entries_bank.content_entry_id')
+        .join('content_banks', 'content_entries_bank.content_bank_id', 'content_banks.id')
+        .where('content_entries.source_url', sourceUrl)
+        .where('content_entries.content_type', 'full_html')
+        .where('content_banks.id', bankIdInt)
+        .where('content_banks.user_id', (req.user as any).id)
+        .select('content_entries.*')
+        .first();
+    }
 
-    res.status(201).json({
-      id: newSource.id,
-      sourceUrl: newSource.source_url,
-      content: newSource.content,
-      pageTitle: newSource.page_title,
-      contentType: newSource.content_type,
-      createdAt: newSource.created_at
+    let resultEntry;
+
+    if (existingEntry) {
+      // Update existing entry with new content and refresh created_at
+      const sourceData = {
+        content: processedContent,
+        page_title: pageTitle,
+        created_at: new Date() // Update the created_at timestamp
+      };
+
+      resultEntry = await ContentEntry.query()
+        .patchAndFetchById(existingEntry.id, sourceData);
+    } else {
+      // Create new entry
+      const sourceData = {
+        content_type: type,
+        source_url: sourceUrl,
+        content: processedContent,
+        page_title: pageTitle
+      };
+
+      const newSource = await ContentEntry.query().insert(sourceData);
+
+      // Ensure both IDs are integers before insertion
+      await ContentEntriesBank.query().insert({
+        content_entry_id: parseInt(String(newSource.id), 10),
+        content_bank_id: bankIdInt
+      });
+
+      resultEntry = newSource;
+    }
+
+    res.status(existingEntry ? 200 : 201).json({
+      id: resultEntry.id,
+      sourceUrl: resultEntry.source_url,
+      content: resultEntry.content,
+      pageTitle: resultEntry.page_title,
+      contentType: resultEntry.content_type,
+      createdAt: resultEntry.created_at,
+      updated: !!existingEntry // Indicate if this was an update vs new creation
     });
   } catch (error) {
     console.error('Error creating source:', error);

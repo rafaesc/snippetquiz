@@ -105,8 +105,6 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
 
   let response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
 
-  console.log("response.status", response.status, response.status === 401)
-
   // If token expired, try to refresh
   if (response.status === 401) {
     try {

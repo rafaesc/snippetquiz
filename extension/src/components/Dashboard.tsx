@@ -5,8 +5,10 @@ import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { ChevronDown, ChevronRight, ExternalLink, Trash2, FileText, Link as LinkIcon, LogOut, Settings, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Alert, AlertDescription } from './ui/alert';
+import { ChevronDown, ChevronRight, ExternalLink, Trash2, FileText, Link as LinkIcon, LogOut, Settings, ChevronLeft, ChevronRight as ChevronRightIcon, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import tabService from '../lib/tab-service';
 
 function Dashboard() {
     const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
@@ -19,6 +21,9 @@ function Dashboard() {
     const [editingName, setEditingName] = useState('');
     const [newBankName, setNewBankName] = useState('');
     const [showCreateBank, setShowCreateBank] = useState(false);
+    const [generateCodeError, setGenerateCodeError] = useState<string | null>(null);
+    const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+    const [isAddingPageContent, setIsAddingPageContent] = useState(false);
 
     const queryClient = useQueryClient();
     const itemsPerPage = 5;
@@ -123,6 +128,42 @@ function Dashboard() {
             queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
         },
     });
+
+    const createContentEntryMutation = useMutation({
+        mutationFn: (data: { bankId: string; type: 'full_html' | 'selected_text' | 'video_transcript'; content?: string; sourceUrl?: string; pageTitle?: string }) => 
+            apiService.contentEntry.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
+            setIsAddingPageContent(false);
+        },
+        onError: (error) => {
+            console.error('Failed to create content entry:', error);
+            setIsAddingPageContent(false);
+        },
+    });
+
+    const handleGetPageContent = async () => {
+        if (!selectedBankId) {
+            console.error('No bank selected');
+            return;
+        }
+
+        setIsAddingPageContent(true);
+        try {
+            const { pageTitle, sourceUrl, content } = await tabService.getCurrentTabData();
+            
+            createContentEntryMutation.mutate({
+                bankId: selectedBankId,
+                type: 'full_html',
+                content: content,
+                sourceUrl: sourceUrl,
+                pageTitle: pageTitle
+            });
+        } catch (error) {
+            console.error('Failed to get page content:', error);
+            setIsAddingPageContent(false);
+        }
+    };
 
     const saveEdit = (bankId: string) => {
         if (editingName.trim()) {
@@ -457,7 +498,7 @@ function Dashboard() {
                                 onClick={() => setShowBankSelector(true)}
                             >
                                 <div className="flex-1 flex items-center justify-between">
-                                    <span>{currentBank?.name} ({currentBank?.entryCount || 0} items)</span>
+                                    <span>{currentBank?.name} ({contentEntries?.pagination.total || 0} items)</span>
                                     <ChevronRight size={16} className="text-muted-foreground" />
                                 </div>
                             </div>
@@ -553,27 +594,58 @@ function Dashboard() {
                     🔘 Actions
                 </h3>
                 <div className="space-y-2">
-                    <Button className="w-full">
+                    <Button 
+                        className="w-full" 
+                        onClick={handleGetPageContent}
+                        disabled={isAddingPageContent || !selectedBankId}
+                    >
                         <FileText size={16} className="mr-2" />
-                        Add Entire Website Content
+                        {isAddingPageContent ? 'Adding Content...' : 'Add Entire Website Content'}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
                         Note: Content analysis is limited to 5MB per capture.
                     </p>
                     <br />
-                    <Button variant="outline" className="w-full" onClick={async () => {
-                        try {
-                            const { code } = await apiService.generateCode();
-                            chrome.tabs.create({
-                                url: `${import.meta.env.VITE_DASHBOARD_URL}?code=${code}`
-                            });
-                        } catch (error) {
-                            console.error('Failed to generate code:', error);
-                            // Handle error - maybe show a toast notification
-                        }
-                    }}>
+
+                    {/* Error Alert for Generate Code */}
+                    {generateCodeError && (
+                        <Alert variant="destructive" className="mb-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription className="text-sm">
+                                {generateCodeError}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={isGeneratingCode}
+                        onClick={async () => {
+                            setGenerateCodeError(null); // Clear previous errors
+                            setIsGeneratingCode(true);
+
+                            try {
+                                const { code } = await apiService.generateCode();
+                                chrome.tabs.create({
+                                    url: `${import.meta.env.VITE_DASHBOARD_URL}?code=${code}`
+                                });
+                            } catch (error) {
+                                console.error('Failed to generate code:', error);
+
+                                // Set user-visible error message
+                                const errorMessage = error instanceof Error
+                                    ? error.message
+                                    : 'Failed to generate quiz code. Please try again.';
+
+                                setGenerateCodeError(errorMessage);
+                            } finally {
+                                setIsGeneratingCode(false);
+                            }
+                        }}
+                    >
                         <ExternalLink size={16} className="mr-2" />
-                        Generate Quiz
+                        {isGeneratingCode ? 'Loading...' : 'Generate Quiz'}
                     </Button>
                 </div>
             </div>

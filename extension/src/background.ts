@@ -33,23 +33,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       const result = await chrome.storage.local.get('selectedBankId');
       const bankId = result.selectedBankId;
       
-      if (!bankId) {
-        console.warn('No default bank ID found. Please set a default bank in the extension popup.');
-        // Still save to local storage as fallback
-        chrome.storage.local.get("savedTexts", (data) => {
-          const current = data.savedTexts || [];
-          current.push({ 
-            text, 
-            timestamp: Date.now(),
-            sourceUrl,
-            pageTitle,
-            status: 'pending_bank_selection'
-          });
-          chrome.storage.local.set({ savedTexts: current });
-        });
-        return;
-      }
-      
       // Create the content entry using direct API call
       const response = await makeAuthenticatedRequest('/api/content-entry', {
         method: 'POST',
@@ -72,38 +55,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       
       const contentEntry = await response.json();
       console.log('Content entry created successfully:', contentEntry);
-      
-      // Save to local storage with success status
-      chrome.storage.local.get("savedTexts", (data) => {
-        const current = data.savedTexts || [];
-        current.push({ 
-          text, 
-          timestamp: Date.now(),
-          entryId: contentEntry.id,
-          sourceUrl,
-          pageTitle,
-          status: 'synced'
-        });
-        chrome.storage.local.set({ savedTexts: current });
-      });
+    
       
     } catch (error) {
       console.error('Failed to create content entry:', error);
-      
-      // Fallback: save to local storage if API call fails
-      chrome.storage.local.get("savedTexts", (data) => {
-        const current = data.savedTexts || [];
-        current.push({ 
-          text, 
-          timestamp: Date.now(),
-          sourceUrl: tab?.url || '',
-          pageTitle: tab?.title || '',
-          status: 'failed_to_sync',
-          error: error instanceof Error ? error.message : 'Unknown error'
-
-        });
-        chrome.storage.local.set({ savedTexts: current });
-      });
     }
   }
 });

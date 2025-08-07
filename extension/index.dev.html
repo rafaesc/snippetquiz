@@ -81,6 +81,12 @@
       tabs: {
         create: ({ url }) => {
           window.open(url, '_blank')
+        },
+        query: (queryInfo, callback) => {
+          console.log('Querying tabs:', queryInfo)
+          if (callback) {
+            callback([])
+          }
         }
       }
     };
