@@ -56,6 +56,14 @@
           getBytesInUse: (keys) => Promise.resolve(0),
         },
       },
+      contextMenus: {
+        create: (data) => {
+          console.log('Creating context menu:', data)
+        },
+        remove: (data) => {
+          console.log('Removing context menu:', data)
+        },
+      },
       runtime: {
         getManifest: () => ({
           name: 'SnippetQuiz',

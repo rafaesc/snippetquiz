@@ -28,6 +28,25 @@ export const tokenService = {
     } catch {
       return false;
     }
+  },
+
+  // Resolve one-time code to get authentication cookies
+  resolveCode: async (code: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/resolve-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to resolve code');
+    }
+
+    return response.json();
   }
 };
 
@@ -307,6 +326,11 @@ export const apiService = {
     }
 
     return response.json();
+  },
+
+  // Resolve one-time code (also available as standalone function)
+  resolveCode: async (code: string) => {
+    return tokenService.resolveCode(code);
   },
 
   // Get quiz generation instructions

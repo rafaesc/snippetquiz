@@ -109,7 +109,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   return (
     <div className="w-full flex flex-col h-[600px]">
       <div className="bg-gray-900/95 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-md font-display font-bold text-white">SnippetQuiz</h1>
+        <h1 className="text-lg font-display font-bold text-white">SnippetQuiz</h1>
       </div>
       <div className="p-6">
         <Tabs defaultValue="login" className="w-full">

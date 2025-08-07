@@ -8,15 +8,6 @@ import { TrendingUp, LineChart, Target } from "lucide-react";
 import { ResponsiveContainer, Line } from "recharts";
 
 function Dashboard() {  // Query for user profile (optional, only if user is authenticated)
-  const {
-    data: userProfile,
-    isLoading: isProfileLoading,
-    error: profileError
-  } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: apiService.getUserProfile,
-  });
-
   return (
     <div className="space-y-6 p-6">
       

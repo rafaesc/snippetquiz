@@ -20,14 +20,6 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
   });
 };
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "saveSelectedText",
-    title: "Add selected text to content bank",
-    contexts: ["selection"]
-  });
-});
-
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "saveSelectedText" && info.selectionText) {
     const text = info.selectionText.trim();

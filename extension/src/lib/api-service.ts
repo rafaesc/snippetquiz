@@ -70,6 +70,20 @@ export const tokenService = {
     } catch {
       return false;
     }
+  },
+
+  // Generate one-time code for dashboard access
+  generateCode: async (): Promise<{ code: string; }> => {
+    const response = await makeAuthenticatedRequest('/api/auth/generate-code', {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate code');
+    }
+
+    return response.json();
   }
 };
 
@@ -207,6 +221,11 @@ export const apiService = {
     }
 
     return data;
+  },
+
+  // Generate one-time code (convenience method)
+  generateCode: async () => {
+    return tokenService.generateCode();
   },
 
   // Register

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, ContentBank, tokenService } from '../lib/api-service';
+import { apiService, ContentBank } from '../lib/api-service';
 import chromeStorage from '../lib/chrome-storage';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -43,6 +43,7 @@ function Dashboard() {
                 await chromeStorage.local.set({ userId: profile.user.id });
                 return profile;
             } catch (error) {
+                chrome.contextMenus.remove("saveSelectedText");
                 await chromeStorage.local.clear();
                 console.log('Chrome storage cleared due to profile fetch failure:', error);
                 throw error;
@@ -50,6 +51,18 @@ function Dashboard() {
         },
         retry: false,
     });
+
+    useEffect(() => {
+        if (userProfile) {
+            chrome.contextMenus.create({
+                id: "saveSelectedText",
+                title: "Add selected text to content bank",
+                contexts: ["selection"]
+            });
+        } else {
+            chrome.contextMenus.remove("saveSelectedText");
+        }
+    }, [userProfile]);
 
     // Fetch content banks
     const { data: contentBanks } = useQuery({
@@ -136,6 +149,7 @@ function Dashboard() {
     const logout = async () => {
         try {
             await apiService.logout();
+            chrome.contextMenus.remove("saveSelectedText");
             await chromeStorage.local.clear();
             // Redirect to login or refresh the component
             window.location.reload();
@@ -230,7 +244,7 @@ function Dashboard() {
             <div className="w-full">
                 {/* Header */}
                 <div className="bg-gray-900/95 px-4 py-3 flex items-center justify-between">
-                    <h1 className="text-md font-semibold text-white">Content Banks</h1>
+                    <h1 className="text-lg font-semibold text-white">Content Banks</h1>
                     <Button
                         variant="ghost"
                         size="sm"
@@ -415,7 +429,7 @@ function Dashboard() {
         <div className="w-full flex flex-col h-[600px]">
             {/* Header */}
             <div className="bg-gray-900/95 px-4 py-3 flex items-center justify-between">
-                <h1 className="text-md font-display font-bold text-white">SnippetQuiz</h1>
+                <h1 className="text-lg font-display font-bold text-white">SnippetQuiz</h1>
                 <div className="flex items-center space-x-2">
                     <span className="text-sm text-white">Hello, {user?.name}</span>
                     <Button
@@ -449,6 +463,17 @@ function Dashboard() {
                             </div>
                         </div>
                     </div>
+
+                    {/* How to Add Content Instruction */}
+                    <div className="bg-[#d3d3d34d] border border-[#d3d3d34d]/20 rounded-lg p-3">
+                        <div className="flex items-center space-x-2 text-[#565656]">
+                            <span className="text-sm">💡</span>
+                            <p className="text-sm font-medium">
+                                Right-click on any text and select "Add selected text to content bank" to save content
+                            </p>
+                        </div>
+                    </div>
+
 
                     {/* Section 2: Saved Content List */}
                     <div className="space-y-3">
@@ -537,10 +562,15 @@ function Dashboard() {
                     </p>
                     <br />
                     <Button variant="outline" className="w-full" onClick={async () => {
-                        const token = await tokenService.getAccessToken();
-                        chrome.tabs.create({
-                            url: `${import.meta.env.VITE_DASHBOARD_URL}?token=${token}`
-                        });
+                        try {
+                            const { code } = await apiService.generateCode();
+                            chrome.tabs.create({
+                                url: `${import.meta.env.VITE_DASHBOARD_URL}?code=${code}`
+                            });
+                        } catch (error) {
+                            console.error('Failed to generate code:', error);
+                            // Handle error - maybe show a toast notification
+                        }
                     }}>
                         <ExternalLink size={16} className="mr-2" />
                         Generate Quiz

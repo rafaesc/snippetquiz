@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { apiService, tokenService } from "@/lib/api-service";
@@ -17,14 +17,44 @@ function DashboardLayout({
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [isResolvingCode, setIsResolvingCode] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const userProfile = await apiService.getUserProfile();
-        setUser(userProfile);
-        setIsAuthenticated(true);
+        // Check if there's a code in the URL
+        const code = searchParams.get('code');
+        
+        if (code) {
+          setIsResolvingCode(true);
+          try {
+            // Resolve the code to get authentication cookies
+            await tokenService.resolveCode(code);
+            
+            // Remove the code from URL after successful resolution
+            const url = new URL(window.location.href);
+            url.searchParams.delete('code');
+            window.history.replaceState({}, '', url.toString());
+            
+            // Now get user profile
+            const userProfile = await apiService.getUserProfile();
+            setUser(userProfile);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error('Code resolution failed:', error);
+            setIsAuthenticated(false);
+            redirect('/auth/login');
+          } finally {
+            setIsResolvingCode(false);
+          }
+        } else {
+          // Normal authentication check
+          const userProfile = await apiService.getUserProfile();
+          setUser(userProfile);
+          setIsAuthenticated(true);
+        }
       } catch (error) {
         console.error('Authentication check failed:', error);
         setIsAuthenticated(false);
@@ -33,7 +63,7 @@ function DashboardLayout({
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleLogout = async () => {
     try {
@@ -46,11 +76,18 @@ function DashboardLayout({
     }
   };
 
-  // Show loading while checking authentication
-  if (isAuthenticated === null) {
+  // Show loading while checking authentication or resolving code
+  if (isAuthenticated === null || isResolvingCode) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          {isResolvingCode && (
+            <p className="text-sm text-muted-foreground">
+              Authenticating with extension code...
+            </p>
+          )}
+        </div>
       </div>
     );
   }

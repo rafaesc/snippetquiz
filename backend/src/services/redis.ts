@@ -34,9 +34,9 @@ class RedisService {
     }
   }
 
-  async disconnect() {
+  disconnect() {
     if (this.isConnected) {
-      await this.client.disconnect();
+      this.client.destroy();
     }
   }
 
@@ -68,6 +68,26 @@ class RedisService {
         await this.client.del(key);
       }
     }
+  }
+
+  // One-time code methods
+  async storeOneTimeCode(code: string, userId: number, expiresIn: string = '5m') {
+    const key = `one_time_code:${code}`;
+    const expirationSeconds = this.parseExpirationTime(expiresIn);
+    
+    await this.client.setEx(key, expirationSeconds, userId.toString());
+  }
+
+  async validateAndConsumeOneTimeCode(code: string): Promise<string | null> {
+    const key = `one_time_code:${code}`;
+    const userId = await this.client.get(key);
+    
+    if (userId) {
+      // Delete the code after use (one-time use)
+      await this.client.del(key);
+    }
+    
+    return userId;
   }
 
   private parseExpirationTime(expiresIn: string): number {

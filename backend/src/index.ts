@@ -87,14 +87,14 @@ app.listen(port, () => {
 });
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   console.log('Shutting down gracefully...');
-  await redisService.disconnect();
+  redisService.disconnect();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on('SIGTERM', () => {
   console.log('Shutting down gracefully...');
-  await redisService.disconnect();
+  redisService.disconnect();
   process.exit(0);
 });
