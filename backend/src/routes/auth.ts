@@ -386,14 +386,14 @@ router.post('/resolve-code', authLimiter, async (req: Request<{}, {}, ResolveCod
     }
     
     // Validate and consume the one-time code
-    const userIdString = await redisService.validateAndConsumeOneTimeCode(code);
+    const userId = await redisService.validateAndConsumeOneTimeCode(code);
     
-    if (!userIdString) {
+    if (!userId) {
       return res.status(400).json({ error: 'Invalid or expired code' });
     }
     
     // Get user from database
-    const user = await User.query().findById(parseInt(userIdString));
+    const user = await User.query().findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

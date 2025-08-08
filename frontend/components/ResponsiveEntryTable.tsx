@@ -59,11 +59,10 @@ export const ResponsiveEntryTable: React.FC<ResponsiveEntryTableProps> = ({
                 <TableRow key={entry.id}>
                   <TableCell className="font-medium">
                     <div className="max-w-[300px] truncate">{entry.pageTitle}</div>
-                    {entry.contentType === 'selected_text' && (
-                      <div className="max-w-[300px] truncate text-sm text-muted-foreground">
-                        {entry.content}
-                      </div>
-                    )}
+
+                    <div className="max-w-[500px] truncate text-sm text-muted-foreground">
+                      {entry.content}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Button
@@ -123,7 +122,8 @@ export const ResponsiveEntryTable: React.FC<ResponsiveEntryTableProps> = ({
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => onDelete(entry)}>
+                              <AlertDialogAction onClick={() => onDelete(entry)}
+                                className="bg-destructive hover:bg-destructive/90">
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>

@@ -19,15 +19,15 @@ interface QuizListProps {
   onPageChange?: (page: number) => void;
 }
 
-export const QuizList: React.FC<QuizListProps> = ({ 
-  quizzesData, 
-  onViewSummary, 
+export const QuizList: React.FC<QuizListProps> = ({
+  quizzesData,
+  onViewSummary,
   onDelete,
-  onPageChange 
+  onPageChange
 }) => {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  
+
   const { quizzes, pagination } = quizzesData;
 
   const handleContinue = (quiz: Quiz) => {
@@ -69,7 +69,7 @@ export const QuizList: React.FC<QuizListProps> = ({
   // Mobile card component
   const QuizCard: React.FC<{ quiz: Quiz }> = ({ quiz }) => {
     const completed = isQuizCompleted(quiz);
-    
+
     return (
       <Card>
         <CardContent className="p-4">
@@ -122,9 +122,10 @@ export const QuizList: React.FC<QuizListProps> = ({
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
+                        <AlertDialogAction
                           onClick={() => handleDelete(quiz)}
                           disabled={isDeleting === quiz.id}
+                          className="bg-destructive hover:bg-destructive/90"
                         >
                           {isDeleting === quiz.id ? 'Deleting...' : 'Delete'}
                         </AlertDialogAction>
@@ -205,7 +206,7 @@ export const QuizList: React.FC<QuizListProps> = ({
               <TableBody>
                 {quizzes.map((quiz) => {
                   const completed = isQuizCompleted(quiz);
-                  
+
                   return (
                     <TableRow key={quiz.id}>
                       <TableCell className="text-muted-foreground">
@@ -270,7 +271,7 @@ export const QuizList: React.FC<QuizListProps> = ({
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
+                                  <AlertDialogAction
                                     onClick={() => handleDelete(quiz)}
                                     disabled={isDeleting === quiz.id}
                                   >
@@ -302,11 +303,11 @@ export const QuizList: React.FC<QuizListProps> = ({
                   className={pagination.page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                 />
               </PaginationItem>
-              
+
               {Array.from({ length: Math.min(5, Math.ceil(pagination.total / pagination.limit)) }, (_, i) => {
                 const totalPages = Math.ceil(pagination.total / pagination.limit);
                 let pageNumber;
-                
+
                 if (totalPages <= 5) {
                   pageNumber = i + 1;
                 } else if (pagination.page <= 3) {

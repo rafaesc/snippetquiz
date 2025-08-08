@@ -4,6 +4,7 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('quiz_questions', (table) => {
     table.bigIncrements('id').primary();
     table.text('question').notNullable();
+    table.string('type').notNullable(); // New type column
     table.text('content_entry_type').notNullable();
     table.text('content_entry_source_url').nullable();
     table.bigInteger('content_entry_id').nullable();

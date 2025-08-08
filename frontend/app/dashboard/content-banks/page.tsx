@@ -41,6 +41,9 @@ export default function ContentBanks() {
   const [currentBankPage, setCurrentBankPage] = useState(1);
   const [showCreateBankDialog, setShowCreateBankDialog] = useState(false);
   const [newBankName, setNewBankName] = useState('');
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
+  const [entryToClone, setEntryToClone] = useState<ContentEntry | null>(null);
+  const [targetBankId, setTargetBankId] = useState<string>('');
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -52,6 +55,13 @@ export default function ContentBanks() {
   const { data: banksData, isLoading: banksLoading, error: banksError } = useQuery({
     queryKey: ['contentBanks', currentBankPage, banksPerPage, searchTerm],
     queryFn: () => apiService.getContentBanks(currentBankPage, banksPerPage, searchTerm || undefined),
+  });
+
+  // Fetch ALL content banks for clone dialog (without pagination)
+  const { data: allBanksData } = useQuery({
+    queryKey: ['contentBanks'],
+    queryFn: () => apiService.getContentBanks(1, 1000), // Get all banks
+    enabled: showCloneDialog,
   });
 
   // Fetch content entries for selected bank
@@ -171,11 +181,13 @@ export default function ContentBanks() {
     mutationFn: ({ id, bankId }: { id: string; bankId: string }) =>
       apiService.cloneContentEntry(id, bankId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
+      setShowCloneDialog(false);
+      setEntryToClone(null);
+      setTargetBankId('');
       toast({
         title: 'Success',
-        description: 'Content entry duplicated successfully',
+        description: 'Content entry cloned successfully',
       });
     },
     onError: (error: Error) => {
@@ -242,10 +254,15 @@ export default function ContentBanks() {
   };
 
   const handleCloneEntry = (entry: ContentEntry) => {
-    if (selectedBank) {
+    setEntryToClone(entry);
+    setShowCloneDialog(true);
+  };
+
+  const handleConfirmClone = () => {
+    if (entryToClone && targetBankId) {
       cloneEntryMutation.mutate({
-        id: entry.id,
-        bankId: selectedBank.id
+        id: entryToClone.id,
+        bankId: targetBankId
       });
     }
   };
@@ -253,6 +270,11 @@ export default function ContentBanks() {
   const currentBanks = banksData?.contentBanks || [];
   const totalBankPages = banksData ? Math.ceil(banksData.pagination.total / banksPerPage) : 0;
   const totalEntryPages = entriesData ? Math.ceil(entriesData.pagination.total / entriesPerPage) : 0;
+
+  // Filter banks to exclude the current selected bank
+  const availableBanksForClone = allBanksData?.contentBanks.filter(
+    bank => bank.id !== selectedBank?.id
+  ) || [];
 
   if (currentView === 'bank' && selectedBank) {
     return (
@@ -306,6 +328,73 @@ export default function ContentBanks() {
             onClone={handleCloneEntry}
           />
         )}
+
+        {/* Clone Dialog */}
+        <Dialog open={showCloneDialog} onOpenChange={setShowCloneDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Clone Entry to Another Bank</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Select the content bank where you want to clone "{entryToClone?.pageTitle}"
+                </p>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {availableBanksForClone.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No other content banks available
+                    </p>
+                  ) : (
+                    availableBanksForClone.map((bank) => (
+                      <div
+                        key={bank.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          targetBankId === bank.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        onClick={() => setTargetBankId(bank.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{bank.name}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {bank.entryCount || 0} entries
+                            </p>
+                          </div>
+                          {targetBankId === bank.id && (
+                            <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-white" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCloneDialog(false);
+                    setEntryToClone(null);
+                    setTargetBankId('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmClone}
+                  disabled={!targetBankId || cloneEntryMutation.isPending}
+                >
+                  {cloneEntryMutation.isPending ? 'Cloning...' : 'Clone Entry'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Pagination */}
         {totalEntryPages > 1 && (

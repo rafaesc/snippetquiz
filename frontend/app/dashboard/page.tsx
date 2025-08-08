@@ -1,13 +1,9 @@
 'use client';
 
-import Link from "next/link";
-import { useQuery } from '@tanstack/react-query';
-import { apiService } from '../../lib/api-service';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TrendingUp, LineChart, Target } from "lucide-react";
-import { ResponsiveContainer, Line } from "recharts";
 
-function Dashboard() {  // Query for user profile (optional, only if user is authenticated)
+function Dashboard() {
   return (
     <div className="space-y-6 p-6">
       

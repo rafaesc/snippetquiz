@@ -76,7 +76,8 @@ export const ResponsiveEntryCard: React.FC<ResponsiveEntryCardProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => onDelete(entry)}>
+                      <AlertDialogAction onClick={() => onDelete(entry)}
+                        className="bg-destructive hover:bg-destructive/90">
                         Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>

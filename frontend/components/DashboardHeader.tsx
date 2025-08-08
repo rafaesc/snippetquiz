@@ -8,6 +8,7 @@ import { LogOut, Moon, Sun, Menu, Home, Sparkles, FileText, Database, Settings }
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useTheme } from 'next-themes';
 import { apiService } from '@/lib/api-service';
+import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [{
   name: 'Home',
@@ -32,13 +33,6 @@ const navigation = [{
   icon: Settings
 }];
 
-interface DashboardHeaderProps {
-  user?: {
-    name: string;
-    email?: string;
-  };
-}
-
 function NavItems() {
   return (
     <nav className="flex flex-col space-y-1 p-4">
@@ -48,11 +42,10 @@ function NavItems() {
           <Link
             key={item.name}
             href={item.href}
-            className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
-              item.highlighted
-                ? 'bg-primary text-primary-foreground font-medium'
-                : 'hover:bg-accent hover:text-accent-foreground'
-            }`}
+            className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${item.highlighted
+              ? 'bg-primary text-primary-foreground font-medium'
+              : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
           >
             <Icon className="h-4 w-4" />
             <span>{item.name}</span>
@@ -63,10 +56,14 @@ function NavItems() {
   );
 }
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
+export default function DashboardHeader() {
   const { theme, setTheme } = useTheme();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -76,18 +73,8 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const logout = async () => {
-    try {
-      await apiService.logout();
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      router.push('/auth/login');
-    }
-  };
-
   return (
-    
+
     <header className="sticky top-0 z-40 w-full bg-gray-900/95 backdrop-blur shadow-lg">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Mobile menu and Logo */}
@@ -105,7 +92,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
               </div>
             </SheetContent>
           </Sheet>
-          
+
           <Link href="/dashboard" className="flex items-center space-x-2">
             <span className="text-xl font-display font-bold text-white">SnippetQuiz</span>
           </Link>
@@ -140,7 +127,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={logout}
+            onClick={handleLogout}
             className="flex items-center space-x-1 text-black dark:text-white rounded-full"
 
           >

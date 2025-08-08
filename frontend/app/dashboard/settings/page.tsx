@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiService } from '../../../lib/api-service';
 import { useToast } from '../../../hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { User, Mail } from 'lucide-react';
 
 export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -18,6 +20,7 @@ export default function Settings() {
   const [globalInstructions, setGlobalInstructions] = useState('');
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
 
   // Query to fetch existing instructions
   const { data: instructionsData, isLoading: isLoadingInstructions } = useQuery({
@@ -117,6 +120,39 @@ export default function Settings() {
           Manage your account settings and preferences.
         </p>
       </div>
+
+      {/* User Profile Information Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Information</CardTitle>
+          <CardDescription>
+            Your account details and information.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Name
+              </Label>
+              <div className="p-3 bg-muted rounded-md">
+                <p className="text-sm font-medium">{user?.name || 'Loading...'}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email
+              </Label>
+              <div className="p-3 bg-muted rounded-md">
+                <p className="text-sm font-medium">{user?.email || 'Loading...'}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Global Quiz Instructions Section */}
       <Card>

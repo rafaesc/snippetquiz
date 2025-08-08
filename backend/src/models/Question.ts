@@ -6,9 +6,13 @@ import QuestionResponse from './QuestionResponse';
 
 Model.knex(knex);
 
+// Define question types
+export type QuestionType = 'multiple_choice' | 'single_answer' | 'true_false';
+
 export interface QuestionData {
   id?: number;
   content: string;
+  type: QuestionType;
   source_content_id?: number;
   created_at?: Date;
 }
@@ -24,6 +28,7 @@ export class Question extends Model {
 
   id!: number;
   content!: string;
+  type!: QuestionType;
   source_content_id?: number;
   created_at!: Date;
 
@@ -35,10 +40,11 @@ export class Question extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['content'],
+      required: ['content', 'type'],
       properties: {
         id: { type: 'integer' },
         content: { type: 'string', minLength: 1 },
+        type: { type: 'string', enum: ['multiple_choice', 'single_answer', 'true_false'] },
         source_content_id: { type: 'integer' },
         created_at: { type: 'string', format: 'date-time' }
       }
