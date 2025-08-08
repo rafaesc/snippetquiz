@@ -51,7 +51,7 @@ router.get('/bank/:bankId', authenticateJWT, async function (req: Request, res: 
 
     // Build query for content entries
     let query = ContentEntry.query()
-      .select('content_entries.id', 'content_entries.content_type', 'content_entries.content', 'content_entries.source_url', 'content_entries.page_title', 'content_entries.created_at')
+      .select('content_entries.id', 'content_entries.content_type', 'content_entries.content', 'content_entries.source_url', 'content_entries.page_title', 'content_entries.created_at', 'content_entries.questions_generated')
       .join('content_entries_bank', 'content_entries.id', 'content_entries_bank.content_entry_id')
       .where('content_entries_bank.content_bank_id', bankId)
       .withGraphFetched('topics');
@@ -74,6 +74,7 @@ router.get('/bank/:bankId', authenticateJWT, async function (req: Request, res: 
         sourceUrl: entry.source_url,
         pageTitle: entry.page_title,
         createdAt: entry.created_at,
+        questionsGenerated: entry.questions_generated,
         topics: entry.topics?.map(topic => topic.topic) || []
       })),
       pagination: {
@@ -112,7 +113,8 @@ router.get('/:id', authenticateJWT, async function (req: Request, res: Response,
       content: contentEntry.content?.substring(0, 100),
       pageTitle: contentEntry.page_title,
       contentType: contentEntry.content_type,
-      createdAt: contentEntry.created_at
+      createdAt: contentEntry.created_at,
+      questionsGenerated: contentEntry.questions_generated
     });
   } catch (error) {
     console.error('Error fetching content entry:', error);

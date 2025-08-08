@@ -12,10 +12,10 @@ export interface ContentEntryData {
   content_type: ContentType;
   content?: string;
   source_url?: string;
-  bucket_object_url?: string;
   page_title?: string;
   created_at?: Date;
   prompt_summary?: string;
+  questions_generated?: boolean;
 }
 
 export class ContentEntry extends Model {
@@ -31,10 +31,10 @@ export class ContentEntry extends Model {
   content_type!: ContentType;
   content?: string;
   source_url?: string;
-  bucket_object_url?: string;
   page_title?: string;
   created_at!: Date;
   prompt_summary?: string;
+  questions_generated!: boolean;
 
   // Relations
   questions?: Question[];
@@ -49,10 +49,10 @@ export class ContentEntry extends Model {
         content_type: { type: 'string', enum: ['selected_text', 'full_html', 'video_transcript'] },
         content: { type: 'string' },
         source_url: { type: 'string' },
-        bucket_object_url: { type: 'string' },
         page_title: { type: 'string' },
         created_at: { type: 'string', format: 'date-time' },
-        prompt_summary: { type: 'string' }
+        prompt_summary: { type: 'string' },
+        questions_generated: { type: 'boolean' }
       }
     };
   }

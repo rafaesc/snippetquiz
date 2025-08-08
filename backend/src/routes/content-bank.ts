@@ -253,7 +253,6 @@ router.post('/:id/duplicate', authenticateJWT, contentBankLimiter, async functio
             content_type: originalEntry.content_type,
             content: originalEntry.content,
             source_url: originalEntry.source_url,
-            bucket_object_url: originalEntry.bucket_object_url,
             page_title: originalEntry.page_title,
             prompt_summary: originalEntry.prompt_summary
           });
