@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from './ui/alert';
 import { ChevronDown, ChevronRight, ExternalLink, Trash2, FileText, Link as LinkIcon, LogOut, Settings, ChevronLeft, ChevronRight as ChevronRightIcon, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import tabService from '../lib/tab-service';
+import { getYouTubeTranscriptFromTab } from '../lib/content-script-service';
+import { isYouTubeTab, extractVideoId } from '../lib/youtube-service';
 
 function Dashboard() {
     const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
@@ -21,7 +23,7 @@ function Dashboard() {
     const [editingName, setEditingName] = useState('');
     const [newBankName, setNewBankName] = useState('');
     const [showCreateBank, setShowCreateBank] = useState(false);
-    const [generateCodeError, setGenerateCodeError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const [isGeneratingCode, setIsGeneratingCode] = useState(false);
     const [isAddingPageContent, setIsAddingPageContent] = useState(false);
 
@@ -130,7 +132,7 @@ function Dashboard() {
     });
 
     const createContentEntryMutation = useMutation({
-        mutationFn: (data: { bankId: string; type: 'full_html' | 'selected_text' | 'video_transcript'; content?: string; sourceUrl?: string; pageTitle?: string }) => 
+        mutationFn: (data: { bankId: string; type: 'full_html' | 'selected_text' | 'video_transcript'; content?: string; sourceUrl?: string; pageTitle?: string }) =>
             apiService.contentEntry.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
@@ -142,6 +144,17 @@ function Dashboard() {
         },
     });
 
+    // Helper function to get regular tab data
+    const getRegularTabData = async () => {
+        const tabData = await tabService.getCurrentTabData();
+        return {
+            pageTitle: tabData.pageTitle,
+            sourceUrl: tabData.sourceUrl,
+            content: tabData.content,
+            type: 'full_html' as const
+        };
+    };
+
     const handleGetPageContent = async () => {
         if (!selectedBankId) {
             console.error('No bank selected');
@@ -150,15 +163,54 @@ function Dashboard() {
 
         setIsAddingPageContent(true);
         try {
-            const { pageTitle, sourceUrl, content } = await tabService.getCurrentTabData();
-            
+            // First get the current tab URL to check if it's YouTube
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            const currentTab = tabs[0];
+
+            if (!currentTab || !currentTab.url) {
+                throw new Error('No active tab found');
+            }
+
+            let tabData: {
+                pageTitle: string;
+                sourceUrl: string;
+                content: string;
+                type: "video_transcript" | "full_html" | "selected_text";
+            };
+
+            // Check if current tab is YouTube and has a valid video ID
+            if (isYouTubeTab(currentTab.url)) {
+                const videoId = await extractVideoId(currentTab.url);
+                if (videoId) {
+                    try {
+                        // Use content script to get transcript
+                        const transcript = await getYouTubeTranscriptFromTab(currentTab.id!, { videoId });
+                        tabData = {
+                            pageTitle: transcript.title || currentTab.title || 'YouTube Video',
+                            sourceUrl: currentTab.url,
+                            content: transcript.text,
+                            type: 'video_transcript'
+                        }
+
+                    } catch (error) {
+                        // If transcript fails, show error instead of falling back
+                        setError('Unable to get YouTube video transcript. Please refresh the page.');
+                        return; // Exit early to prevent mutation
+                    }
+                } else {
+                    // No valid videoId found, use regular tab service
+                    tabData = await getRegularTabData();
+                }
+            } else {
+                // Use regular tab service for HTML content
+                tabData = await getRegularTabData();
+            }
+
             createContentEntryMutation.mutate({
                 bankId: selectedBankId,
-                type: 'full_html',
-                content: content,
-                sourceUrl: sourceUrl,
-                pageTitle: pageTitle
+                ...tabData
             });
+
         } catch (error) {
             console.error('Failed to get page content:', error);
             setIsAddingPageContent(false);
@@ -594,8 +646,8 @@ function Dashboard() {
                     🔘 Actions
                 </h3>
                 <div className="space-y-2">
-                    <Button 
-                        className="w-full" 
+                    <Button
+                        className="w-full"
                         onClick={handleGetPageContent}
                         disabled={isAddingPageContent || !selectedBankId}
                     >
@@ -608,11 +660,11 @@ function Dashboard() {
                     <br />
 
                     {/* Error Alert for Generate Code */}
-                    {generateCodeError && (
+                    {error && (
                         <Alert variant="destructive" className="mb-2">
                             <AlertCircle className="h-4 w-4" />
                             <AlertDescription className="text-sm">
-                                {generateCodeError}
+                                {error}
                             </AlertDescription>
                         </Alert>
                     )}
@@ -622,7 +674,7 @@ function Dashboard() {
                         className="w-full"
                         disabled={isGeneratingCode}
                         onClick={async () => {
-                            setGenerateCodeError(null); // Clear previous errors
+                            setError(null); // Clear previous errors
                             setIsGeneratingCode(true);
 
                             try {
@@ -638,7 +690,7 @@ function Dashboard() {
                                     ? error.message
                                     : 'Failed to generate quiz code. Please try again.';
 
-                                setGenerateCodeError(errorMessage);
+                                setError(errorMessage);
                             } finally {
                                 setIsGeneratingCode(false);
                             }

@@ -8,7 +8,6 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       port: 4000,
-
       open: isDev ? '/index.dev.html' : '/index.html',
     },
     plugins: [
@@ -28,11 +27,14 @@ export default defineConfig(({ mode }) => {
         input: {
           main: './index.html',
           background: './src/background.ts',
+          'content-script': './src/content-script.ts',
         },
         output: {
           entryFileNames: chunk => {
-            // Si es el background script, llámalo background.js
+            // Background script
             if (chunk.name === 'background') return 'background.js'
+            // Content script
+            if (chunk.name === 'content-script') return 'content-script.js'
             return 'assets/[name]-[hash].js'
           }
         }
