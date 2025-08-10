@@ -137,6 +137,7 @@ function Dashboard() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
             setIsAddingPageContent(false);
+            window.close();
         },
         onError: (error) => {
             console.error('Failed to create content entry:', error);

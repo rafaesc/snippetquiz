@@ -1,8 +1,6 @@
 // Configuration constants
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 500;
-const CACHE_DURATION = 1;
-const CACHE_PREFIX = "youtube-transcript";
 
 // Type definitions
 interface TranscriptSegment {

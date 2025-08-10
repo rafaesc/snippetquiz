@@ -13,7 +13,7 @@ export interface ContentEntryData {
   content?: string;
   source_url?: string;
   page_title?: string;
-  created_at?: Date;
+  created_at?: string;
   prompt_summary?: string;
   questions_generated?: boolean;
 }
@@ -32,7 +32,7 @@ export class ContentEntry extends Model {
   content?: string;
   source_url?: string;
   page_title?: string;
-  created_at!: Date;
+  created_at!: string;
   prompt_summary?: string;
   questions_generated!: boolean;
 

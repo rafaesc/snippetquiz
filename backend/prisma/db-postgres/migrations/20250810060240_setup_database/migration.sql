@@ -1,0 +1,227 @@
+-- CreateEnum
+CREATE TYPE "public"."ContentType" AS ENUM ('selected_text', 'full_html', 'video_transcript');
+
+-- CreateTable
+CREATE TABLE "public"."users" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" VARCHAR(255) NOT NULL,
+    "created_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "password_updated_at" TIMESTAMP(3),
+    "verified" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."content_banks" (
+    "id" BIGSERIAL NOT NULL,
+    "user_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "content_banks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."topics" (
+    "id" BIGSERIAL NOT NULL,
+    "user_id" UUID NOT NULL,
+    "topic" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "topics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."content_entries" (
+    "id" BIGSERIAL NOT NULL,
+    "content_type" "public"."ContentType" NOT NULL,
+    "content" TEXT,
+    "source_url" TEXT,
+    "page_title" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "prompt_summary" TEXT,
+    "questions_generated" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "content_entries_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."quizzes" (
+    "id" BIGSERIAL NOT NULL,
+    "bank_id" BIGINT,
+    "bank_name" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "content_entries_count" INTEGER NOT NULL DEFAULT 0,
+    "questions_count" INTEGER NOT NULL DEFAULT 0,
+    "questions_completed" INTEGER NOT NULL DEFAULT 0,
+    "completed_at" TIMESTAMP(3),
+    "user_id" UUID,
+
+    CONSTRAINT "quizzes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."questions" (
+    "id" BIGSERIAL NOT NULL,
+    "question" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "content_entry_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "questions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."question_options" (
+    "id" BIGSERIAL NOT NULL,
+    "question_id" BIGINT NOT NULL,
+    "option_text" TEXT NOT NULL,
+    "option_explanation" TEXT NOT NULL,
+    "is_correct" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "question_options_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."quiz_generation_instructions" (
+    "id" BIGSERIAL NOT NULL,
+    "instruction" TEXT NOT NULL,
+    "user_id" UUID,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "quiz_generation_instructions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."content_entries_bank" (
+    "id" BIGSERIAL NOT NULL,
+    "content_entry_id" BIGINT NOT NULL,
+    "content_bank_id" BIGINT NOT NULL,
+
+    CONSTRAINT "content_entries_bank_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."content_entry_topics" (
+    "id" BIGSERIAL NOT NULL,
+    "content_entry_id" BIGINT NOT NULL,
+    "topic_id" BIGINT NOT NULL,
+
+    CONSTRAINT "content_entry_topics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."quiz_topics" (
+    "id" BIGSERIAL NOT NULL,
+    "quiz_id" BIGINT NOT NULL,
+    "topic_name" TEXT NOT NULL,
+
+    CONSTRAINT "quiz_topics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."quiz_questions" (
+    "id" BIGSERIAL NOT NULL,
+    "question" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "content_entry_type" TEXT NOT NULL,
+    "content_entry_source_url" TEXT,
+    "content_entry_id" BIGINT,
+    "quiz_id" BIGINT NOT NULL,
+
+    CONSTRAINT "quiz_questions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."quiz_question_options" (
+    "id" BIGSERIAL NOT NULL,
+    "quiz_question_id" BIGINT NOT NULL,
+    "option_text" TEXT NOT NULL,
+    "option_explanation" TEXT NOT NULL,
+    "is_correct" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "quiz_question_options_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."quiz_question_responses" (
+    "id" BIGSERIAL NOT NULL,
+    "quiz_id" BIGINT NOT NULL,
+    "quiz_question_id" BIGINT NOT NULL,
+    "quiz_question_option_id" BIGINT NOT NULL,
+    "is_correct" BOOLEAN NOT NULL,
+    "correct_answer" TEXT NOT NULL,
+    "response_time" TEXT NOT NULL,
+
+    CONSTRAINT "quiz_question_responses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
+
+-- CreateIndex
+CREATE INDEX "users_email_idx" ON "public"."users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "public"."content_entries_bank"("content_entry_id", "content_bank_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "public"."content_entry_topics"("content_entry_id", "topic_id");
+
+-- AddForeignKey
+ALTER TABLE "public"."content_banks" ADD CONSTRAINT "content_banks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."topics" ADD CONSTRAINT "topics_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quizzes" ADD CONSTRAINT "quizzes_bank_id_fkey" FOREIGN KEY ("bank_id") REFERENCES "public"."content_banks"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quizzes" ADD CONSTRAINT "quizzes_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."question_options" ADD CONSTRAINT "question_options_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_generation_instructions" ADD CONSTRAINT "quiz_generation_instructions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_bank_id_fkey" FOREIGN KEY ("content_bank_id") REFERENCES "public"."content_banks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."content_entry_topics" ADD CONSTRAINT "content_entry_topics_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."content_entry_topics" ADD CONSTRAINT "content_entry_topics_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "public"."topics"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_topics" ADD CONSTRAINT "quiz_topics_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_questions" ADD CONSTRAINT "quiz_questions_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_questions" ADD CONSTRAINT "quiz_questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_question_options" ADD CONSTRAINT "quiz_question_options_quiz_question_id_fkey" FOREIGN KEY ("quiz_question_id") REFERENCES "public"."quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_question_id_fkey" FOREIGN KEY ("quiz_question_id") REFERENCES "public"."quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_question_option_id_fkey" FOREIGN KEY ("quiz_question_option_id") REFERENCES "public"."quiz_question_options"("id") ON DELETE CASCADE ON UPDATE CASCADE;

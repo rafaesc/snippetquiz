@@ -207,7 +207,7 @@ router.post('/', authenticateJWT, sourceCreationLimiter, async function (req: Re
       const sourceData = {
         content: processedContent,
         page_title: pageTitle,
-        created_at: new Date() // Update the created_at timestamp
+        created_at: new Date().toISOString()
       };
 
       resultEntry = await ContentEntry.query()
