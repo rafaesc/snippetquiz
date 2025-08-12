@@ -74,7 +74,7 @@ export const tokenService = {
 
   // Generate one-time code for dashboard access
   generateCode: async (): Promise<{ code: string; }> => {
-    const response = await makeAuthenticatedRequest('/code/generate', {
+    const response = await makeAuthenticatedRequest('/auth/code/generate', {
 
       method: 'POST',
     });

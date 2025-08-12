@@ -9,12 +9,11 @@ import {
   ResendVerificationDto,
   RefreshTokenDto,
   ChangePasswordDto,
-  ResolveCodeDto,
   AuthResponseDto,
   TokensDto
 } from '../dto/auth.dto';
 
-@Controller('auth')
+@Controller()
 export class AuthServiceController {
   constructor(private readonly authServiceService: AuthServiceService) { }
 
