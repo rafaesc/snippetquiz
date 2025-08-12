@@ -1,5 +1,26 @@
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 
+// Auth payload interfaces for microservice communication
+export interface UserPayload {
+  userId: string;
+}
+
+export interface UserDetailsPayload {
+  userId: string;
+  name: string;
+  email: string;
+}
+
+export interface RefreshTokenPayload {
+  refreshToken: string;
+}
+
+export interface ChangePasswordPayload {
+  changePasswordDto: ChangePasswordDto;
+  refreshToken: string;
+  userId: string;
+}
+
 // Base User Response DTO
 export class UserResponseDto {
   id: string;

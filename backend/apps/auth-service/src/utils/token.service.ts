@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RedisService } from '../../../commons/services';
-import { TokensDto } from '../dto/auth.dto';
+import { TokensDto } from 'apps/commons';
 import { envs } from '../config/envs';
 
 @Injectable()

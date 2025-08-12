@@ -1,32 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AuthServiceModule } from './auth-service.module';
 import { envs } from './config/envs';
 import { Logger } from '@nestjs/common';
-import fastifyCookie from '@fastify/cookie';
 
 async function bootstrap() {
   const logger = new Logger('auth-service-bootstrap');
 
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AuthServiceModule,
-    new FastifyAdapter(),
+    {
+      transport: Transport.TCP,
+      options: {
+        port: envs.authServicePort,
+      },
+    },
   );
-
-  app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  });
-
-  await app.register(fastifyCookie, {
-    secret: envs.cookieSecret,
-  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -36,7 +26,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(envs.authServicePort, '0.0.0.0');
-  logger.log(`App running on port ${envs.authServicePort}`);
+  await app.listen();
+  logger.log(`Auth microservice running on TCP port ${envs.authServicePort}`);
 }
 bootstrap();

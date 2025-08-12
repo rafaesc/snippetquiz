@@ -1,10 +1,22 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthServiceModule } from './auth-service/auth-service.module';
+import { JwtModule } from '@nestjs/jwt';
+import { envs } from './config/envs';
+import { AuthCodeModule } from './auth-code/auth-code.module';
 
 @Module({
-  imports: [],
+  imports: [
+    AuthServiceModule,
+    JwtModule.register({
+      global: true,
+      secret: envs.jwtAuthSecret,
+      signOptions: { expiresIn: envs.jwtAuthExpiresIn },
+    }),
+    AuthCodeModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
