@@ -19,7 +19,7 @@ export class AuthServiceService implements OnModuleInit {
     private jwtService: JwtService, 
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
-    private readonly tokenService: TokenService // Add TokenService
+    private readonly tokenService: TokenService
   ) {
     this.prisma = new PrismaClient();
     this.setupEmailTransporter();

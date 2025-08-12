@@ -32,7 +32,7 @@ export const tokenService = {
 
   // Resolve one-time code to get authentication cookies
   resolveCode: async (code: string) => {
-    const response = await fetch(`${API_BASE_URL}/code/resolve`, {
+    const response = await fetch(`${API_BASE_URL}/auth/code/resolve`, {
 
       method: 'POST',
       headers: {

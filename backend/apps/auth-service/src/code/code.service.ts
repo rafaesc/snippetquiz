@@ -9,9 +9,10 @@ import { TokenService } from '../utils/token.service';
 @Injectable()
 export class CodeService {
   constructor(
+    private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
-    private readonly tokenService: TokenService
+    private readonly tokenService: TokenService // Add TokenService
   ) {}
 
   async generateCode(userId: string): Promise<GenerateCodeResponseDto> {
