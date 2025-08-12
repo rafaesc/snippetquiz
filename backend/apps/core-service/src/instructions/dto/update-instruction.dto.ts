@@ -1,6 +1,12 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateInstructionDto } from './create-instruction.dto';
+import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
 
-export class UpdateInstructionDto extends PartialType(CreateInstructionDto) {
-  id: number;
+export class UpdateInstructionDto {
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(5000)
+  instruction: string;
 }
