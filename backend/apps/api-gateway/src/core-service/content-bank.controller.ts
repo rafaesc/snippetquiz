@@ -50,7 +50,7 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('content-bank')
 @UseGuards(JwtAuthGuard)
-export class CoreServiceController {
+export class ContentBankController {
   constructor(
     @Inject(CORE_SERVICE) private readonly coreServiceClient: ClientProxy
   ) {}
