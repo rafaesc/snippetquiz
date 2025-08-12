@@ -292,8 +292,26 @@ export class AuthServiceService implements OnModuleInit {
       throw new NotFoundException('User not found');
     }
 
+    // Fetch user's content banks using Prisma
+    const banks = await this.prisma.contentBank.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
     return {
-      user
+      user,
+      banks: banks.map(bank => ({
+        id: Number(bank.id),
+        name: bank.name,
+        createdAt: bank.createdAt,
+        updatedAt: bank.updatedAt
+      }))
     };
   }
 }

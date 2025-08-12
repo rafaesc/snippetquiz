@@ -2,34 +2,40 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { QuizService } from './quiz.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
-import { UpdateQuizDto } from './dto/update-quiz.dto';
+import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
+import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 
 @Controller()
 export class QuizController {
   constructor(private readonly quizService: QuizService) {}
 
-  @MessagePattern('createQuiz')
-  create(@Payload() createQuizDto: CreateQuizDto) {
-    return this.quizService.create(createQuizDto);
+  @MessagePattern('quiz.findAll')
+  findAll(@Payload() findAllDto: FindAllQuizzesDto) {
+    return this.quizService.findAll(findAllDto);
   }
 
-  @MessagePattern('findAllQuiz')
-  findAll() {
-    return this.quizService.findAll();
+  @MessagePattern('quiz.findOne')
+  findOne(@Payload() payload: { id: number; userId: string }) {
+    return this.quizService.findOne(payload.id, payload.userId);
   }
 
-  @MessagePattern('findOneQuiz')
-  findOne(@Payload() id: number) {
-    return this.quizService.findOne(id);
+  @MessagePattern('quiz.findResponses')
+  findQuizResponses(@Payload() findResponsesDto: FindQuizResponsesDto) {
+    return this.quizService.findQuizResponses(findResponsesDto);
   }
 
-  @MessagePattern('updateQuiz')
-  update(@Payload() updateQuizDto: UpdateQuizDto) {
-    return this.quizService.update(updateQuizDto.id, updateQuizDto);
+  @MessagePattern('quiz.findSummary')
+  findQuizSummary(@Payload() payload: { id: number; userId: string }) {
+    return this.quizService.findQuizSummary(payload.id, payload.userId);
   }
 
-  @MessagePattern('removeQuiz')
-  remove(@Payload() id: number) {
-    return this.quizService.remove(id);
+  @MessagePattern('quiz.create')
+  create(@Payload() payload: { createQuizDto: CreateQuizDto; userId: string }) {
+    return this.quizService.create(payload.createQuizDto, payload.userId);
+  }
+
+  @MessagePattern('quiz.remove')
+  remove(@Payload() payload: { id: number; userId: string }) {
+    return this.quizService.remove(payload.id, payload.userId);
   }
 }
