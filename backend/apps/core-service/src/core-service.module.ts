@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { CoreServiceController } from './core-service.controller';
-import { CoreServiceService } from './core-service.service';
+import { ContentBankModule } from './content-bank/content-bank.module';
+import { ContentEntryModule } from './content-entry/content-entry.module';
+import { InstructionsModule } from './instructions/instructions.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
-  imports: [],
-  controllers: [CoreServiceController],
-  providers: [CoreServiceService],
+  imports: [ContentBankModule, ContentEntryModule, InstructionsModule, QuizModule],
+  controllers: [],
+  providers: [],
 })
-export class CoreServiceModule {}
+export class CoreServiceModule { }

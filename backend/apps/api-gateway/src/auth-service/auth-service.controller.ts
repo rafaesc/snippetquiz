@@ -11,6 +11,8 @@ import {
   RefreshTokenDto,
   ChangePasswordDto
 } from '../../../commons/types/auth-payloads';
+const COOKIE_PATH = "/api";
+
 
 @Controller('auth-service')
 export class AuthServiceController {
@@ -39,6 +41,7 @@ export class AuthServiceController {
     if (result.tokens) {
       // Set tokens in cookies
       response.setCookie('accessToken', result.tokens.accessToken, {
+        path: COOKIE_PATH,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -46,6 +49,7 @@ export class AuthServiceController {
       });
 
       response.setCookie('refreshToken', result.tokens.refreshToken, {
+        path: COOKIE_PATH,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -77,6 +81,7 @@ export class AuthServiceController {
     if (result.tokens) {
       // Set tokens in cookies
       response.setCookie('accessToken', result.tokens.accessToken, {
+        path: COOKIE_PATH,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -84,6 +89,7 @@ export class AuthServiceController {
       });
 
       response.setCookie('refreshToken', result.tokens.refreshToken, {
+        path: COOKIE_PATH,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -110,6 +116,7 @@ export class AuthServiceController {
     if (result.tokens) {
       // Set new tokens in cookies
       response.setCookie('accessToken', result.tokens.accessToken, {
+        path: COOKIE_PATH,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -117,6 +124,7 @@ export class AuthServiceController {
       });
 
       response.setCookie('refreshToken', result.tokens.refreshToken, {
+        path: COOKIE_PATH,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -142,8 +150,8 @@ export class AuthServiceController {
     const result = await firstValueFrom(this.authClientService.logout(refreshToken));
 
     // Clear cookies
-    response.clearCookie('accessToken', { path: "/api/auth-service" });
-    response.clearCookie('refreshToken', { path: "/api/auth-service" });
+    response.clearCookie('accessToken', { path: COOKIE_PATH });
+    response.clearCookie('refreshToken', { path: COOKIE_PATH });
 
     return result;
   }
@@ -182,8 +190,8 @@ export class AuthServiceController {
     );
 
     // Clear cookies after password change
-    response.clearCookie('accessToken', { path: "/api/auth-service" });
-    response.clearCookie('refreshToken', { path: "/api/auth-service" });
+    response.clearCookie('accessToken', { path: COOKIE_PATH });
+    response.clearCookie('refreshToken', { path: COOKIE_PATH });
 
     return result;
   }

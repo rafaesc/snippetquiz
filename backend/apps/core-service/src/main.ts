@@ -1,15 +1,35 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { ValidationPipe } from '@nestjs/common';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { CoreServiceModule } from './core-service.module';
+import { envs } from './config/envs';
+import { Logger } from '@nestjs/common';
+import { AllRpcExceptionsFilter } from './filters/rpc-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const logger = new Logger('core-service-bootstrap');
+  
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     CoreServiceModule,
-    new FastifyAdapter(),
+    {
+      transport: Transport.TCP,
+      options: {
+        port: envs.coreServicePort,
+      },
+    },
   );
-  await app.listen(process.env.PORT ?? 7000);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  app.useGlobalFilters(new AllRpcExceptionsFilter());
+
+  await app.listen();
+  logger.log(`Core microservice running on TCP port ${envs.coreServicePort}`);
 }
 bootstrap();
