@@ -8,28 +8,13 @@ import { UpdateInstructionDto } from './dto/update-instruction.dto';
 export class InstructionsController {
   constructor(private readonly instructionsService: InstructionsService) {}
 
-  @MessagePattern('createInstruction')
-  create(@Payload() createInstructionDto: CreateInstructionDto) {
-    return this.instructionsService.create(createInstructionDto);
+  @MessagePattern('findInstructionByUserId')
+  findByUserId(@Payload() userId: string) {
+    return this.instructionsService.findByUserId(userId);
   }
 
-  @MessagePattern('findAllInstructions')
-  findAll() {
-    return this.instructionsService.findAll();
-  }
-
-  @MessagePattern('findOneInstruction')
-  findOne(@Payload() id: number) {
-    return this.instructionsService.findOne(id);
-  }
-
-  @MessagePattern('updateInstruction')
-  update(@Payload() updateInstructionDto: UpdateInstructionDto) {
-    return this.instructionsService.update(updateInstructionDto.id, updateInstructionDto);
-  }
-
-  @MessagePattern('removeInstruction')
-  remove(@Payload() id: number) {
-    return this.instructionsService.remove(id);
+  @MessagePattern('createOrUpdateInstruction')
+  createOrUpdate(@Payload() updateInstructionDto: UpdateInstructionDto) {
+    return this.instructionsService.createOrUpdate(updateInstructionDto);
   }
 }
