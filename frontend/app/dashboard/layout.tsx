@@ -3,12 +3,13 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardSidebar from "@/components/DashboardSidebar";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
-      
+
       <div className="flex">
         <DashboardSidebar />
       </div>
@@ -29,8 +30,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute>
-      <DashboardContent>{children}</DashboardContent>
-    </ProtectedRoute>
+    <AuthProvider>
+      <ProtectedRoute>
+        <DashboardContent>{children}</DashboardContent>
+      </ProtectedRoute>
+    </AuthProvider>
   );
 }

@@ -280,7 +280,7 @@ export const apiService = {
     try {
       await fetch(`${API_BASE_URL}/api/auth-service/logout`, {
         method: 'POST',
-        credentials: 'include', // Include cookies
+        credentials: 'include',
       });
     } catch (error) {
       console.error('Logout error:', error);
