@@ -6,7 +6,7 @@ export const tokenService = {
   // We'll rely on the browser to automatically send them with requests
 
   refreshAccessToken: async () => {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/refresh`, {
       method: 'POST',
       credentials: 'include', // Important: include cookies in request
     });
@@ -21,7 +21,7 @@ export const tokenService = {
   // Check if user is authenticated by calling verify endpoint
   isAuthenticated: async (): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth-service/verify`, {
         credentials: 'include',
       });
       return response.ok;
@@ -32,7 +32,7 @@ export const tokenService = {
 
   // Resolve one-time code to get authentication cookies
   resolveCode: async (code: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/code/resolve`, {
+    const response = await fetch(`${API_BASE_URL}/api/code/resolve`, {
 
       method: 'POST',
       headers: {
@@ -210,7 +210,7 @@ export interface QuizSummaryResponse {
 export const apiService = {
   // Get user profile data (requires authentication)
   getUserProfile: async (): Promise<UserProfile> => {
-    const response = await makeAuthenticatedRequest('/auth/profile');
+    const response = await makeAuthenticatedRequest('/api/auth-service/profile');
 
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
@@ -221,7 +221,7 @@ export const apiService = {
 
   // Login
   login: async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ export const apiService = {
 
   // Register
   register: async (name: string, email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ export const apiService = {
 
   // Change Password
   changePassword: async (currentPassword: string, newPassword: string) => {
-    const response = await makeAuthenticatedRequest('/auth/change-password', {
+    const response = await makeAuthenticatedRequest('/api/auth-service/change-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -278,7 +278,7 @@ export const apiService = {
   // Logout
   logout: async () => {
     try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      await fetch(`${API_BASE_URL}/api/auth-service/logout`, {
         method: 'POST',
         credentials: 'include', // Include cookies
       });
@@ -294,7 +294,7 @@ export const apiService = {
 
   // Verify email
   verifyEmail: async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/verify-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -313,7 +313,7 @@ export const apiService = {
 
   // Resend verification email
   resendVerificationEmail: async (email: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/resend-verification`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

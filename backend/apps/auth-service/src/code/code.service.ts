@@ -1,15 +1,14 @@
 import { Injectable, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { RedisService } from '../../../commons/services';
 import { UsersService } from '../users/users.service';
-import { GenerateCodeResponseDto, ResolveCodeDto, AuthResponseDto, TokensDto } from '../dto/auth.dto';
+import { GenerateCodeResponseDto, ResolveCodeDto, AuthResponseDto } from 'apps/commons';
+
 import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';
 
 @Injectable()
 export class CodeService {
   constructor(
-    private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService // Add TokenService

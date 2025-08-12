@@ -1,177 +1,87 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Res, HttpCode, HttpStatus } from '@nestjs/common';
-import { type FastifyRequest, type FastifyReply } from 'fastify';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthServiceService } from './auth-service.service';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import {
+import type {
+  UserPayload,
+  UserDetailsPayload,
+  RefreshTokenPayload,
+  ChangePasswordPayload,
   RegisterDto,
   LoginDto,
   VerifyEmailDto,
   ResendVerificationDto,
   RefreshTokenDto,
-  ChangePasswordDto,
   AuthResponseDto,
   TokensDto
-} from '../dto/auth.dto';
+} from '../../../commons/types/auth-payloads';
 
 @Controller()
 export class AuthServiceController {
   constructor(private readonly authServiceService: AuthServiceService) { }
 
-  //get
-  @Get('me')
-  async getMe(@Request() req: any): Promise<{ message: string }> {
+  @MessagePattern('auth.me')
+  async getMe(@Payload() data: UserPayload): Promise<{ message: string }> {
     return { message: 'Hello, World!' };
   }
 
-  @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
+  @MessagePattern('auth.register')
+  async register(@Payload() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return this.authServiceService.register(registerDto);
   }
 
-  @Post('verify-email')
-  @HttpCode(HttpStatus.OK)
-  async verifyEmail(
-    @Body() verifyEmailDto: VerifyEmailDto,
-    @Res({ passthrough: true }) response: FastifyReply
-  ): Promise<AuthResponseDto> {
+  @MessagePattern('auth.verify-email')
+  async verifyEmail(@Payload() verifyEmailDto: VerifyEmailDto): Promise<AuthResponseDto> {
     const result = await this.authServiceService.verifyEmail(verifyEmailDto);
-
-    if (result.tokens) {
-      // Set tokens in cookies
-      response.setCookie('accessToken', result.tokens.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 minutes
-      });
-
-      response.setCookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
-    }
-
     return result;
   }
 
-  @Post('resend-verification')
-  @HttpCode(HttpStatus.OK)
-  async resendVerification(@Body() resendVerificationDto: ResendVerificationDto): Promise<{ message: string }> {
+  @MessagePattern('auth.resend-verification')
+  async resendVerification(@Payload() resendVerificationDto: ResendVerificationDto): Promise<{ message: string }> {
     return this.authServiceService.resendVerification(resendVerificationDto.email);
   }
 
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) response: FastifyReply
-  ): Promise<AuthResponseDto> {
+  @MessagePattern('auth.login')
+  async login(@Payload() loginDto: LoginDto): Promise<AuthResponseDto> {
     const result = await this.authServiceService.login(loginDto);
-
-    if (result.tokens) {
-      // Set tokens in cookies
-      response.setCookie('accessToken', result.tokens.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 minutes
-      });
-
-      response.setCookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
-    }
-
     return result;
   }
 
-  @Post('refresh')
-  @HttpCode(HttpStatus.OK)
-  async refresh(
-    @Body() refreshTokenDto: RefreshTokenDto,
-    @Request() req: any,
-    @Res({ passthrough: true }) response: FastifyReply
-  ): Promise<{ message: string; tokens: TokensDto }> {
-    const refreshToken = req.cookies?.refreshToken || refreshTokenDto.refreshToken;
-    const tokens = await this.authServiceService.refreshToken(refreshToken);
-
-    // Set new tokens in cookies
-    response.setCookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000 // 15 minutes
-    });
-
-    response.setCookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
+  @MessagePattern('auth.refresh')
+  async refresh(@Payload() refreshTokenDto: RefreshTokenDto): Promise<{ message: string; tokens: TokensDto }> {
+    const tokens = await this.authServiceService.refreshToken(refreshTokenDto.refreshToken!);
     return { message: 'Token refreshed successfully', tokens };
   }
 
-  @Post('logout')
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  async logout(
-    @Request() req: any,
-    @Res({ passthrough: true }) response: FastifyReply
-  ): Promise<{ message: string }> {
-    const refreshToken = req.cookies?.refreshToken;
-    const result = await this.authServiceService.logout(refreshToken);
-
-    // Clear cookies
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
-
+  @MessagePattern('auth.logout')
+  async logout(@Payload() data: RefreshTokenPayload): Promise<{ message: string }> {
+    const result = await this.authServiceService.logout(data.refreshToken);
     return result;
   }
 
-  @Get('verify')
-  @UseGuards(JwtAuthGuard)
-  async verify(@Request() req: any): Promise<{ valid: boolean; user: any }> {
+  @MessagePattern('auth.verify')
+  async verify(@Payload() data: UserDetailsPayload): Promise<{ valid: boolean; user: any }> {
     return {
       valid: true,
       user: {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email
+        id: data.userId,
+        name: data.name,
+        email: data.email
       }
     };
   }
 
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  async getProfile(@Request() req: any): Promise<any> {
-    return this.authServiceService.getProfile(req.user.id);
+  @MessagePattern('auth.profile')
+  async getProfile(@Payload() data: UserPayload): Promise<any> {
+    return this.authServiceService.getProfile(data.userId);
   }
 
-  @Post('change-password')
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  async changePassword(
-    @Body() changePasswordDto: ChangePasswordDto,
-    @Request() req,
-    @Res({ passthrough: true }) response: FastifyReply
-  ): Promise<{ message: string }> {
-    let refreshToken
-    if (req && req.cookies && req.cookies['refreshToken']) {
-      refreshToken = req.cookies['refreshToken'];
-    }
-    const result = await this.authServiceService.changePassword(refreshToken, req.user.id, changePasswordDto);
-
-    // Clear cookies after password change
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
-
+  @MessagePattern('auth.change-password')
+  async changePassword(@Payload() data: ChangePasswordPayload): Promise<{ message: string }> {
+    const result = await this.authServiceService.changePassword(
+      data.refreshToken, 
+      data.userId, 
+      data.changePasswordDto
+    );
     return result;
   }
 }

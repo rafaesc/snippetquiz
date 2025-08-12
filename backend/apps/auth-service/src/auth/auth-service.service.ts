@@ -2,12 +2,12 @@ import { Injectable, OnModuleInit, UnauthorizedException, ConflictException, Not
 import { PrismaClient } from 'generated/prisma/postgres';
 import { JwtService } from '@nestjs/jwt';
 import * as nodemailer from 'nodemailer';
-import { RegisterDto, LoginDto, VerifyEmailDto, ChangePasswordDto, ResolveCodeDto, UserResponseDto, AuthResponseDto, TokensDto } from '../dto/auth.dto';
+import { RegisterDto, LoginDto, VerifyEmailDto, ChangePasswordDto, UserResponseDto, AuthResponseDto, TokensDto } from 'apps/commons';
 import { RedisService } from 'apps/commons/services';
 import { UsersService } from '../users/users.service';
 import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';
-import { getVerificationEmailTemplate, getResendVerificationEmailTemplate, EmailTemplateData } from '../utils/email-templates';
+import { getVerificationEmailTemplate, getResendVerificationEmailTemplate } from '../utils/email-templates';
 
 @Injectable()
 export class AuthServiceService implements OnModuleInit {

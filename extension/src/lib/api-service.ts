@@ -37,7 +37,7 @@ export const tokenService = {
       throw new Error('No refresh token available');
     }
 
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export const tokenService = {
       const accessToken = await tokenService.getAccessToken();
       if (!accessToken) return false;
 
-      const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth-service/verify`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         },
@@ -74,7 +74,7 @@ export const tokenService = {
 
   // Generate one-time code for dashboard access
   generateCode: async (): Promise<{ code: string; }> => {
-    const response = await makeAuthenticatedRequest('/auth/code/generate', {
+    const response = await makeAuthenticatedRequest('/api/code/generate', {
 
       method: 'POST',
     });
@@ -199,7 +199,7 @@ export interface CreateContentEntryRequest {
 export const apiService = {
   // Login
   login: async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ export const apiService = {
 
   // Register
   register: async (name: string, email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth-service/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ export const apiService = {
     try {
       const accessToken = await tokenService.getAccessToken();
       if (accessToken) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
+        await fetch(`${API_BASE_URL}/api/auth-service/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -273,7 +273,7 @@ export const apiService = {
 
   // Get user profile
   getUserProfile: async (): Promise<UserProfile> => {
-    const response = await makeAuthenticatedRequest('/auth/profile');
+    const response = await makeAuthenticatedRequest('/api/auth-service/profile');
 
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
