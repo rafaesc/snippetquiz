@@ -3,6 +3,7 @@ import * as joi from 'joi'
 
 interface EnvVars {
     API_GATEWAY_PORT: number;
+    CORE_SERVICE_PORT: number;
     AUTH_SERVICE_PORT: number;
     COOKIE_SECRET: string;
     NODE_ENV: string;
@@ -12,6 +13,7 @@ interface EnvVars {
 
 const envSchema = joi.object({
     API_GATEWAY_PORT: joi.number().required(),
+    CORE_SERVICE_PORT: joi.number().required(),
     AUTH_SERVICE_PORT: joi.number().required(),
     COOKIE_SECRET: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
@@ -29,6 +31,7 @@ export const envsVars: EnvVars = value
 
 export const envs = {
     apiGatewayPort: envsVars.API_GATEWAY_PORT,
+    coreServicePort: envsVars.CORE_SERVICE_PORT,
     authServicePort: envsVars.AUTH_SERVICE_PORT,
     cookieSecret: envsVars.COOKIE_SECRET,
     nodeEnv: envsVars.NODE_ENV,

@@ -48,7 +48,7 @@ function NavItems() {
               }`}
           >
             <Icon className="h-4 w-4" />
-            <span>{item.name}</span>
+            <span >{item.name}</span>
           </Link>
         );
       })}
@@ -119,7 +119,7 @@ export default function DashboardHeader() {
           {/* User greeting */}
           {user && (
             <span className="text-sm text-muted-foreground hidden sm:inline">
-              Hello, <span className="font-medium text-foreground">{user.name}</span>
+              Hello, <span className="font-medium">{user.name}</span>
             </span>
           )}
 

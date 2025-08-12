@@ -5,6 +5,7 @@ import { AuthServiceModule } from './auth-service/auth-service.module';
 import { JwtModule } from '@nestjs/jwt';
 import { envs } from './config/envs';
 import { AuthCodeModule } from './auth-code/auth-code.module';
+import { CoreServiceModule } from './core-service/core-service.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthCodeModule } from './auth-code/auth-code.module';
       signOptions: { expiresIn: envs.jwtAuthExpiresIn },
     }),
     AuthCodeModule,
+    CoreServiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
