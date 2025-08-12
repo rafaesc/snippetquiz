@@ -14,8 +14,8 @@ import {
 
 @Controller('auth-service')
 export class AuthServiceController {
-  constructor(private readonly authClientService: AuthClientService) {}
-  
+  constructor(private readonly authClientService: AuthClientService) { }
+
   @Get('me')
   async getMe(@Request() req: any): Promise<{ message: string }> {
     // Extract user ID from JWT token or request
@@ -91,8 +91,7 @@ export class AuthServiceController {
       });
 
       // Remove tokens from response body for security
-      const { tokens, ...responseWithoutTokens } = result;
-      return responseWithoutTokens;
+      return result;
     }
 
     return result;
@@ -143,8 +142,8 @@ export class AuthServiceController {
     const result = await firstValueFrom(this.authClientService.logout(refreshToken));
 
     // Clear cookies
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
+    response.clearCookie('accessToken', { path: "/api/auth-service" });
+    response.clearCookie('refreshToken', { path: "/api/auth-service" });
 
     return result;
   }
@@ -156,7 +155,7 @@ export class AuthServiceController {
     const userId = req.user?.id || 'demo-user-id';
     const name = req.user?.name || 'Demo User';
     const email = req.user?.email || 'demo@example.com';
-    
+
     return await firstValueFrom(this.authClientService.verify(userId, name, email));
   }
 
@@ -177,14 +176,14 @@ export class AuthServiceController {
   ): Promise<{ message: string }> {
     const refreshToken = req.cookies?.refreshToken;
     const userId = req.user?.id || 'demo-user-id';
-    
+
     const result = await firstValueFrom(
       this.authClientService.changePassword(refreshToken, userId, changePasswordDto)
     );
 
     // Clear cookies after password change
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
+    response.clearCookie('accessToken', { path: "/api/auth-service" });
+    response.clearCookie('refreshToken', { path: "/api/auth-service" });
 
     return result;
   }

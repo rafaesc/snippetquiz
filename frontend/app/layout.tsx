@@ -4,7 +4,6 @@ import { QueryProvider } from '../lib/query-client';
 
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,9 +29,7 @@ export default function RootLayout({
         >
           <Suspense fallback={<div>Loading...</div>}>
             <QueryProvider>
-              <AuthProvider>
                 {children}
-              </AuthProvider>
             </QueryProvider>
           </Suspense>
         </ThemeProvider>
