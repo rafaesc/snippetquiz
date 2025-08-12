@@ -2,7 +2,8 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ContentEntryService } from './content-entry.service';
 import { CreateContentEntryDto } from './dto/create-content-entry.dto';
-import { UpdateContentEntryDto } from './dto/update-content-entry.dto';
+import { FindAllContentEntriesDto } from './dto/find-all-content-entries.dto';
+import { CloneContentEntryDto } from './dto/clone-content-entry.dto';
 
 @Controller()
 export class ContentEntryController {
@@ -13,23 +14,23 @@ export class ContentEntryController {
     return this.contentEntryService.create(createContentEntryDto);
   }
 
-  @MessagePattern('findAllContentEntry')
-  findAll() {
-    return this.contentEntryService.findAll();
+  @MessagePattern('findAllContentEntries')
+  findAll(@Payload() findAllDto: FindAllContentEntriesDto) {
+    return this.contentEntryService.findAll(findAllDto);
   }
 
   @MessagePattern('findOneContentEntry')
-  findOne(@Payload() id: number) {
-    return this.contentEntryService.findOne(id);
+  findOne(@Payload() payload: { id: string; userId: string }) {
+    return this.contentEntryService.findOne(payload.id, payload.userId);
   }
 
-  @MessagePattern('updateContentEntry')
-  update(@Payload() updateContentEntryDto: UpdateContentEntryDto) {
-    return this.contentEntryService.update(updateContentEntryDto.id, updateContentEntryDto);
+  @MessagePattern('cloneContentEntry')
+  clone(@Payload() payload: { id: string; cloneDto: CloneContentEntryDto }) {
+    return this.contentEntryService.clone(payload.id, payload.cloneDto);
   }
 
   @MessagePattern('removeContentEntry')
-  remove(@Payload() id: number) {
-    return this.contentEntryService.remove(id);
+  remove(@Payload() payload: { id: string; userId: string }) {
+    return this.contentEntryService.remove(payload.id, payload.userId);
   }
 }

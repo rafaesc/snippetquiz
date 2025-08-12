@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CoreServiceService } from './core-service.service';
-import { CoreServiceController } from './core-service.controller';
+import { ContentBankController } from './content-bank.controller';
 import { CORE_SERVICE } from '../config/services';
 import { envs } from '../config/envs';
+import { ContentEntryController } from './content-entry.controller';
+import { InstructionsController } from './instructions.controller';
+import { QuizController } from './quiz.controller';
 
 @Module({
   imports: [
@@ -18,7 +21,12 @@ import { envs } from '../config/envs';
       },
     ]),
   ],
-  controllers: [CoreServiceController],
+  controllers: [
+    ContentBankController,
+    ContentEntryController,
+    InstructionsController,
+    QuizController
+  ],
   providers: [CoreServiceService],
 })
 export class CoreServiceModule { }
