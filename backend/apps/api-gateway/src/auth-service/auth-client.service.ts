@@ -8,10 +8,9 @@ import {
   RefreshTokenDto,
   ChangePasswordDto,
   AuthResponseDto,
-  TokensDto
+  TokensDto,
 } from '../../../commons/types/auth-payloads';
 import { AUTH_SERVICE } from '../config/services';
-
 
 @Injectable()
 export class AuthClientService {
@@ -35,7 +34,9 @@ export class AuthClientService {
     return this.authServiceClient.send('auth.login', loginDto);
   }
 
-  refresh(refreshTokenDto: RefreshTokenDto): Observable<{ message: string; tokens: TokensDto }> {
+  refresh(
+    refreshTokenDto: RefreshTokenDto,
+  ): Observable<{ message: string; tokens: TokensDto }> {
     return this.authServiceClient.send('auth.refresh', refreshTokenDto);
   }
 
@@ -43,7 +44,11 @@ export class AuthClientService {
     return this.authServiceClient.send('auth.logout', { refreshToken });
   }
 
-  verify(userId: string, name: string, email: string): Observable<{ valid: boolean; user: any }> {
+  verify(
+    userId: string,
+    name: string,
+    email: string,
+  ): Observable<{ valid: boolean; user: any }> {
     return this.authServiceClient.send('auth.verify', { userId, name, email });
   }
 
@@ -55,11 +60,15 @@ export class AuthClientService {
     return this.authServiceClient.send('auth.me', { userId });
   }
 
-  changePassword(refreshToken: string, userId: string, changePasswordDto: ChangePasswordDto): Observable<{ message: string }> {
+  changePassword(
+    refreshToken: string,
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Observable<{ message: string }> {
     return this.authServiceClient.send('auth.change-password', {
       changePasswordDto,
       refreshToken,
-      userId
+      userId,
     });
   }
 }

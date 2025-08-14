@@ -11,7 +11,7 @@ import {
   Inject,
   HttpException,
   HttpStatus,
-  ParseIntPipe
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Throttle } from '@nestjs/throttler';
@@ -66,10 +66,7 @@ export class QuizController {
   }
 
   @Get(':id')
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
-  ) {
+  async findOne(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     try {
       const userId = req.user.id;
 
@@ -117,20 +114,22 @@ export class QuizController {
       };
 
       return await firstValueFrom(
-        this.coreServiceClient.send('quiz.findResponses', findResponsesDto).pipe(
-          catchError((error) => {
-            if (error.message?.includes('not found')) {
+        this.coreServiceClient
+          .send('quiz.findResponses', findResponsesDto)
+          .pipe(
+            catchError((error) => {
+              if (error.message?.includes('not found')) {
+                throw new HttpException(
+                  'Quiz not found or you do not have permission to access it',
+                  HttpStatus.NOT_FOUND,
+                );
+              }
               throw new HttpException(
-                'Quiz not found or you do not have permission to access it',
-                HttpStatus.NOT_FOUND,
+                error.message || 'Internal server error',
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
               );
-            }
-            throw new HttpException(
-              error.message || 'Internal server error',
-              error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }),
-        ),
+            }),
+          ),
       );
     } catch (error) {
       if (error instanceof HttpException) {
@@ -191,14 +190,16 @@ export class QuizController {
       };
 
       return await firstValueFrom(
-        this.coreServiceClient.send('quiz.create', { createQuizDto, userId }).pipe(
-          catchError((error) => {
-            throw new HttpException(
-              error.message || 'Internal server error',
-              error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }),
-        ),
+        this.coreServiceClient
+          .send('quiz.create', { createQuizDto, userId })
+          .pipe(
+            catchError((error) => {
+              throw new HttpException(
+                error.message || 'Internal server error',
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+              );
+            }),
+          ),
       );
     } catch (error) {
       if (error instanceof HttpException) {
@@ -212,10 +213,7 @@ export class QuizController {
   }
 
   @Delete(':id')
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
-  ) {
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     try {
       const userId = req.user.id;
 

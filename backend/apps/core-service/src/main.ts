@@ -8,7 +8,7 @@ import { AllRpcExceptionsFilter } from './filters/rpc-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('core-service-bootstrap');
-  
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     CoreServiceModule,
     {

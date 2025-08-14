@@ -1,7 +1,11 @@
 import { Catch, RpcExceptionFilter, ArgumentsHost } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { RpcException } from '@nestjs/microservices';
-import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 
 @Catch()
 export class AllRpcExceptionsFilter implements RpcExceptionFilter<any> {
@@ -22,9 +26,12 @@ export class AllRpcExceptionsFilter implements RpcExceptionFilter<any> {
       message = exception.message;
     }
 
-    return throwError(() => new RpcException({
-      status,
-      message,
-    }));
+    return throwError(
+      () =>
+        new RpcException({
+          status,
+          message,
+        }),
+    );
   }
 }

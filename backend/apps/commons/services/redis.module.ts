@@ -10,11 +10,9 @@ import { redisEnvs } from '../config/redis-envs';
     CacheModule.registerAsync({
       useFactory: async () => {
         const connectionString = `redis://${redisEnvs.user}:${redisEnvs.password}@${redisEnvs.host}:${redisEnvs.port}`;
-        
+
         return {
-          store: [
-            createKeyv(connectionString),
-          ],
+          store: [createKeyv(connectionString)],
         };
       },
     }),
@@ -22,4 +20,4 @@ import { redisEnvs } from '../config/redis-envs';
   providers: [RedisService],
   exports: [RedisService, CacheModule],
 })
-export class RedisModule { }
+export class RedisModule {}

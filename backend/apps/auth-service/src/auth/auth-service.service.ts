@@ -1,13 +1,32 @@
-import { Injectable, OnModuleInit, UnauthorizedException, ConflictException, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma/postgres';
 import { JwtService } from '@nestjs/jwt';
 import * as nodemailer from 'nodemailer';
-import { RegisterDto, LoginDto, VerifyEmailDto, ChangePasswordDto, UserResponseDto, AuthResponseDto, TokensDto } from 'apps/commons';
+import {
+  RegisterDto,
+  LoginDto,
+  VerifyEmailDto,
+  ChangePasswordDto,
+  UserResponseDto,
+  AuthResponseDto,
+  TokensDto,
+} from 'apps/commons';
 import { RedisService } from 'apps/commons/services';
 import { UsersService } from '../users/users.service';
 import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';
-import { getVerificationEmailTemplate, getResendVerificationEmailTemplate } from '../utils/email-templates';
+import {
+  getVerificationEmailTemplate,
+  getResendVerificationEmailTemplate,
+} from '../utils/email-templates';
 
 @Injectable()
 export class AuthServiceService implements OnModuleInit {
@@ -16,10 +35,10 @@ export class AuthServiceService implements OnModuleInit {
   private prisma: PrismaClient;
 
   constructor(
-    private jwtService: JwtService, 
+    private jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
-    private readonly tokenService: TokenService
+    private readonly tokenService: TokenService,
   ) {
     this.prisma = new PrismaClient();
     this.setupEmailTransporter();
@@ -32,7 +51,9 @@ export class AuthServiceService implements OnModuleInit {
 
   private setupEmailTransporter() {
     if (!envs.emailUsername || !envs.emailPassword) {
-      this.logger.warn('Email credentials not provided. Email features will be disabled.');
+      this.logger.warn(
+        'Email credentials not provided. Email features will be disabled.',
+      );
       return;
     }
 
@@ -42,8 +63,8 @@ export class AuthServiceService implements OnModuleInit {
       secure: true,
       auth: {
         user: envs.emailUsername,
-        pass: envs.emailPassword
-      }
+        pass: envs.emailPassword,
+      },
     });
 
     this.transporter.verify((error, success) => {
@@ -54,7 +75,7 @@ export class AuthServiceService implements OnModuleInit {
       }
     });
   }
-  
+
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     const { name, email, password } = registerDto;
 
@@ -63,26 +84,28 @@ export class AuthServiceService implements OnModuleInit {
     if (existingUser) {
       throw new ConflictException('User already exists with this email');
     }
-  
+
     // Determine if email verification is available
-    const emailVerificationEnabled = !!(envs.emailUsername && envs.emailPassword);
-    
+    const emailVerificationEnabled = !!(
+      envs.emailUsername && envs.emailPassword
+    );
+
     // Create user using UsersService - auto-verify if email is disabled
     const newUser = await this.usersService.createUser({
       name,
       email,
       password,
-      verified: !emailVerificationEnabled // Auto-verify if email is disabled
+      verified: !emailVerificationEnabled, // Auto-verify if email is disabled
     });
-  
+
     // Create a default content bank for the new user
     await this.prisma.contentBank.create({
       data: {
         userId: newUser.id,
-        name: 'Default'
-      }
+        name: 'Default',
+      },
     });
-  
+
     // If email verification is enabled, send verification email
     if (emailVerificationEnabled) {
       // Generate verification token
@@ -90,10 +113,10 @@ export class AuthServiceService implements OnModuleInit {
         { userId: newUser.id, email: newUser.email },
         {
           secret: envs.jwtAuthVerificationSecret,
-          expiresIn: envs.jwtAuthVerificationExpiresIn
-        }
+          expiresIn: envs.jwtAuthVerificationExpiresIn,
+        },
       );
-  
+
       // Send verification email
       const verificationUrl = `${envs.frontendUrl}/auth/verify-email?token=${verificationToken}`;
       const mailOptions = {
@@ -103,24 +126,26 @@ export class AuthServiceService implements OnModuleInit {
         html: getVerificationEmailTemplate({
           name,
           verificationUrl,
-          expiresIn: envs.jwtAuthVerificationExpiresIn
-        })
+          expiresIn: envs.jwtAuthVerificationExpiresIn,
+        }),
       };
-  
+
       this.transporter.sendMail(mailOptions);
-  
+
       return {
-        message: 'User registered successfully. Please check your email to verify your account.',
-        user: newUser as UserResponseDto
+        message:
+          'User registered successfully. Please check your email to verify your account.',
+        user: newUser as UserResponseDto,
       };
     } else {
       // Email verification disabled - user is automatically verified
       const tokens = this.tokenService.generateTokens(newUser);
-      
+
       return {
-        message: 'User registered and automatically verified (email verification disabled).',
+        message:
+          'User registered and automatically verified (email verification disabled).',
         user: newUser as UserResponseDto,
-        tokens // Provide tokens for immediate login
+        tokens, // Provide tokens for immediate login
       };
     }
   }
@@ -130,8 +155,8 @@ export class AuthServiceService implements OnModuleInit {
 
     try {
       const decoded = this.jwtService.verify(token, {
-        secret: envs.jwtAuthVerificationSecret
-      }) as any;
+        secret: envs.jwtAuthVerificationSecret,
+      });
 
       const user = await this.usersService.findById(decoded.userId);
       if (!user) {
@@ -151,10 +176,13 @@ export class AuthServiceService implements OnModuleInit {
       return {
         message: 'Email verified successfully',
         user: updatedUser as UserResponseDto,
-        tokens
+        tokens,
       };
     } catch (error) {
-      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      if (
+        error.name === 'JsonWebTokenError' ||
+        error.name === 'TokenExpiredError'
+      ) {
         throw new BadRequestException('Invalid or expired verification token');
       }
       throw error;
@@ -176,8 +204,8 @@ export class AuthServiceService implements OnModuleInit {
       { userId: user.id, email: user.email },
       {
         secret: envs.jwtAuthVerificationSecret,
-        expiresIn: envs.jwtAuthVerificationExpiresIn
-      }
+        expiresIn: envs.jwtAuthVerificationExpiresIn,
+      },
     );
 
     // Send verification email
@@ -189,8 +217,8 @@ export class AuthServiceService implements OnModuleInit {
       html: getResendVerificationEmailTemplate({
         name: user.name,
         verificationUrl,
-        expiresIn: envs.jwtAuthVerificationExpiresIn
-      })
+        expiresIn: envs.jwtAuthVerificationExpiresIn,
+      }),
     };
 
     await this.transporter.sendMail(mailOptions);
@@ -206,13 +234,18 @@ export class AuthServiceService implements OnModuleInit {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await this.usersService.verifyPassword(user.password, password);
+    const isPasswordValid = await this.usersService.verifyPassword(
+      user.password,
+      password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     if (!user.verified) {
-      throw new UnauthorizedException('Please verify your email before logging in');
+      throw new UnauthorizedException(
+        'Please verify your email before logging in',
+      );
     }
 
     const tokens = this.tokenService.generateTokens(user);
@@ -221,28 +254,29 @@ export class AuthServiceService implements OnModuleInit {
       name: user.name,
       email: user.email,
       verified: user.verified,
-      createdDate: user.createdDate
+      createdDate: user.createdDate,
     };
 
     return {
       message: 'Login successful',
       user: userResponse,
-      tokens
+      tokens,
     };
   }
 
   async refreshToken(refreshToken: string): Promise<TokensDto> {
     try {
       // First validate refresh token exists in Redis
-      const storedUserId = await this.redisService.validateRefreshToken(refreshToken);
+      const storedUserId =
+        await this.redisService.validateRefreshToken(refreshToken);
       if (!storedUserId) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
       // Then verify JWT signature and decode
       const decoded = this.jwtService.verify(refreshToken, {
-        secret: envs.jwtAuthRefreshSecret
-      }) as any;
+        secret: envs.jwtAuthRefreshSecret,
+      });
 
       // Ensure the user from Redis matches the JWT payload
       if (storedUserId !== decoded.id.toString()) {
@@ -276,7 +310,7 @@ export class AuthServiceService implements OnModuleInit {
   async verifyToken(token: string): Promise<any> {
     try {
       const decoded = this.jwtService.verify(token, {
-        secret: envs.jwtAuthSecret
+        secret: envs.jwtAuthSecret,
       });
       return decoded;
     } catch (error) {
@@ -284,11 +318,18 @@ export class AuthServiceService implements OnModuleInit {
     }
   }
 
-  async changePassword(refreshToken: string, userId: string, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+  async changePassword(
+    refreshToken: string,
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     const { currentPassword, newPassword } = changePasswordDto;
 
     // Verify current password using UsersService
-    const isCurrentPasswordValid = await this.usersService.verifyUserPassword(userId, currentPassword);
+    const isCurrentPasswordValid = await this.usersService.verifyUserPassword(
+      userId,
+      currentPassword,
+    );
     if (!isCurrentPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }
@@ -296,7 +337,7 @@ export class AuthServiceService implements OnModuleInit {
     // Update password using UsersService
     await this.usersService.updatePassword(userId, newPassword);
 
-    // Invalidate all refresh tokens for this user    
+    // Invalidate all refresh tokens for this user
     if (refreshToken) {
       // Remove refresh token from Redis
       await this.redisService.removeRefreshToken(refreshToken);
@@ -319,19 +360,19 @@ export class AuthServiceService implements OnModuleInit {
         id: true,
         name: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
     return {
       user,
-      banks: banks.map(bank => ({
+      banks: banks.map((bank) => ({
         id: Number(bank.id),
         name: bank.name,
         createdAt: bank.createdAt,
-        updatedAt: bank.updatedAt
-      }))
+        updatedAt: bank.updatedAt,
+      })),
     };
   }
 }

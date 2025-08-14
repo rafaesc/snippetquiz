@@ -11,7 +11,7 @@ export class AppService {
       status: 'ok',
       timestamp: new Date().toISOString(),
       service: 'api-gateway',
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
 }

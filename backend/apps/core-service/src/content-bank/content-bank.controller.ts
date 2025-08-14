@@ -27,7 +27,10 @@ export class ContentBankController {
 
   @MessagePattern('updateContentBank')
   update(@Payload() updateContentBankDto: UpdateContentBankDto) {
-    return this.contentBankService.update(updateContentBankDto.id, updateContentBankDto);
+    return this.contentBankService.update(
+      updateContentBankDto.id,
+      updateContentBankDto,
+    );
   }
 
   @MessagePattern('removeContentBank')
@@ -36,7 +39,18 @@ export class ContentBankController {
   }
 
   @MessagePattern('duplicateContentBank')
-  duplicate(@Payload() payload: { id: string; userId: string; duplicateDto: DuplicateContentBankDto }) {
-    return this.contentBankService.duplicate(payload.id, payload.userId, payload.duplicateDto);
+  duplicate(
+    @Payload()
+    payload: {
+      id: string;
+      userId: string;
+      duplicateDto: DuplicateContentBankDto;
+    },
+  ) {
+    return this.contentBankService.duplicate(
+      payload.id,
+      payload.userId,
+      payload.duplicateDto,
+    );
   }
 }

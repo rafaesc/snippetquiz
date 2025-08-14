@@ -33,7 +33,10 @@ export class UsersService extends PrismaClient {
   }
 
   // Password verification method
-  async verifyPassword(hashedPassword: string, plainPassword: string): Promise<boolean> {
+  async verifyPassword(
+    hashedPassword: string,
+    plainPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
@@ -47,18 +50,22 @@ export class UsersService extends PrismaClient {
   // Find user by email with password (for authentication)
   async findUserByEmail(email: string) {
     return this.user.findUnique({
-      where: { 
+      where: {
         email,
         password: {
-          not: undefined
-        }
+          not: undefined,
+        },
       },
     });
   }
 
   // Create a new user
-  async createUser(userData: Omit<UserData, 'id' | 'createdDate'>): Promise<any> {
-    const hashedPassword = userData.password ? await this.hashPassword(userData.password) : undefined;
+  async createUser(
+    userData: Omit<UserData, 'id' | 'createdDate'>,
+  ): Promise<any> {
+    const hashedPassword = userData.password
+      ? await this.hashPassword(userData.password)
+      : undefined;
     if (!hashedPassword) {
       throw new Error('Password is required');
     }
@@ -79,22 +86,22 @@ export class UsersService extends PrismaClient {
         verified: true,
         passwordUpdatedAt: true,
         // Exclude password from response
-      }
+      },
     });
   }
 
   // Update user
   async updateUser(id: string, userData: Partial<UserData>) {
     const updateData: any = { ...userData };
-    
+
     // Hash password if provided
     if (userData.password) {
       updateData.password = await this.hashPassword(userData.password);
       updateData.passwordUpdatedAt = new Date();
     }
-    
+
     // Remove undefined fields
-    Object.keys(updateData).forEach(key => {
+    Object.keys(updateData).forEach((key) => {
       if (updateData[key] === undefined) {
         delete updateData[key];
       }
@@ -111,14 +118,14 @@ export class UsersService extends PrismaClient {
         verified: true,
         passwordUpdatedAt: true,
         // Exclude password from response
-      }
+      },
     });
   }
 
   // Delete user
   async deleteUser(id: string): Promise<{ count: number }> {
     await this.user.delete({
-      where: { id }
+      where: { id },
     });
     return { count: 1 };
   }
@@ -135,19 +142,19 @@ export class UsersService extends PrismaClient {
         createdDate: true,
         verified: true,
         passwordUpdatedAt: true,
-      }
+      },
     });
   }
 
   // Update password specifically
   async updatePassword(id: string, newPassword: string) {
     const hashedPassword = await this.hashPassword(newPassword);
-    
+
     return this.user.update({
       where: { id },
       data: {
         password: hashedPassword,
-        passwordUpdatedAt: new Date()
+        passwordUpdatedAt: new Date(),
       },
       select: {
         id: true,
@@ -156,12 +163,15 @@ export class UsersService extends PrismaClient {
         createdDate: true,
         verified: true,
         passwordUpdatedAt: true,
-      }
+      },
     });
   }
 
   // Update user profile (name and email only)
-  async updateProfile(id: string, data: Partial<Pick<UserData, 'name' | 'email'>>) {
+  async updateProfile(
+    id: string,
+    data: Partial<Pick<UserData, 'name' | 'email'>>,
+  ) {
     return this.user.update({
       where: { id },
       data,
@@ -172,7 +182,7 @@ export class UsersService extends PrismaClient {
         createdDate: true,
         verified: true,
         passwordUpdatedAt: true,
-      }
+      },
     });
   }
 
@@ -188,7 +198,7 @@ export class UsersService extends PrismaClient {
         verified: true,
         passwordUpdatedAt: true,
         // Exclude password from response
-      }
+      },
     });
   }
 

@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  Request,
+  Res,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { type FastifyRequest, type FastifyReply } from 'fastify';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -10,13 +20,13 @@ import {
   VerifyEmailDto,
   ResendVerificationDto,
   RefreshTokenDto,
-  ChangePasswordDto
+  ChangePasswordDto,
 } from '../../../commons/types/auth-payloads';
-const COOKIE_PATH = "/api";
+const COOKIE_PATH = '/api';
 
 @Controller('auth-service')
 export class AuthServiceController {
-  constructor(private readonly authClientService: AuthClientService) { }
+  constructor(private readonly authClientService: AuthClientService) {}
 
   @Get('me')
   @SkipThrottle()
@@ -37,9 +47,11 @@ export class AuthServiceController {
   @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto,
-    @Res({ passthrough: true }) response: FastifyReply
+    @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<any> {
-    const result = await firstValueFrom(this.authClientService.verifyEmail(verifyEmailDto));
+    const result = await firstValueFrom(
+      this.authClientService.verifyEmail(verifyEmailDto),
+    );
 
     if (result.tokens) {
       // Set tokens in cookies
@@ -48,7 +60,7 @@ export class AuthServiceController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 minutes
+        maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
       response.setCookie('refreshToken', result.tokens.refreshToken, {
@@ -56,7 +68,7 @@ export class AuthServiceController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       // Remove tokens from response body for security
@@ -70,8 +82,12 @@ export class AuthServiceController {
   @Post('resend-verification')
   @Throttle({ default: { limit: 2, ttl: 300000 } }) // 2 attempts per 5 minutes for resending verification
   @HttpCode(HttpStatus.OK)
-  async resendVerification(@Body() resendVerificationDto: ResendVerificationDto): Promise<{ message: string }> {
-    return await firstValueFrom(this.authClientService.resendVerification(resendVerificationDto.email));
+  async resendVerification(
+    @Body() resendVerificationDto: ResendVerificationDto,
+  ): Promise<{ message: string }> {
+    return await firstValueFrom(
+      this.authClientService.resendVerification(resendVerificationDto.email),
+    );
   }
 
   @Post('login')
@@ -79,7 +95,7 @@ export class AuthServiceController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) response: FastifyReply
+    @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<any> {
     const result = await firstValueFrom(this.authClientService.login(loginDto));
 
@@ -90,7 +106,7 @@ export class AuthServiceController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 minutes
+        maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
       response.setCookie('refreshToken', result.tokens.refreshToken, {
@@ -98,7 +114,7 @@ export class AuthServiceController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       // Remove tokens from response body for security
@@ -114,10 +130,13 @@ export class AuthServiceController {
   async refresh(
     @Body() refreshTokenDto: RefreshTokenDto,
     @Request() req: FastifyRequest,
-    @Res({ passthrough: true }) response: FastifyReply
+    @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<{ message: string; tokens?: any }> {
-    const refreshToken = req.cookies?.refreshToken || refreshTokenDto.refreshToken;
-    const result = await firstValueFrom(this.authClientService.refresh({ refreshToken }));
+    const refreshToken =
+      req.cookies?.refreshToken || refreshTokenDto.refreshToken;
+    const result = await firstValueFrom(
+      this.authClientService.refresh({ refreshToken }),
+    );
 
     if (result.tokens) {
       // Set new tokens in cookies
@@ -126,7 +145,7 @@ export class AuthServiceController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 15 * 60 * 1000 // 15 minutes
+        maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
       response.setCookie('refreshToken', result.tokens.refreshToken, {
@@ -134,7 +153,7 @@ export class AuthServiceController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       // Return message without tokens in body
@@ -151,10 +170,13 @@ export class AuthServiceController {
   async logout(
     @Body() refreshTokenDto: RefreshTokenDto,
     @Request() req: any,
-    @Res({ passthrough: true }) response: FastifyReply
+    @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<{ message: string }> {
-    const refreshToken = req.cookies?.refreshToken || refreshTokenDto?.refreshToken;
-    const result = await firstValueFrom(this.authClientService.logout(refreshToken));
+    const refreshToken =
+      req.cookies?.refreshToken || refreshTokenDto?.refreshToken;
+    const result = await firstValueFrom(
+      this.authClientService.logout(refreshToken),
+    );
 
     // Clear cookies
     response.clearCookie('accessToken', { path: COOKIE_PATH });
@@ -172,7 +194,9 @@ export class AuthServiceController {
     const name = req.user?.name || 'Demo User';
     const email = req.user?.email || 'demo@example.com';
 
-    return await firstValueFrom(this.authClientService.verify(userId, name, email));
+    return await firstValueFrom(
+      this.authClientService.verify(userId, name, email),
+    );
   }
 
   @Get('profile')
@@ -190,13 +214,17 @@ export class AuthServiceController {
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @Request() req: any,
-    @Res({ passthrough: true }) response: FastifyReply
+    @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<{ message: string }> {
     const refreshToken = req.cookies?.refreshToken;
     const userId = req.user?.id || 'demo-user-id';
 
     const result = await firstValueFrom(
-      this.authClientService.changePassword(refreshToken, userId, changePasswordDto)
+      this.authClientService.changePassword(
+        refreshToken,
+        userId,
+        changePasswordDto,
+      ),
     );
 
     // Clear cookies after password change

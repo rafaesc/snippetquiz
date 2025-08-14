@@ -46,4 +46,4 @@ import { CoreServiceModule } from './core-service/core-service.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

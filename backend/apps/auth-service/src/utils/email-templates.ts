@@ -4,7 +4,9 @@ export interface EmailTemplateData {
   expiresIn: string;
 }
 
-export const getVerificationEmailTemplate = (data: EmailTemplateData): string => {
+export const getVerificationEmailTemplate = (
+  data: EmailTemplateData,
+): string => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #333;">Welcome to SnippetQuiz!</h2>
@@ -26,7 +28,9 @@ export const getVerificationEmailTemplate = (data: EmailTemplateData): string =>
   `;
 };
 
-export const getResendVerificationEmailTemplate = (data: EmailTemplateData): string => {
+export const getResendVerificationEmailTemplate = (
+  data: EmailTemplateData,
+): string => {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #333;">Email Verification</h2>
