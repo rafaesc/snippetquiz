@@ -16,7 +16,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      logger: true
+      logger: true,
     }),
   );
 
@@ -31,7 +31,7 @@ async function bootstrap() {
     secret: envs.cookieSecret,
   });
 
-  app.setGlobalPrefix('api')
+  app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
     .setTitle('API Gateway')

@@ -22,7 +22,9 @@ export class InstructionsService extends PrismaClient {
     };
   }
 
-  async createOrUpdate(updateDto: UpdateInstructionDto): Promise<InstructionResponseDto> {
+  async createOrUpdate(
+    updateDto: UpdateInstructionDto,
+  ): Promise<InstructionResponseDto> {
     const { userId, instruction } = updateDto;
 
     // Check if user already has an instruction

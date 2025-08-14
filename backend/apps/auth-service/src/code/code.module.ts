@@ -15,10 +15,9 @@ import { TokenService } from '../utils/token.service';
       signOptions: { expiresIn: envs.jwtAuthVerificationExpiresIn },
     }),
     RedisModule,
-    UsersModule
+    UsersModule,
   ],
   controllers: [CodeController],
-  providers: [CodeService,
-    TokenService]
+  providers: [CodeService, TokenService],
 })
-export class CodeModule { }
+export class CodeModule {}

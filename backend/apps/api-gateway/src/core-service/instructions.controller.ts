@@ -33,11 +33,11 @@ export class InstructionsController {
   async getInstruction(@Request() req: any) {
     try {
       const userId = req.user.id;
-      
+
       const result = await firstValueFrom(
-        this.coreServiceClient.send('findInstructionByUserId', userId)
+        this.coreServiceClient.send('findInstructionByUserId', userId),
       );
-      
+
       return result;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -73,7 +73,10 @@ export class InstructionsController {
       };
 
       const result = await firstValueFrom(
-        this.coreServiceClient.send('createOrUpdateInstruction', updateInstructionDto)
+        this.coreServiceClient.send(
+          'createOrUpdateInstruction',
+          updateInstructionDto,
+        ),
       );
 
       return result;

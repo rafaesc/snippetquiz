@@ -1,9 +1,19 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma/postgres';
-import { CreateContentEntryDto, ContentType } from './dto/create-content-entry.dto';
+import {
+  CreateContentEntryDto,
+  ContentType,
+} from './dto/create-content-entry.dto';
 import { FindAllContentEntriesDto } from './dto/find-all-content-entries.dto';
 import { CloneContentEntryDto } from './dto/clone-content-entry.dto';
-import { ContentEntryResponseDto, PaginatedContentEntriesResponseDto } from './dto/content-entry-response.dto';
+import {
+  ContentEntryResponseDto,
+  PaginatedContentEntriesResponseDto,
+} from './dto/content-entry-response.dto';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
@@ -14,8 +24,11 @@ export class ContentEntryService extends PrismaClient {
     super();
   }
 
-  async create(createContentEntryDto: CreateContentEntryDto): Promise<ContentEntryResponseDto> {
-    const { sourceUrl, content, type, pageTitle, bankId, userId } = createContentEntryDto;
+  async create(
+    createContentEntryDto: CreateContentEntryDto,
+  ): Promise<ContentEntryResponseDto> {
+    const { sourceUrl, content, type, pageTitle, bankId, userId } =
+      createContentEntryDto;
 
     // Verify that the bank belongs to the user
     const contentBank = await this.contentBank.findFirst({
@@ -26,7 +39,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (!contentBank) {
-      throw new NotFoundException('Content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
     }
 
     let processedContent = content;
@@ -109,7 +124,9 @@ export class ContentEntryService extends PrismaClient {
     };
   }
 
-  async findAll(findAllDto: FindAllContentEntriesDto): Promise<PaginatedContentEntriesResponseDto> {
+  async findAll(
+    findAllDto: FindAllContentEntriesDto,
+  ): Promise<PaginatedContentEntriesResponseDto> {
     const { page = 1, limit = 10, name, bankId, userId } = findAllDto;
     const skip = (page - 1) * limit;
 
@@ -122,7 +139,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (!contentBank) {
-      throw new NotFoundException('Content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
     }
 
     const where = {
@@ -159,15 +178,19 @@ export class ContentEntryService extends PrismaClient {
     ]);
 
     return {
-      entries: contentEntries.map(entry => ({
+      entries: contentEntries.map((entry) => ({
         id: entry.id.toString(),
         contentType: entry.contentType,
-        content: entry.content ? (entry.content.length > 300 ? entry.content.substring(0, 300) + '...' : entry.content) : undefined,
+        content: entry.content
+          ? entry.content.length > 300
+            ? entry.content.substring(0, 300) + '...'
+            : entry.content
+          : undefined,
         sourceUrl: entry.sourceUrl || undefined,
         pageTitle: entry.pageTitle || undefined,
         createdAt: entry.createdAt,
         questionsGenerated: entry.questionsGenerated,
-        topics: entry.topics?.map(t => t.topic.topic) || [],
+        topics: entry.topics?.map((t) => t.topic.topic) || [],
       })),
       pagination: {
         page,
@@ -192,7 +215,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (!contentEntry) {
-      throw new NotFoundException('Content entry not found or does not belong to user');
+      throw new NotFoundException(
+        'Content entry not found or does not belong to user',
+      );
     }
 
     return {
@@ -207,7 +232,10 @@ export class ContentEntryService extends PrismaClient {
     };
   }
 
-  async clone(id: string, cloneDto: CloneContentEntryDto): Promise<ContentEntryResponseDto> {
+  async clone(
+    id: string,
+    cloneDto: CloneContentEntryDto,
+  ): Promise<ContentEntryResponseDto> {
     const { targetBankId, userId } = cloneDto;
 
     // Verify source entry belongs to user
@@ -225,7 +253,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (!sourceEntry) {
-      throw new NotFoundException('Source content entry not found or does not belong to user');
+      throw new NotFoundException(
+        'Source content entry not found or does not belong to user',
+      );
     }
 
     // Verify target bank belongs to user
@@ -237,7 +267,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (!targetBank) {
-      throw new NotFoundException('Target content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Target content bank not found or does not belong to user',
+      );
     }
 
     // Check if entry already exists in target bank
@@ -249,7 +281,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (existingRelation) {
-      throw new ConflictException('Content entry already exists in the target bank');
+      throw new ConflictException(
+        'Content entry already exists in the target bank',
+      );
     }
 
     // Create relationship
@@ -288,7 +322,9 @@ export class ContentEntryService extends PrismaClient {
     });
 
     if (!existingEntry) {
-      throw new NotFoundException('Content entry not found or does not belong to user');
+      throw new NotFoundException(
+        'Content entry not found or does not belong to user',
+      );
     }
 
     await this.contentEntry.delete({

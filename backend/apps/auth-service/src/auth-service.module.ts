@@ -23,4 +23,4 @@ import { envs } from './config/envs';
   providers: [AuthServiceService, TokenService],
   exports: [AuthServiceService, TokenService],
 })
-export class AuthServiceModule { }
+export class AuthServiceModule {}

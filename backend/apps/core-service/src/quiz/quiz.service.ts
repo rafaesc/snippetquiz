@@ -9,7 +9,7 @@ import {
   QuizSummaryResponseDto,
   PaginatedQuizResponsesDto,
   QuizResponseDto,
-  QuizResponseItemDto
+  QuizResponseItemDto,
 } from './dto/quiz-response.dto';
 
 @Injectable()
@@ -18,13 +18,15 @@ export class QuizService extends PrismaClient {
     super();
   }
 
-  async findAll(findAllDto: FindAllQuizzesDto): Promise<PaginatedQuizzesResponseDto> {
+  async findAll(
+    findAllDto: FindAllQuizzesDto,
+  ): Promise<PaginatedQuizzesResponseDto> {
     const { page = 1, limit = 10, userId } = findAllDto;
     const skip = (page - 1) * limit;
 
     // Get total count
     const total = await this.quiz.count({
-      where: { userId }
+      where: { userId },
     });
 
     // Get quizzes with pagination
@@ -38,22 +40,22 @@ export class QuizService extends PrismaClient {
         contentEntriesCount: true,
         quizTopics: {
           select: {
-            topicName: true
-          }
-        }
+            topicName: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       skip,
-      take: limit
+      take: limit,
     });
 
-    const formattedQuizzes: QuizResponseDto[] = quizzes.map(quiz => ({
+    const formattedQuizzes: QuizResponseDto[] = quizzes.map((quiz) => ({
       id: Number(quiz.id),
       createdAt: quiz.createdAt,
       questionsCount: quiz.questionsCount,
       questionsCompleted: quiz.questionsCompleted,
       contentEntriesCount: quiz.contentEntriesCount,
-      topics: quiz.quizTopics.map(topic => topic.topicName)
+      topics: quiz.quizTopics.map((topic) => topic.topicName),
     }));
 
     return {
@@ -61,8 +63,8 @@ export class QuizService extends PrismaClient {
       pagination: {
         page,
         limit,
-        total
-      }
+        total,
+      },
     };
   }
 
@@ -70,7 +72,7 @@ export class QuizService extends PrismaClient {
     const quiz = await this.quiz.findFirst({
       where: {
         id: BigInt(id),
-        userId
+        userId,
       },
       select: {
         id: true,
@@ -80,14 +82,16 @@ export class QuizService extends PrismaClient {
         questionsCount: true,
         quizTopics: {
           select: {
-            topicName: true
-          }
-        }
-      }
+            topicName: true,
+          },
+        },
+      },
     });
 
     if (!quiz) {
-      throw new NotFoundException('Quiz not found or you do not have permission to access it');
+      throw new NotFoundException(
+        'Quiz not found or you do not have permission to access it',
+      );
     }
 
     return {
@@ -95,12 +99,14 @@ export class QuizService extends PrismaClient {
       createdAt: quiz.createdAt,
       questionsCompleted: quiz.questionsCompleted,
       contentEntriesCount: quiz.contentEntriesCount,
-      topics: quiz.quizTopics.map(topic => topic.topicName),
-      totalQuestions: quiz.questionsCount
+      topics: quiz.quizTopics.map((topic) => topic.topicName),
+      totalQuestions: quiz.questionsCount,
     };
   }
 
-  async findQuizResponses(findResponsesDto: FindQuizResponsesDto): Promise<PaginatedQuizResponsesDto> {
+  async findQuizResponses(
+    findResponsesDto: FindQuizResponsesDto,
+  ): Promise<PaginatedQuizResponsesDto> {
     const { page = 1, limit = 10, quizId, userId } = findResponsesDto;
     const skip = (page - 1) * limit;
 
@@ -108,17 +114,19 @@ export class QuizService extends PrismaClient {
     const quiz = await this.quiz.findFirst({
       where: {
         id: BigInt(quizId),
-        userId
-      }
+        userId,
+      },
     });
 
     if (!quiz) {
-      throw new NotFoundException('Quiz not found or you do not have permission to access it');
+      throw new NotFoundException(
+        'Quiz not found or you do not have permission to access it',
+      );
     }
 
     // Get total count of responses
     const total = await this.quizQuestionResponse.count({
-      where: { quizId: BigInt(quizId) }
+      where: { quizId: BigInt(quizId) },
     });
 
     // Get quiz responses with pagination
@@ -130,75 +138,85 @@ export class QuizService extends PrismaClient {
         quizQuestion: {
           select: {
             question: true,
-            contentEntrySourceUrl: true
-          }
+            contentEntrySourceUrl: true,
+          },
         },
         quizQuestionOption: {
           select: {
             optionText: true,
-            optionExplanation: true
-          }
-        }
+            optionExplanation: true,
+          },
+        },
       },
       skip,
-      take: limit
+      take: limit,
     });
 
-    const formattedResponses: QuizResponseItemDto[] = responses.map(response => ({
-      isCorrect: response.isCorrect,
-      question: response.quizQuestion.question,
-      answer: response.quizQuestionOption.optionText,
-      correctAnswer: response.correctAnswer,
-      explanation: response.quizQuestionOption.optionExplanation,
-      sourceUrl: response.quizQuestion.contentEntrySourceUrl || ''
-    }));
+    const formattedResponses: QuizResponseItemDto[] = responses.map(
+      (response) => ({
+        isCorrect: response.isCorrect,
+        question: response.quizQuestion.question,
+        answer: response.quizQuestionOption.optionText,
+        correctAnswer: response.correctAnswer,
+        explanation: response.quizQuestionOption.optionExplanation,
+        sourceUrl: response.quizQuestion.contentEntrySourceUrl || '',
+      }),
+    );
 
     return {
       responses: formattedResponses,
       pagination: {
         page,
         limit,
-        total
-      }
+        total,
+      },
     };
   }
 
-  async findQuizSummary(id: number, userId: string): Promise<QuizSummaryResponseDto> {
+  async findQuizSummary(
+    id: number,
+    userId: string,
+  ): Promise<QuizSummaryResponseDto> {
     const quiz = await this.quiz.findFirst({
       where: {
         id: BigInt(id),
-        userId
+        userId,
       },
       select: {
         questionsCount: true,
         quizTopics: {
           select: {
-            topicName: true
-          }
-        }
-      }
+            topicName: true,
+          },
+        },
+      },
     });
 
     if (!quiz) {
-      throw new NotFoundException('Quiz not found or you do not have permission to access it');
+      throw new NotFoundException(
+        'Quiz not found or you do not have permission to access it',
+      );
     }
 
     // Get total correct answers count
     const totalCorrectAnswers = await this.quizQuestionResponse.count({
       where: {
         quizId: BigInt(id),
-        isCorrect: true
-      }
+        isCorrect: true,
+      },
     });
 
     return {
-      topics: quiz.quizTopics.map(topic => topic.topicName),
+      topics: quiz.quizTopics.map((topic) => topic.topicName),
       totalQuestions: quiz.questionsCount,
-      totalCorrectAnswers
+      totalCorrectAnswers,
     };
   }
 
-  async create(createQuizDto: CreateQuizDto, userId: string): Promise<{ message: string; quizId: number }> {
+  async create(
+    createQuizDto: CreateQuizDto,
+    userId: string,
+  ): Promise<{ message: string; quizId: number }> {
     const { bankId } = createQuizDto;
 
     // Create a dummy quiz (as per the original implementation)
@@ -209,58 +227,116 @@ export class QuizService extends PrismaClient {
         contentEntriesCount: 3,
         questionsCount: 3,
         questionsCompleted: 0,
-        bankName: 'Dummy Quiz Bank'
-      }
+        bankName: 'Dummy Quiz Bank',
+      },
     });
 
     // Create dummy topics for the quiz
     const topics = ['JavaScript', 'Programming', 'Web Development'];
     await Promise.all(
-      topics.map(topic => 
+      topics.map((topic) =>
         this.quizTopic.create({
           data: {
             quizId: quiz.id,
-            topicName: topic
-          }
-        })
-      )
+            topicName: topic,
+          },
+        }),
+      ),
     );
 
     // Create dummy questions with options
     const questionsData = [
       {
-        question: 'What is the correct way to declare a variable in JavaScript?',
+        question:
+          'What is the correct way to declare a variable in JavaScript?',
         contentEntryType: 'text',
-        contentEntrySourceUrl: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types',
+        contentEntrySourceUrl:
+          'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types',
         options: [
-          { optionText: 'var myVar = 5;', optionExplanation: 'This is the traditional way to declare variables in JavaScript.', isCorrect: true },
-          { optionText: 'variable myVar = 5;', optionExplanation: 'This is not valid JavaScript syntax.', isCorrect: false },
-          { optionText: 'declare myVar = 5;', optionExplanation: 'This is not valid JavaScript syntax.', isCorrect: false },
-          { optionText: 'int myVar = 5;', optionExplanation: 'This is Java/C++ syntax, not JavaScript.', isCorrect: false }
-        ]
+          {
+            optionText: 'var myVar = 5;',
+            optionExplanation:
+              'This is the traditional way to declare variables in JavaScript.',
+            isCorrect: true,
+          },
+          {
+            optionText: 'variable myVar = 5;',
+            optionExplanation: 'This is not valid JavaScript syntax.',
+            isCorrect: false,
+          },
+          {
+            optionText: 'declare myVar = 5;',
+            optionExplanation: 'This is not valid JavaScript syntax.',
+            isCorrect: false,
+          },
+          {
+            optionText: 'int myVar = 5;',
+            optionExplanation: 'This is Java/C++ syntax, not JavaScript.',
+            isCorrect: false,
+          },
+        ],
       },
       {
-        question: 'Which method is used to add an element to the end of an array?',
+        question:
+          'Which method is used to add an element to the end of an array?',
         contentEntryType: 'text',
-        contentEntrySourceUrl: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push',
+        contentEntrySourceUrl:
+          'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push',
         options: [
-          { optionText: 'array.push(element)', optionExplanation: 'Correct! The push() method adds elements to the end of an array.', isCorrect: true },
-          { optionText: 'array.add(element)', optionExplanation: 'JavaScript arrays do not have an add() method.', isCorrect: false },
-          { optionText: 'array.append(element)', optionExplanation: 'JavaScript arrays do not have an append() method.', isCorrect: false },
-          { optionText: 'array.insert(element)', optionExplanation: 'JavaScript arrays do not have an insert() method.', isCorrect: false }
-        ]
+          {
+            optionText: 'array.push(element)',
+            optionExplanation:
+              'Correct! The push() method adds elements to the end of an array.',
+            isCorrect: true,
+          },
+          {
+            optionText: 'array.add(element)',
+            optionExplanation: 'JavaScript arrays do not have an add() method.',
+            isCorrect: false,
+          },
+          {
+            optionText: 'array.append(element)',
+            optionExplanation:
+              'JavaScript arrays do not have an append() method.',
+            isCorrect: false,
+          },
+          {
+            optionText: 'array.insert(element)',
+            optionExplanation:
+              'JavaScript arrays do not have an insert() method.',
+            isCorrect: false,
+          },
+        ],
       },
       {
         question: 'What does the "===" operator do in JavaScript?',
         contentEntryType: 'text',
-        contentEntrySourceUrl: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality',
+        contentEntrySourceUrl:
+          'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality',
         options: [
-          { optionText: 'Strict equality comparison', optionExplanation: 'Correct! The === operator checks for strict equality without type coercion.', isCorrect: true },
-          { optionText: 'Assignment operator', optionExplanation: 'The assignment operator is =, not ===.', isCorrect: false },
-          { optionText: 'Loose equality comparison', optionExplanation: 'Loose equality comparison uses ==, not ===.', isCorrect: false },
-          { optionText: 'Greater than or equal', optionExplanation: 'Greater than or equal uses >=, not ===.', isCorrect: false }
-        ]
-      }
+          {
+            optionText: 'Strict equality comparison',
+            optionExplanation:
+              'Correct! The === operator checks for strict equality without type coercion.',
+            isCorrect: true,
+          },
+          {
+            optionText: 'Assignment operator',
+            optionExplanation: 'The assignment operator is =, not ===.',
+            isCorrect: false,
+          },
+          {
+            optionText: 'Loose equality comparison',
+            optionExplanation: 'Loose equality comparison uses ==, not ===.',
+            isCorrect: false,
+          },
+          {
+            optionText: 'Greater than or equal',
+            optionExplanation: 'Greater than or equal uses >=, not ===.',
+            isCorrect: false,
+          },
+        ],
+      },
     ];
 
     // Create questions and their options
@@ -271,28 +347,28 @@ export class QuizService extends PrismaClient {
           type: 'multiple_choice',
           contentEntryType: questionData.contentEntryType,
           contentEntrySourceUrl: questionData.contentEntrySourceUrl,
-          quizId: quiz.id
-        }
+          quizId: quiz.id,
+        },
       });
 
       // Create options for this question
       await Promise.all(
-        questionData.options.map(option => 
+        questionData.options.map((option) =>
           this.quizQuestionOption.create({
             data: {
               quizQuestionId: question.id,
               optionText: option.optionText,
               optionExplanation: option.optionExplanation,
-              isCorrect: option.isCorrect
-            }
-          })
-        )
+              isCorrect: option.isCorrect,
+            },
+          }),
+        ),
       );
     }
 
     return {
       message: 'Dummy quiz created successfully',
-      quizId: Number(quiz.id)
+      quizId: Number(quiz.id),
     };
   }
 
@@ -301,17 +377,19 @@ export class QuizService extends PrismaClient {
     const quiz = await this.quiz.findFirst({
       where: {
         id: BigInt(id),
-        userId
-      }
+        userId,
+      },
     });
 
     if (!quiz) {
-      throw new NotFoundException('Quiz not found or you do not have permission to delete it');
+      throw new NotFoundException(
+        'Quiz not found or you do not have permission to delete it',
+      );
     }
 
     // Delete the quiz (cascade delete will handle related records)
     await this.quiz.delete({
-      where: { id: BigInt(id) }
+      where: { id: BigInt(id) },
     });
 
     return { message: 'Quiz deleted successfully' };

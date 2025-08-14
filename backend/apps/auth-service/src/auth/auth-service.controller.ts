@@ -12,12 +12,12 @@ import type {
   ResendVerificationDto,
   RefreshTokenDto,
   AuthResponseDto,
-  TokensDto
+  TokensDto,
 } from '../../../commons/types/auth-payloads';
 
 @Controller()
 export class AuthServiceController {
-  constructor(private readonly authServiceService: AuthServiceService) { }
+  constructor(private readonly authServiceService: AuthServiceService) {}
 
   @MessagePattern('auth.me')
   async getMe(@Payload() data: UserPayload): Promise<{ message: string }> {
@@ -25,19 +25,27 @@ export class AuthServiceController {
   }
 
   @MessagePattern('auth.register')
-  async register(@Payload() registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(
+    @Payload() registerDto: RegisterDto,
+  ): Promise<AuthResponseDto> {
     return this.authServiceService.register(registerDto);
   }
 
   @MessagePattern('auth.verify-email')
-  async verifyEmail(@Payload() verifyEmailDto: VerifyEmailDto): Promise<AuthResponseDto> {
+  async verifyEmail(
+    @Payload() verifyEmailDto: VerifyEmailDto,
+  ): Promise<AuthResponseDto> {
     const result = await this.authServiceService.verifyEmail(verifyEmailDto);
     return result;
   }
 
   @MessagePattern('auth.resend-verification')
-  async resendVerification(@Payload() resendVerificationDto: ResendVerificationDto): Promise<{ message: string }> {
-    return this.authServiceService.resendVerification(resendVerificationDto.email);
+  async resendVerification(
+    @Payload() resendVerificationDto: ResendVerificationDto,
+  ): Promise<{ message: string }> {
+    return this.authServiceService.resendVerification(
+      resendVerificationDto.email,
+    );
   }
 
   @MessagePattern('auth.login')
@@ -47,26 +55,34 @@ export class AuthServiceController {
   }
 
   @MessagePattern('auth.refresh')
-  async refresh(@Payload() refreshTokenDto: RefreshTokenDto): Promise<{ message: string; tokens: TokensDto }> {
-    const tokens = await this.authServiceService.refreshToken(refreshTokenDto.refreshToken!);
+  async refresh(
+    @Payload() refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ message: string; tokens: TokensDto }> {
+    const tokens = await this.authServiceService.refreshToken(
+      refreshTokenDto.refreshToken!,
+    );
     return { message: 'Token refreshed successfully', tokens };
   }
 
   @MessagePattern('auth.logout')
-  async logout(@Payload() data: RefreshTokenPayload): Promise<{ message: string }> {
+  async logout(
+    @Payload() data: RefreshTokenPayload,
+  ): Promise<{ message: string }> {
     const result = await this.authServiceService.logout(data.refreshToken);
     return result;
   }
 
   @MessagePattern('auth.verify')
-  async verify(@Payload() data: UserDetailsPayload): Promise<{ valid: boolean; user: any }> {
+  async verify(
+    @Payload() data: UserDetailsPayload,
+  ): Promise<{ valid: boolean; user: any }> {
     return {
       valid: true,
       user: {
         id: data.userId,
         name: data.name,
-        email: data.email
-      }
+        email: data.email,
+      },
     };
   }
 
@@ -76,11 +92,13 @@ export class AuthServiceController {
   }
 
   @MessagePattern('auth.change-password')
-  async changePassword(@Payload() data: ChangePasswordPayload): Promise<{ message: string }> {
+  async changePassword(
+    @Payload() data: ChangePasswordPayload,
+  ): Promise<{ message: string }> {
     const result = await this.authServiceService.changePassword(
-      data.refreshToken, 
-      data.userId, 
-      data.changePasswordDto
+      data.refreshToken,
+      data.userId,
+      data.changePasswordDto,
     );
     return result;
   }

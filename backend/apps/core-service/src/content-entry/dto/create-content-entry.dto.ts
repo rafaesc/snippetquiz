@@ -1,9 +1,15 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsNumberString } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsNumberString,
+} from 'class-validator';
 
 export enum ContentType {
   SELECTED_TEXT = 'selected_text',
   FULL_HTML = 'full_html',
-  VIDEO_TRANSCRIPT = 'video_transcript'
+  VIDEO_TRANSCRIPT = 'video_transcript',
 }
 
 export class CreateContentEntryDto {

@@ -8,7 +8,7 @@ import { envs } from '../config/envs';
 export class TokenService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
   ) {}
 
   generateTokens(user: any): TokensDto {
@@ -16,16 +16,20 @@ export class TokenService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: envs.jwtAuthSecret,
-      expiresIn: envs.jwtAuthExpiresIn
+      expiresIn: envs.jwtAuthExpiresIn,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: envs.jwtAuthRefreshSecret,
-      expiresIn: envs.jwtRefreshExpiresIn
+      expiresIn: envs.jwtRefreshExpiresIn,
     });
 
     // Store refresh token
-    this.redisService.storeRefreshToken(refreshToken, user.id, envs.jwtRefreshExpiresIn);
+    this.redisService.storeRefreshToken(
+      refreshToken,
+      user.id,
+      envs.jwtRefreshExpiresIn,
+    );
 
     return { accessToken, refreshToken };
   }

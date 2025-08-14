@@ -25,8 +25,8 @@ import { QuizController } from './quiz.controller';
     ContentBankController,
     ContentEntryController,
     InstructionsController,
-    QuizController
+    QuizController,
   ],
   providers: [CoreServiceService],
 })
-export class CoreServiceModule { }
+export class CoreServiceModule {}

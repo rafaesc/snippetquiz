@@ -1,10 +1,17 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma/postgres';
 import { CreateContentBankDto } from './dto/create-content-bank.dto';
 import { UpdateContentBankDto } from './dto/update-content-bank.dto';
 import { DuplicateContentBankDto } from './dto/duplicate-content-bank.dto';
 import { FindAllContentBanksDto } from './dto/find-all-content-banks.dto';
-import { ContentBankResponseDto, PaginatedContentBanksResponseDto } from './dto/content-bank-response.dto';
+import {
+  ContentBankResponseDto,
+  PaginatedContentBanksResponseDto,
+} from './dto/content-bank-response.dto';
 
 @Injectable()
 export class ContentBankService extends PrismaClient {
@@ -12,7 +19,9 @@ export class ContentBankService extends PrismaClient {
     super();
   }
 
-  async create(createContentBankDto: CreateContentBankDto): Promise<ContentBankResponseDto> {
+  async create(
+    createContentBankDto: CreateContentBankDto,
+  ): Promise<ContentBankResponseDto> {
     const { name, userId } = createContentBankDto;
 
     // Check if user already has a content bank with this name
@@ -24,7 +33,9 @@ export class ContentBankService extends PrismaClient {
     });
 
     if (existingBank) {
-      throw new ConflictException('A content bank with this name already exists');
+      throw new ConflictException(
+        'A content bank with this name already exists',
+      );
     }
 
     const contentBank = await this.contentBank.create({
@@ -43,7 +54,9 @@ export class ContentBankService extends PrismaClient {
     };
   }
 
-  async findAll(findAllDto: FindAllContentBanksDto): Promise<PaginatedContentBanksResponseDto> {
+  async findAll(
+    findAllDto: FindAllContentBanksDto,
+  ): Promise<PaginatedContentBanksResponseDto> {
     const { page = 1, limit = 10, name, userId } = findAllDto;
     const skip = (page - 1) * limit;
 
@@ -77,7 +90,7 @@ export class ContentBankService extends PrismaClient {
     ]);
 
     return {
-      contentBanks: contentBanks.map(bank => ({
+      contentBanks: contentBanks.map((bank) => ({
         id: bank.id.toString(),
         name: bank.name,
         userId: bank.userId,
@@ -109,7 +122,9 @@ export class ContentBankService extends PrismaClient {
     });
 
     if (!contentBank) {
-      throw new NotFoundException('Content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
     }
 
     return {
@@ -122,7 +137,10 @@ export class ContentBankService extends PrismaClient {
     };
   }
 
-  async update(id: string, updateContentBankDto: UpdateContentBankDto): Promise<ContentBankResponseDto> {
+  async update(
+    id: string,
+    updateContentBankDto: UpdateContentBankDto,
+  ): Promise<ContentBankResponseDto> {
     const { name, userId } = updateContentBankDto;
 
     // Check if the content bank exists and belongs to the user
@@ -134,7 +152,9 @@ export class ContentBankService extends PrismaClient {
     });
 
     if (!existingBank) {
-      throw new NotFoundException('Content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
     }
 
     // Check if user already has another content bank with this name
@@ -150,7 +170,9 @@ export class ContentBankService extends PrismaClient {
       });
 
       if (duplicateBank) {
-        throw new ConflictException('A content bank with this name already exists');
+        throw new ConflictException(
+          'A content bank with this name already exists',
+        );
       }
     }
 
@@ -182,7 +204,9 @@ export class ContentBankService extends PrismaClient {
     });
 
     if (!contentBank) {
-      throw new NotFoundException('Content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
     }
 
     await this.contentBank.delete({
@@ -194,7 +218,11 @@ export class ContentBankService extends PrismaClient {
     return { message: 'Content bank deleted successfully' };
   }
 
-  async duplicate(id: string, userId: string, duplicateDto: DuplicateContentBankDto): Promise<ContentBankResponseDto> {
+  async duplicate(
+    id: string,
+    userId: string,
+    duplicateDto: DuplicateContentBankDto,
+  ): Promise<ContentBankResponseDto> {
     // Check if the original content bank exists and belongs to the user
     const originalBank = await this.contentBank.findFirst({
       where: {
@@ -204,7 +232,9 @@ export class ContentBankService extends PrismaClient {
     });
 
     if (!originalBank) {
-      throw new NotFoundException('Content bank not found or does not belong to user');
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
     }
 
     // Generate new name if not provided
@@ -219,7 +249,9 @@ export class ContentBankService extends PrismaClient {
     });
 
     if (existingBank) {
-      throw new ConflictException('A content bank with this name already exists');
+      throw new ConflictException(
+        'A content bank with this name already exists',
+      );
     }
 
     // Use Prisma transaction to ensure data consistency
@@ -254,7 +286,7 @@ export class ContentBankService extends PrismaClient {
       for (const association of contentEntryAssociations) {
         if (association.contentEntry) {
           const originalEntry = association.contentEntry;
-          
+
           // Create new content entry
           const newEntry = await prisma.contentEntry.create({
             data: {

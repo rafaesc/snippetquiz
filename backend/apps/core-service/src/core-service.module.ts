@@ -5,8 +5,13 @@ import { InstructionsModule } from './instructions/instructions.module';
 import { QuizModule } from './quiz/quiz.module';
 
 @Module({
-  imports: [ContentBankModule, ContentEntryModule, InstructionsModule, QuizModule],
+  imports: [
+    ContentBankModule,
+    ContentEntryModule,
+    InstructionsModule,
+    QuizModule,
+  ],
   controllers: [],
   providers: [],
 })
-export class CoreServiceModule { }
+export class CoreServiceModule {}

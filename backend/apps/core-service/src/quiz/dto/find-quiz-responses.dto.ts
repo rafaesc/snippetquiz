@@ -1,4 +1,10 @@
-import { IsOptional, IsNumber, Min, IsString, IsNotEmpty } from 'class-validator';
+import {
+  IsOptional,
+  IsNumber,
+  Min,
+  IsString,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class FindQuizResponsesDto {
@@ -18,7 +24,6 @@ export class FindQuizResponsesDto {
   @IsNotEmpty()
   quizId: number;
 
-  
   @IsString()
   @IsNotEmpty()
   userId: string;
