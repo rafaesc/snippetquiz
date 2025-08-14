@@ -3,12 +3,13 @@ x-common-environment: &common-env
     REDIS_HOST: ${REDIS_HOST}
     REDIS_PORT: ${REDIS_PORT}
     REDIS_PASSWORD: ${REDIS_PASSWORD}
-    JWT_SECRET: ${JWT_SECRET}
+    JWT_AUTH_SECRET: ${JWT_AUTH_SECRET}
     JWT_AUTH_REFRESH_SECRET: ${JWT_AUTH_REFRESH_SECRET}
     JWT_AUTH_EXPIRES_IN: ${JWT_AUTH_EXPIRES_IN}
     JWT_AUTH_REFRESH_EXPIRES_IN: ${JWT_AUTH_REFRESH_EXPIRES_IN}
     JWT_AUTH_VERIFICATION_SECRET: ${JWT_AUTH_VERIFICATION_SECRET}
     JWT_AUTH_VERIFICATION_EXPIRES_IN: ${JWT_AUTH_VERIFICATION_EXPIRES_IN}
+    COOKIE_SECRET: ${COOKIE_SECRET}
     API_GATEWAY_PORT: ${API_GATEWAY_PORT}
     AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
     AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST}
@@ -18,33 +19,37 @@ x-common-environment: &common-env
     EMAIL_PASSWORD: ${EMAIL_PASSWORD}
     ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
 
-services:
-  db:
-    extends:
-      file: docker-compose.persistent.yml
-      service: db
-  
-  cache:
-    extends:
-      file: docker-compose.persistent.yml
-      service: cache
 
+services:
   api_gateway:
     build: 
       context: ./backend
-      dockerfile: apps/api-gateway/Dockerfile.dev
-    volumes:
-      - ./backend/apps:/usr/src/backend/apps
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_started
+      dockerfile: apps/api-gateway/Dockerfile
+    image: client-gateway-prod
     ports:
-      - "5000:5000"
+      - ${API_GATEWAY_PORT}:5000
     environment:
       <<: *common-env
-    command: npm run start:docker api_gateway
+
+  auth_service:
+    build: 
+      context: ./backend
+      dockerfile: apps/auth-service/Dockerfile
+      args:
+        - DATABASE_URL_POSTGRES=${DATABASE_URL_POSTGRES}
+    image: auth-service-prod
+    environment:
+      <<: *common-env
+
+  core_service:
+    build: 
+      context: ./backend
+      dockerfile: apps/core-service/Dockerfile
+      args:
+        - DATABASE_URL_POSTGRES=${DATABASE_URL_POSTGRES}
+    image: core-service-prod
+    environment:
+      <<: *common-env
 
 networks:
   default: 
