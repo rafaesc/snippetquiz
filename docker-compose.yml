@@ -1,3 +1,12 @@
+x-common-environment: &common-env
+    DB_HOST: db
+    DB_USER: user
+    DB_PASSWORD: pass
+    DB_NAME: devdb
+    REDIS_HOST: cache
+    REDIS_PORT: 6379
+    REDIS_PASSWORD: redispass
+
 services:
   db:
     extends:
@@ -9,10 +18,13 @@ services:
       file: docker-compose.persistent.yml
       service: cache
 
-  backend:
+  api_gateway:
     build: 
       context: ./backend
-      dockerfile: Dockerfile.dev
+      dockerfile: apps/api-gateway/Dockerfile.dev
+    volumes:
+      - ./backend/apps:/usr/src/backend/apps
+      - .env:/usr/src/backend/.env
     depends_on:
       db:
         condition: service_healthy
@@ -21,18 +33,8 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DB_HOST: db
-      DB_USER: user
-      DB_PASSWORD: pass
-      DB_NAME: devdb
-      REDIS_HOST: cache
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: redispass
-    volumes:
-      - ./backend/src:/usr/src/backend/src
-      - .env:/usr/src/backend/.env
-      - /usr/src/backend/node_modules
-    command: npm run dev
+      <<: *common-env
+    command: npm run start:dev api_gateway
 
 networks:
   default: 

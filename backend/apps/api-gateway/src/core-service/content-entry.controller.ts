@@ -13,6 +13,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { Throttle } from '@nestjs/throttler';
 import { firstValueFrom } from 'rxjs';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
@@ -145,6 +146,7 @@ export class ContentEntryController {
 
   // POST /content-entry - Create new content entry
   @Post()
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 content entries per minute
   async create(
     @Request() req: AuthenticatedRequest,
     @Body() createContentEntryDto: CreateContentEntryDto
@@ -202,6 +204,7 @@ export class ContentEntryController {
 
   // POST /content-entry/:id/clone-to/:targetBankId - Clone content entry
   @Post(':id/clone-to/:targetBankId')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 clone operations per minute
   async clone(
     @Request() req: AuthenticatedRequest,
     @Param('id') id: string,
