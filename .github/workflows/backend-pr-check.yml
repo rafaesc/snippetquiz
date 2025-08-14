@@ -22,7 +22,7 @@ jobs:
           POSTGRES_DB: test_db
         ports:
           - 5432:5432
-        options: >
+        options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
@@ -32,7 +32,7 @@ jobs:
         image: redis:6.2-alpine
         ports:
           - 6379:6379
-        options: >
+        options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
