@@ -25,7 +25,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          dockerfile: apps/api-gateway/Dockerfile
+          file: ./backend/apps/api-gateway/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-api-gateway:latest
 
@@ -33,7 +33,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          dockerfile: apps/auth-service/Dockerfile
+          file: ./backend/apps/auth-service/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
 
@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          dockerfile: apps/core-service/Dockerfile
+          file: ./backend/apps/core-service/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
 
