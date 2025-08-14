@@ -14,6 +14,7 @@ import {
   ParseIntPipe
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CORE_SERVICE } from '../config/services';
@@ -178,6 +179,7 @@ export class QuizController {
   }
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 quiz creations per minute
   async create(
     @Body() createQuizRequest: CreateQuizRequest,
     @Request() req: any,

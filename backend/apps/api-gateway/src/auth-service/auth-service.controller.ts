@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Body, UseGuards, Request, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { type FastifyRequest, type FastifyReply } from 'fastify';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AuthClientService } from './auth-client.service';
@@ -13,24 +14,26 @@ import {
 } from '../../../commons/types/auth-payloads';
 const COOKIE_PATH = "/api";
 
-
 @Controller('auth-service')
 export class AuthServiceController {
   constructor(private readonly authClientService: AuthClientService) { }
 
   @Get('me')
+  @SkipThrottle()
   async getMe(@Request() req: any): Promise<{ message: string }> {
     // Extract user ID from JWT token or request
-    const userId = req.user?.id || 'demo-user-id';
+    const userId = req.user?.id;
     return await firstValueFrom(this.authClientService.getMe(userId));
   }
 
   @Post('register')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute for registration
   async register(@Body() registerDto: RegisterDto): Promise<any> {
     return await firstValueFrom(this.authClientService.register(registerDto));
   }
 
   @Post('verify-email')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute for email verification
   @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Body() verifyEmailDto: VerifyEmailDto,
@@ -65,12 +68,14 @@ export class AuthServiceController {
   }
 
   @Post('resend-verification')
+  @Throttle({ default: { limit: 2, ttl: 300000 } }) // 2 attempts per 5 minutes for resending verification
   @HttpCode(HttpStatus.OK)
   async resendVerification(@Body() resendVerificationDto: ResendVerificationDto): Promise<{ message: string }> {
     return await firstValueFrom(this.authClientService.resendVerification(resendVerificationDto.email));
   }
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
@@ -104,6 +109,7 @@ export class AuthServiceController {
   }
 
   @Post('refresh')
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 refresh attempts per minute
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() refreshTokenDto: RefreshTokenDto,
@@ -140,6 +146,7 @@ export class AuthServiceController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
+  @SkipThrottle() // No need to throttle logout
   @HttpCode(HttpStatus.OK)
   async logout(
     @Body() refreshTokenDto: RefreshTokenDto,
@@ -158,6 +165,7 @@ export class AuthServiceController {
 
   @Get('verify')
   @UseGuards(JwtAuthGuard)
+  @SkipThrottle() // No need to throttle verification checks
   async verify(@Request() req: any): Promise<{ valid: boolean; user: any }> {
     // Extract user details from JWT token
     const userId = req.user?.id || 'demo-user-id';
@@ -169,6 +177,7 @@ export class AuthServiceController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
+  @SkipThrottle() // No need to throttle profile requests
   async getProfile(@Request() req: any): Promise<any> {
     const userId = req.user?.id || 'demo-user-id';
     return await firstValueFrom(this.authClientService.getProfile(userId));
@@ -176,6 +185,7 @@ export class AuthServiceController {
 
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 3, ttl: 300000 } }) // 3 password change attempts per 5 minutes
   @HttpCode(HttpStatus.OK)
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
