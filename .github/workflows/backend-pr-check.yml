@@ -8,17 +8,65 @@ on:
       - master
 
 jobs:
-  build-backend:
-    name: Build Backend
+  test-and-build-backend:
+    name: Test and Build Backend
     runs-on: ubuntu-latest
+
+    # Set up test services
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:6.2-alpine
+        ports:
+          - 6379:6379
+        options: >
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     defaults:
       run:
         working-directory: backend
 
+    env:
+      # Test environment variables
+      NODE_ENV: test
+      DATABASE_URL_POSTGRES: postgresql://test_user:test_pass@localhost:5432/test_db
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      JWT_AUTH_SECRET: test_jwt_secret_key_for_testing_only
+      JWT_AUTH_REFRESH_SECRET: test_refresh_secret_key_for_testing_only
+      JWT_AUTH_EXPIRES_IN: 15m
+      JWT_AUTH_REFRESH_EXPIRES_IN: 7d
+      JWT_AUTH_VERIFICATION_SECRET: test_verification_secret_key_for_testing_only
+      JWT_AUTH_VERIFICATION_EXPIRES_IN: 24h
+      API_GATEWAY_PORT: 5000
+      AUTH_SERVICE_PORT: 6000
+      CORE_SERVICE_PORT: 7000
+      AUTH_SERVICE_HOST: localhost
+      CORE_SERVICE_HOST: localhost
+      ALLOWED_ORIGINS: http://localhost:3000
+      COOKIE_SECRET: test_cookie_secret_for_testing_only
+      FRONTEND_URL: http://localhost:3000
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,12 +78,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build api_gateway project
+      - name: Generate Prisma Client
+        run: npm run prisma:generate:postgres
+
+      - name: Run database migrations
+        run: npm run prisma:deploy:postgres
+
+      - name: Build api-gateway
         run: npm run build
 
-      - name: Build auth_service project
-        run: npm run build auth_service
+      - name: Build auth-service
+        run: npm run build auth-service
 
-      - name: Build core_service project
-        run: npm run build core_service
+      - name: Build core-service
+        run: npm run build core-service
+
+      - name: Build logs-service
+        run: npm run build logs-service
 
