@@ -5,6 +5,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 @Catch()
@@ -21,6 +22,9 @@ export class AllRpcExceptionsFilter implements RpcExceptionFilter<any> {
       message = exception.message;
     } else if (exception instanceof BadRequestException) {
       status = 400;
+      message = exception.message;
+    } else if (exception instanceof UnauthorizedException) {
+      status = 401;
       message = exception.message;
     } else if (exception.message) {
       message = exception.message;

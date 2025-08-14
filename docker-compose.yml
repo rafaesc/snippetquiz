@@ -3,12 +3,13 @@ x-common-environment: &common-env
     REDIS_HOST: cache
     REDIS_PORT: 6379
     REDIS_PASSWORD: redispass
-    JWT_SECRET: ${JWT_SECRET}
+    JWT_AUTH_SECRET: ${JWT_AUTH_SECRET}
     JWT_AUTH_REFRESH_SECRET: ${JWT_AUTH_REFRESH_SECRET}
     JWT_AUTH_EXPIRES_IN: ${JWT_AUTH_EXPIRES_IN}
     JWT_AUTH_REFRESH_EXPIRES_IN: ${JWT_AUTH_REFRESH_EXPIRES_IN}
     JWT_AUTH_VERIFICATION_SECRET: ${JWT_AUTH_VERIFICATION_SECRET}
     JWT_AUTH_VERIFICATION_EXPIRES_IN: ${JWT_AUTH_VERIFICATION_EXPIRES_IN}
+    COOKIE_SECRET: ${COOKIE_SECRET}
     API_GATEWAY_PORT: ${API_GATEWAY_PORT}
     AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
     AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST}
@@ -44,7 +45,42 @@ services:
       - "5000:5000"
     environment:
       <<: *common-env
-    command: npm run start:docker api_gateway
+    command: npm run start:docker api-gateway
+
+  auth_service:
+    build: 
+      context: ./backend
+      dockerfile: apps/auth-service/Dockerfile.dev
+    volumes:
+      - ./backend/apps:/usr/src/backend/apps
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    ports:
+      - "6000:6000"
+    environment:
+      <<: *common-env
+    command: npm run start:docker auth-service
+
+  core_service:
+    build: 
+      context: ./backend
+      dockerfile: apps/core-service/Dockerfile.dev
+    volumes:
+      - ./backend/apps:/usr/src/backend/apps
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    ports:
+      - "7000:7000"
+    environment:
+      <<: *common-env
+    command: npm run start:docker core-service
+
 
 networks:
   default: 

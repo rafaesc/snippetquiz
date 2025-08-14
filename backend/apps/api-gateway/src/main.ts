@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import fastifyCookie from '@fastify/cookie';
 import { envs } from './config/envs';
+import { RpcExceptionFilter } from './filters/rpc-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('api-gateway-bootstrap');
@@ -47,6 +48,8 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new RpcExceptionFilter());
 
   // enable only if the env is development
   if (!envs.isProduction) {

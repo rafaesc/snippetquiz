@@ -32,16 +32,8 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 # Copy full application source code and config
 COPY . .
 
-# Build argument for PostgreSQL database connection URL used during Prisma operations
-ARG DATABASE_URL_POSTGRES
-
-ENV DATABASE_URL_POSTGRES=$DATABASE_URL_POSTGRES
-
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/db-postgres/schema.prisma
-
-# Run Prisma migrations
-RUN npx prisma migrate deploy --schema=prisma/db-postgres/schema.prisma
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build auth-service
@@ -67,11 +59,18 @@ RUN adduser -S backend -u 1001
 # Copy compiled application from build stage
 COPY --from=builder /usr/src/app/dist ./dist
 
+# Copy Prisma schema for runtime operations
+COPY --from=builder /usr/src/app/prisma ./prisma
+
 # Copy package manifest files for installing production dependencies
 COPY package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
+
+# Copy entrypoint script
+COPY apps/auth-service/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 # Change ownership to the non-root user
 RUN chown -R backend:nodejs /usr/src/app
@@ -83,7 +82,6 @@ ENV PORT=6000
 EXPOSE 6000
 
 # Use dumb-init as PID 1 to properly handle system signals
-ENTRYPOINT ["dumb-init", "--"]
-
+ENTRYPOINT ["dumb-init", "--", "./entrypoint.sh"]
 
 CMD [ "node", "dist/apps/auth-service/main.js" ]

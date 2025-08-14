@@ -4,7 +4,9 @@ import * as joi from 'joi';
 interface EnvVars {
   API_GATEWAY_PORT: number;
   CORE_SERVICE_PORT: number;
+  CORE_SERVICE_HOST: string;
   AUTH_SERVICE_PORT: number;
+  AUTH_SERVICE_HOST: string;
   COOKIE_SECRET: string;
   NODE_ENV: string;
   JWT_AUTH_SECRET: string;
@@ -16,7 +18,9 @@ const envSchema = joi
   .object({
     API_GATEWAY_PORT: joi.number().required(),
     CORE_SERVICE_PORT: joi.number().required(),
+    CORE_SERVICE_HOST: joi.string().default('localhost'),
     AUTH_SERVICE_PORT: joi.number().required(),
+    AUTH_SERVICE_HOST: joi.string().default('localhost'),
     COOKIE_SECRET: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
     JWT_AUTH_SECRET: joi.string().required(),
@@ -38,7 +42,9 @@ export const envsVars: EnvVars = value;
 export const envs = {
   apiGatewayPort: envsVars.API_GATEWAY_PORT,
   coreServicePort: envsVars.CORE_SERVICE_PORT,
+  coreServiceHost: envsVars.CORE_SERVICE_HOST,
   authServicePort: envsVars.AUTH_SERVICE_PORT,
+  authServiceHost: envsVars.AUTH_SERVICE_HOST,
   cookieSecret: envsVars.COOKIE_SECRET,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',

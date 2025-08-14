@@ -29,7 +29,6 @@ export class RedisService {
   async removeRefreshToken(token: string) {
     const key = `refresh_token:${token}`;
     await this.cacheManager.del(key);
-    this.logger.log(`Removed refresh token: ${token}`);
   }
 
   // One-time code methods

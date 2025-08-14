@@ -15,7 +15,7 @@ import { QuizController } from './quiz.controller';
         name: CORE_SERVICE,
         transport: Transport.TCP,
         options: {
-          host: 'localhost',
+          host: envs.coreServiceHost,
           port: envs.coreServicePort,
         },
       },

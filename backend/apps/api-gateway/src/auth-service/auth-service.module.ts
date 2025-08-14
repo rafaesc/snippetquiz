@@ -12,7 +12,7 @@ import { AUTH_SERVICE } from '../config/services';
         name: AUTH_SERVICE,
         transport: Transport.TCP,
         options: {
-          host: 'localhost',
+          host: envs.authServiceHost,
           port: envs.authServicePort,
         },
       },
