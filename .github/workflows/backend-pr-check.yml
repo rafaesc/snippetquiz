@@ -30,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build TypeScript project
+      - name: Build api_gateway project
         run: npm run build
+
+      - name: Build auth_service project
+        run: npm run build auth_service
+
+      - name: Build core_service project
+        run: npm run build core_service
 

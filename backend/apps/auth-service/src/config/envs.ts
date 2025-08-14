@@ -10,8 +10,8 @@ interface EnvVars {
     JWT_REFRESH_EXPIRES_IN: string;
     JWT_AUTH_VERIFICATION_SECRET: string;
     JWT_AUTH_VERIFICATION_EXPIRES_IN: string;
-    EMAIL_USERNAME: string;
-    EMAIL_PASSWORD: string;
+    EMAIL_USERNAME?: string | null;
+    EMAIL_PASSWORD?: string | null;
     FRONTEND_URL: string;
     COOKIE_SECRET: string;
     NODE_ENV: string;
@@ -26,8 +26,8 @@ const envSchema = joi.object({
     JWT_REFRESH_EXPIRES_IN: joi.string().default('7d'),
     JWT_AUTH_VERIFICATION_SECRET: joi.string().required(),
     JWT_AUTH_VERIFICATION_EXPIRES_IN: joi.string().default('24h'),
-    EMAIL_USERNAME: joi.string().required(),
-    EMAIL_PASSWORD: joi.string().required(),
+    EMAIL_USERNAME: joi.string().optional(),
+    EMAIL_PASSWORD: joi.string().optional(),
     FRONTEND_URL: joi.string().default('http://localhost:3000'),
     COOKIE_SECRET: joi.string().required(),
     NODE_ENV: joi.string().default('development'),

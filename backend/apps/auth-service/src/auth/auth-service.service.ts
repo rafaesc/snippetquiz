@@ -31,6 +31,11 @@ export class AuthServiceService implements OnModuleInit {
   }
 
   private setupEmailTransporter() {
+    if (!envs.emailUsername || !envs.emailPassword) {
+      this.logger.warn('Email credentials not provided. Email features will be disabled.');
+      return;
+    }
+
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465,
@@ -58,51 +63,66 @@ export class AuthServiceService implements OnModuleInit {
     if (existingUser) {
       throw new ConflictException('User already exists with this email');
     }
-
-    // Create user using UsersService
+  
+    // Determine if email verification is available
+    const emailVerificationEnabled = !!(envs.emailUsername && envs.emailPassword);
+    
+    // Create user using UsersService - auto-verify if email is disabled
     const newUser = await this.usersService.createUser({
       name,
       email,
       password,
-      verified: false
+      verified: !emailVerificationEnabled // Auto-verify if email is disabled
     });
-
-    // Create a default content bank for the new user (still using direct Prisma for non-user operations)
+  
+    // Create a default content bank for the new user
     await this.prisma.contentBank.create({
       data: {
         userId: newUser.id,
         name: 'Default'
       }
     });
-
-    // Generate verification token
-    const verificationToken = this.jwtService.sign(
-      { userId: newUser.id, email: newUser.email },
-      {
-        secret: envs.jwtAuthVerificationSecret,
-        expiresIn: envs.jwtAuthVerificationExpiresIn
-      }
-    );
-
-    // Send verification email
-    const verificationUrl = `${envs.frontendUrl}/auth/verify-email?token=${verificationToken}`;
-    const mailOptions = {
-      from: envs.emailUsername,
-      to: email,
-      subject: 'Verify Your Email - SnippetQuiz',
-      html: getVerificationEmailTemplate({
-        name,
-        verificationUrl,
-        expiresIn: envs.jwtAuthVerificationExpiresIn
-      })
-    };
-
-    await this.transporter.sendMail(mailOptions);
-
-    return {
-      message: 'User registered successfully. Please check your email to verify your account.',
-      user: newUser as UserResponseDto
-    };
+  
+    // If email verification is enabled, send verification email
+    if (emailVerificationEnabled) {
+      // Generate verification token
+      const verificationToken = this.jwtService.sign(
+        { userId: newUser.id, email: newUser.email },
+        {
+          secret: envs.jwtAuthVerificationSecret,
+          expiresIn: envs.jwtAuthVerificationExpiresIn
+        }
+      );
+  
+      // Send verification email
+      const verificationUrl = `${envs.frontendUrl}/auth/verify-email?token=${verificationToken}`;
+      const mailOptions = {
+        from: envs.emailUsername!,
+        to: email,
+        subject: 'Verify Your Email - SnippetQuiz',
+        html: getVerificationEmailTemplate({
+          name,
+          verificationUrl,
+          expiresIn: envs.jwtAuthVerificationExpiresIn
+        })
+      };
+  
+      this.transporter.sendMail(mailOptions);
+  
+      return {
+        message: 'User registered successfully. Please check your email to verify your account.',
+        user: newUser as UserResponseDto
+      };
+    } else {
+      // Email verification disabled - user is automatically verified
+      const tokens = this.tokenService.generateTokens(newUser);
+      
+      return {
+        message: 'User registered and automatically verified (email verification disabled).',
+        user: newUser as UserResponseDto,
+        tokens // Provide tokens for immediate login
+      };
+    }
   }
 
   async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<AuthResponseDto> {
@@ -163,7 +183,7 @@ export class AuthServiceService implements OnModuleInit {
     // Send verification email
     const verificationUrl = `${envs.frontendUrl}/auth/verify-email?token=${verificationToken}`;
     const mailOptions = {
-      from: envs.emailUsername,
+      from: envs.emailUsername!,
       to: email,
       subject: 'Verify Your Email - SnippetQuiz',
       html: getResendVerificationEmailTemplate({

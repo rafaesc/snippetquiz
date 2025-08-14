@@ -29,7 +29,8 @@ services:
     image: node:lts-alpine3.17
     working_dir: /usr/src/app
     volumes:
-      - ./backend:/usr/src/app
+      - ./backend/prisma:/usr/src/app/prisma
+      - ./backend/generated:/usr/src/app/generated
     command: npx prisma studio --port 5555 --browser none --schema prisma/db-postgres/schema.prisma 
     ports:
       - "5555:5555"
