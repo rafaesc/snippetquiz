@@ -23,6 +23,7 @@ import {
   IsOptional,
   IsEnum,
   IsNumberString,
+  IsNumber,
 } from 'class-validator';
 
 // DTOs for API Gateway
@@ -52,6 +53,27 @@ class CreateContentEntryDto {
   @IsNumberString()
   @IsNotEmpty()
   bankId: string;
+
+  // YouTube-related optional fields
+  @IsOptional()
+  @IsString()
+  youtubeVideoId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  youtubeVideoDuration?: number;
+
+  @IsOptional()
+  @IsString()
+  youtubeChannelId?: string;
+
+  @IsOptional()
+  @IsString()
+  youtubeChannelName?: string;
+
+  @IsOptional()
+  @IsString()
+  youtubeAvatarUrl?: string;
 }
 
 class CloneContentEntryDto {

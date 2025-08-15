@@ -67,6 +67,19 @@ enum ContentType {
   video_transcript
 }
 
+model YouTubeChannel {
+  id                BigInt   @id @default(autoincrement())
+  channelId  String   @unique @map("channel_id") @db.Text
+  channelName       String   @map("channel_name") @db.Text
+  avatarUrl         String?  @map("avatar_url") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  contentEntries ContentEntry[]
+
+  @@map("youtube_channels")
+}
+
 model ContentEntry {
   id                 BigInt      @id @default(autoincrement())
   contentType        ContentType @map("content_type")
@@ -76,12 +89,17 @@ model ContentEntry {
   createdAt          DateTime    @default(now()) @map("created_at")
   promptSummary      String?     @map("prompt_summary") @db.Text
   questionsGenerated Boolean     @default(false) @map("questions_generated")
+  wordCount          Int?        @map("word_count")
+  videoDuration      Int?        @map("video_duration") // Duration in seconds
+  youtubeVideoId     String?     @map("youtube_video_id") @db.Text
+  youtubeChannelId   BigInt?     @map("youtube_channel_id")
 
   // Relations
   questions      Question[]
   quizQuestions  QuizQuestion[]
   contentBanks   ContentEntryBank[]
   topics         ContentEntryTopic[]
+  youtubeChannel YouTubeChannel?    @relation(fields: [youtubeChannelId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("content_entries")
 }

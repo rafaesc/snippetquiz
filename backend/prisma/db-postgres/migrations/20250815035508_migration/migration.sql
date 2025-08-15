@@ -36,6 +36,17 @@ CREATE TABLE "public"."topics" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."youtube_channels" (
+    "id" BIGSERIAL NOT NULL,
+    "channel_id" TEXT NOT NULL,
+    "channel_name" TEXT NOT NULL,
+    "avatar_url" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "youtube_channels_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."content_entries" (
     "id" BIGSERIAL NOT NULL,
     "content_type" "public"."ContentType" NOT NULL,
@@ -45,6 +56,10 @@ CREATE TABLE "public"."content_entries" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "prompt_summary" TEXT,
     "questions_generated" BOOLEAN NOT NULL DEFAULT false,
+    "word_count" INTEGER,
+    "video_duration" INTEGER,
+    "youtube_video_id" TEXT,
+    "youtube_channel_id" BIGINT,
 
     CONSTRAINT "content_entries_pkey" PRIMARY KEY ("id")
 );
@@ -167,6 +182,9 @@ CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
 CREATE INDEX "users_email_idx" ON "public"."users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "public"."youtube_channels"("channel_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "public"."content_entries_bank"("content_entry_id", "content_bank_id");
 
 -- CreateIndex
@@ -177,6 +195,9 @@ ALTER TABLE "public"."content_banks" ADD CONSTRAINT "content_banks_user_id_fkey"
 
 -- AddForeignKey
 ALTER TABLE "public"."topics" ADD CONSTRAINT "topics_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."content_entries" ADD CONSTRAINT "content_entries_youtube_channel_id_fkey" FOREIGN KEY ("youtube_channel_id") REFERENCES "public"."youtube_channels"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."quizzes" ADD CONSTRAINT "quizzes_bank_id_fkey" FOREIGN KEY ("bank_id") REFERENCES "public"."content_banks"("id") ON DELETE SET NULL ON UPDATE CASCADE;

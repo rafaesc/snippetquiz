@@ -177,6 +177,11 @@ function Dashboard() {
                 sourceUrl: string;
                 content: string;
                 type: "video_transcript" | "full_html" | "selected_text";
+                youtubeVideoId?: string;
+                youtubeVideoDuration?: number;
+                youtubeChannelId?: string | null;
+                youtubeChannelName?: string | null;
+                youtubeAvatarUrl?: string | null;
             };
 
             // Check if current tab is YouTube and has a valid video ID
@@ -190,7 +195,12 @@ function Dashboard() {
                             pageTitle: transcript.title || currentTab.title || 'YouTube Video',
                             sourceUrl: currentTab.url,
                             content: transcript.text,
-                            type: 'video_transcript'
+                            type: 'video_transcript',
+                            youtubeVideoId: videoId,
+                            youtubeVideoDuration: transcript.durationMs,
+                            youtubeChannelId: transcript.channel?.id,
+                            youtubeChannelName: transcript.channel?.name,
+                            youtubeAvatarUrl: transcript.channel?.avatarUrl,
                         }
 
                     } catch (error) {

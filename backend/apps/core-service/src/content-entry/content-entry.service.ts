@@ -27,8 +27,19 @@ export class ContentEntryService extends PrismaClient {
   async create(
     createContentEntryDto: CreateContentEntryDto,
   ): Promise<ContentEntryResponseDto> {
-    const { sourceUrl, content, type, pageTitle, bankId, userId } =
-      createContentEntryDto;
+    const {
+      sourceUrl,
+      content,
+      type,
+      pageTitle,
+      bankId,
+      userId,
+      youtubeVideoId,
+      youtubeVideoDuration,
+      youtubeChannelId,
+      youtubeChannelName,
+      youtubeAvatarUrl
+    } = createContentEntryDto;
 
     // Verify that the bank belongs to the user
     const contentBank = await this.contentBank.findFirst({
@@ -62,6 +73,33 @@ export class ContentEntryService extends PrismaClient {
       }
     }
 
+    // Handle YouTube channel for VIDEO_TRANSCRIPT type
+    let youtubeChannelDbId: bigint | null = null;
+    if (type === ContentType.VIDEO_TRANSCRIPT && youtubeChannelId) {
+      // Check if YouTube channel already exists
+      let existingChannel = await this.youTubeChannel.findFirst({
+        where: {
+          channelId: youtubeChannelId,
+        },
+      });
+
+      if (existingChannel) {
+        youtubeChannelDbId = existingChannel.id;
+      } else if (youtubeChannelName) {
+        // Create new YouTube channel
+        const newChannel = await this.youTubeChannel.create({
+          data: {
+            channelId: youtubeChannelId,
+            channelName: youtubeChannelName,
+            avatarUrl: youtubeAvatarUrl,
+          },
+        });
+        youtubeChannelDbId = newChannel.id;
+      }
+    }
+
+    let resultEntry;
+
     // Check for existing entry with same sourceUrl and type 'full_html'
     let existingEntry: any = null;
     if (type === ContentType.FULL_HTML && sourceUrl) {
@@ -76,29 +114,72 @@ export class ContentEntryService extends PrismaClient {
           },
         },
       });
-    }
 
-    let resultEntry;
-
-    if (existingEntry) {
-      // Update existing entry
-      resultEntry = await this.contentEntry.update({
-        where: { id: existingEntry.id },
-        data: {
+      if (existingEntry) {
+        // Calculate word count for the updated content
+        const updateData: any = {
           content: processedContent,
           pageTitle,
           createdAt: new Date(),
+        };
+
+        if (type === ContentType.FULL_HTML && processedContent) {
+          const wordCount = processedContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+          updateData.wordCount = wordCount;
+        }
+
+        // Update existing entry
+        resultEntry = await this.contentEntry.update({
+          where: { id: existingEntry.id },
+          data: updateData,
+        });
+      }
+    }
+
+    // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
+    if (type === ContentType.VIDEO_TRANSCRIPT && sourceUrl) {
+      existingEntry = await this.contentEntry.findFirst({
+        where: {
+          sourceUrl,
+          contentType: ContentType.VIDEO_TRANSCRIPT,
+          contentBanks: {
+            some: {
+              contentBankId: BigInt(bankId),
+            },
+          },
         },
       });
-    } else {
+
+      // If VIDEO_TRANSCRIPT entry already exists, return it without creating/updating
+      if (existingEntry) {
+        resultEntry = existingEntry;
+      }
+    }
+
+    if (!existingEntry) {
       // Create new entry
+      const createData: any = {
+        contentType: type,
+        sourceUrl,
+        content: processedContent,
+        pageTitle,
+      };
+
+      // Calculate word count for selected_text and full_html content types
+      if ((type === ContentType.SELECTED_TEXT || type === ContentType.FULL_HTML) && processedContent) {
+        const wordCount = processedContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+        createData.wordCount = wordCount;
+      }
+
+      // Add YouTube fields for VIDEO_TRANSCRIPT type
+      if (type === ContentType.VIDEO_TRANSCRIPT) {
+        if (youtubeVideoId) createData.youtubeVideoId = youtubeVideoId;
+        if (youtubeVideoDuration) createData.videoDuration = youtubeVideoDuration;
+        if (youtubeChannelDbId) createData.youtubeChannelId = youtubeChannelDbId;
+      }
+
       const newEntry = await this.contentEntry.create({
-        data: {
-          contentType: type,
-          sourceUrl,
-          content: processedContent,
-          pageTitle,
-        },
+        data: createData,
       });
 
       // Create relationship with content bank

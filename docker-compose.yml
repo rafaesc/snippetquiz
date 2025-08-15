@@ -17,7 +17,6 @@ x-common-environment: &common-env
     CORE_SERVICE_HOST: ${CORE_SERVICE_HOST}
     EMAIL_USERNAME: ${EMAIL_USERNAME}
     EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-    ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
 
 services:
   db:
@@ -36,6 +35,8 @@ services:
       dockerfile: apps/api-gateway/Dockerfile.dev
     volumes:
       - ./backend/apps:/usr/src/backend/apps
+      - ./backend/prisma:/usr/src/backend/prisma
+      - ./backend/generated:/usr/src/backend/generated
     depends_on:
       db:
         condition: service_healthy
@@ -45,7 +46,7 @@ services:
       - "5000:5000"
     environment:
       <<: *common-env
-    command: npm run start:docker api-gateway
+    command: npm run start:dev api-gateway
 
   auth_service:
     build: 
@@ -53,6 +54,8 @@ services:
       dockerfile: apps/auth-service/Dockerfile.dev
     volumes:
       - ./backend/apps:/usr/src/backend/apps
+      - ./backend/prisma:/usr/src/backend/prisma
+      - ./backend/generated:/usr/src/backend/generated
     depends_on:
       db:
         condition: service_healthy
@@ -62,7 +65,8 @@ services:
       - "6000:6000"
     environment:
       <<: *common-env
-    command: npm run start:docker auth-service
+    command: sh -c "npx prisma migrate deploy --schema=prisma/db-postgres/schema.prisma || true && npm run start:dev auth-service"
+
 
   core_service:
     build: 
@@ -70,6 +74,8 @@ services:
       dockerfile: apps/core-service/Dockerfile.dev
     volumes:
       - ./backend/apps:/usr/src/backend/apps
+      - ./backend/prisma:/usr/src/backend/prisma
+      - ./backend/generated:/usr/src/backend/generated
     depends_on:
       db:
         condition: service_healthy
@@ -79,8 +85,19 @@ services:
       - "7000:7000"
     environment:
       <<: *common-env
-    command: npm run start:docker core-service
+    command: npm run start:dev core-service
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/usr/src/frontend
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *common-env
+    command: npm run dev
 
 networks:
   default: 

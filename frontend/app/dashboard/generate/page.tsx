@@ -221,7 +221,14 @@ export default function GenerateQuiz() {
                                                 {getMediaTypeIcon(entry.contentType)}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="font-medium truncate">{entry.pageTitle || 'Untitled'}</h4>
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="font-medium truncate">{entry.pageTitle || 'Untitled'}</h4>
+                                                    {entry.questionsGenerated && (
+                                                        <Badge variant="default" className="text-xs bg-green-100 text-green-800 hover:bg-green-200">
+                                                            Questions Generated
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center space-x-2 mt-1">
                                                     {entry.sourceUrl && (
                                                         <a

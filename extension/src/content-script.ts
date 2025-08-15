@@ -20,6 +20,7 @@ interface LanguageOption {
 interface TranscriptResult {
     transcripts: TranscriptSegment[];
     transcriptParams: { lang: string; endpoint: string }[];
+    durationMs?: number;
 }
 
 interface ProcessedTranscript {
@@ -47,6 +48,8 @@ interface FinalResult {
     textData: TextData[];
     transcriptData: TranscriptData[];
     langOptions: LanguageOption[];
+    channel: Channel;
+    durationMs?: number;
 }
 
 type ShouldRetryFunction = (errorMsg: string, attempt: number) => boolean;
@@ -235,6 +238,7 @@ async function getTranscriptFromInternalAPI(params = ""): Promise<TranscriptResu
                 const segmentList = transcriptPanel?.body;
                 const initialSegments = segmentList?.transcriptSegmentListRenderer;
                 const segments = initialSegments?.initialSegments ?? [];
+                let durationMs;
 
                 const transcriptSegments = segments.map((segment: any) => {
                     const segmentRenderer = segment?.transcriptSegmentRenderer ?? {};
@@ -242,6 +246,8 @@ async function getTranscriptFromInternalAPI(params = ""): Promise<TranscriptResu
                     const runs = textSnippet?.runs;
                     const firstRun = runs?.[0];
                     const segmentText = firstRun?.text ?? "";
+                    durationMs = parseInt(endTime) || null;
+
                     return !startTime || !endTime || !segmentText ? null : {
                         start: Math.round(Number(startTime) / 1000),
                         duration: Math.round((parseInt(endTime) - parseInt(startTime)) / 1000),
@@ -276,7 +282,8 @@ async function getTranscriptFromInternalAPI(params = ""): Promise<TranscriptResu
 
                 return {
                     transcripts: transcriptSegments,
-                    transcriptParams: languageOptions
+                    transcriptParams: languageOptions,
+                    durationMs
                 };
             } catch (error) {
                 throw new Error("Error extracting transcript data: " + error);
@@ -422,20 +429,20 @@ async function fetchTranscriptWithFallbacks({
     vssId = "",
     tryFallback: useFallback = false,
     transcriptParams = ""
-}): Promise<TranscriptSegment[]> {
+}): Promise<{ transcripts: TranscriptSegment[]; durationMs?: number }> {
     if (!captionUrl || !videoId || !language)
-        return [];
+        return { transcripts: [] };
     const isPrivate = isPrivateVideo();
-    const fetchStrategies: (() => Promise<TranscriptSegment[] | null>)[] = [async () => {
+    const fetchStrategies: (() => Promise<{ transcripts: TranscriptSegment[]; durationMs?: number } | null>)[] = [async () => {
         const apiResult = await getTranscriptFromInternalAPI(transcriptParams);
         const transcripts = apiResult?.transcripts;
-        return transcripts?.length ? apiResult.transcripts : null;
+        return transcripts?.length ? { transcripts: apiResult.transcripts, durationMs: apiResult.durationMs } : null;
     }];
 
     if (useFallback) {
         fetchStrategies.push(async () => {
             const domResult = await extractTranscriptFromDom(videoId, language);
-            return domResult?.length ? domResult : null;
+            return domResult?.length ? { transcripts: domResult } : null;
         });
     }
 
@@ -445,19 +452,21 @@ async function fetchTranscriptWithFallbacks({
                 videoId: videoId,
                 vssId: vssId
             });
-            return extensionResult?.length ? extensionResult : null;
+            return extensionResult?.length ? { transcripts: extensionResult } : null;
+
         });
     }
 
     for (const strategy of fetchStrategies) {
         try {
             const result = await strategy();
-            if (result && result.length > 0) {
+            if (result && result.transcripts.length > 0) {
                 return result;
             }
         } catch { }
     }
-    return [];
+    return { transcripts: [] };
+
 }
 
 // Process raw transcripts into chunks
@@ -587,6 +596,45 @@ const extractTranscriptEndpoint = (pageContent: string): string => {
     }
 };
 
+type Channel = {
+    name?: string | null,
+    id?: string | null,
+    avatarUrl?: string | null
+}
+
+const extractChannel = (pageContent: string): Channel => {
+    let channel: Channel = {}
+    if (!pageContent?.trim())
+        return channel;
+    try {
+        const parts = pageContent.split('"videoOwnerRenderer":');
+        if (parts.length < 2)
+            return channel;
+        let paramsPart = parts[1].split(',"width":88,"height":88},{"url":"')[1];
+        if (!paramsPart) return channel;
+        const avatarUrl = paramsPart.split('"')[0];
+        if (avatarUrl) {
+            channel.avatarUrl = avatarUrl;
+        }
+        paramsPart = paramsPart.split('"title":{"runs":[{"text":"')[1]
+        if (!paramsPart) return channel;
+        const name = paramsPart.split('"')[0];
+        if (name) {
+            channel.name = name;
+        }
+        paramsPart = paramsPart.split('"webCommandMetadata":{"url":"/@')[1]
+        if (!paramsPart) return channel;
+        const id = paramsPart.split('"')[0];
+        if (id) {
+            channel.id = id;
+        }
+
+        return channel;
+    } catch {
+        return channel;
+    }
+};
+
 export async function getYouTubeTranscript({
     videoId,
     withTimestamp: includeTimestamp = true,
@@ -602,7 +650,8 @@ export async function getYouTubeTranscript({
         text: "",
         textData: [],
         transcriptData: [],
-        langOptions: []
+        langOptions: [],
+        channel: {}
     };
 
     if (!videoId)
@@ -616,10 +665,12 @@ export async function getYouTubeTranscript({
                 text: "",
                 textData: [],
                 transcriptData: [],
+                channel: {},
                 langOptions: []
             };
 
             const pageContent = await fetchYouTubePageContent(videoId);
+            const channel = extractChannel(pageContent);
             const transcriptParams = extractTranscriptEndpoint(pageContent);
             const availableLanguages = parseAvailableLanguages(pageContent);
 
@@ -629,6 +680,7 @@ export async function getYouTubeTranscript({
             result.title = availableLanguages[0].title;
             result.lang = availableLanguages[0].language;
             result.langOptions = availableLanguages;
+            result.channel = channel;
 
             const firstLanguageVssId = availableLanguages[0];
             const rawTranscripts = await fetchTranscriptWithFallbacks({
@@ -640,13 +692,15 @@ export async function getYouTubeTranscript({
                 transcriptParams
             });
 
-            if (!rawTranscripts || rawTranscripts.length === 0)
+            if (!rawTranscripts || !rawTranscripts.transcripts || rawTranscripts.transcripts.length === 0)
                 throw new Error("No raw transcripts retrieved");
 
             const processedTranscripts = processRawTranscripts({
-                rawTranscripts: rawTranscripts
+                rawTranscripts: rawTranscripts.transcripts
+
             });
 
+            result.durationMs = rawTranscripts.durationMs;
             result.transcriptData = processedTranscripts.map(chunk => {
                 const startSeconds = Math.round(Number(chunk.start));
                 const timeText = formatSecondsToTimestamp(startSeconds);
@@ -695,15 +749,3 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         return true;
     }
 });
-
-// Optional: Add a function to check if we're on a YouTube page
-function isYouTubePage(): boolean {
-    return window.location.hostname === 'www.youtube.com' || 
-           window.location.hostname === 'youtube.com' || 
-           window.location.hostname === 'm.youtube.com';
-}
-
-// Only initialize on YouTube pages
-if (isYouTubePage()) {
-    console.log('SnippetQuiz content script loaded on YouTube page');
-}

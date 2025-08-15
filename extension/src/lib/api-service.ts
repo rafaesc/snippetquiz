@@ -194,6 +194,12 @@ export interface CreateContentEntryRequest {
   type: 'full_html' | 'selected_text' | 'video_transcript';
   pageTitle?: string;
   bankId: string;
+
+  youtubeVideoId?: string;
+  youtubeVideoDuration?: number;
+  youtubeChannelId?: string;
+  youtubeChannelName?: string;
+  youtubeAvatarUrl?: string;
 }
 
 export const apiService = {

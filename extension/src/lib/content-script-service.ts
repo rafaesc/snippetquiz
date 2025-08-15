@@ -10,10 +10,23 @@ interface YouTubeTranscriptResponse {
     error?: string;
 }
 
+type Channel = {
+    name?: string | null,
+    id?: string | null,
+    avatarUrl?: string | null
+}
+
+type FinalResult = {
+    title: string;
+    text: string;
+    channel: Channel;
+    durationMs?: number;
+}
+
 export async function getYouTubeTranscriptFromTab(
     tabId: number,
     request: YouTubeTranscriptRequest
-): Promise<any> {
+): Promise<FinalResult> {
     return new Promise((resolve, reject) => {
         chrome.tabs.sendMessage(
             tabId,

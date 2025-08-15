@@ -144,6 +144,7 @@ export interface ContentEntry {
   pageTitle?: string;
   createdAt: string;
   topics?: string[];
+  questionsGenerated?: boolean;
 }
 
 export interface ContentEntriesResponse {
