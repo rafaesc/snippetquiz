@@ -31,12 +31,12 @@ services:
 
   api_gateway:
     build: 
-      context: ./backend
+      context: ./backend/nestjs
       dockerfile: apps/api-gateway/Dockerfile.dev
     volumes:
-      - ./backend/apps:/usr/src/backend/apps
-      - ./backend/prisma:/usr/src/backend/prisma
-      - ./backend/generated:/usr/src/backend/generated
+      - ./backend/nestjs/apps:/usr/src/backend/apps
+      - ./backend/nestjs/prisma:/usr/src/backend/prisma
+      - ./backend/nestjs/generated:/usr/src/backend/generated
     depends_on:
       db:
         condition: service_healthy
@@ -50,12 +50,12 @@ services:
 
   auth_service:
     build: 
-      context: ./backend
+      context: ./backend/nestjs
       dockerfile: apps/auth-service/Dockerfile.dev
     volumes:
-      - ./backend/apps:/usr/src/backend/apps
-      - ./backend/prisma:/usr/src/backend/prisma
-      - ./backend/generated:/usr/src/backend/generated
+      - ./backend/nestjs/apps:/usr/src/backend/apps
+      - ./backend/nestjs/prisma:/usr/src/backend/prisma
+      - ./backend/nestjs/generated:/usr/src/backend/generated
     depends_on:
       db:
         condition: service_healthy
@@ -70,12 +70,12 @@ services:
 
   core_service:
     build: 
-      context: ./backend
+      context: ./backend/nestjs
       dockerfile: apps/core-service/Dockerfile.dev
     volumes:
-      - ./backend/apps:/usr/src/backend/apps
-      - ./backend/prisma:/usr/src/backend/prisma
-      - ./backend/generated:/usr/src/backend/generated
+      - ./backend/nestjs/apps:/usr/src/backend/apps
+      - ./backend/nestjs/prisma:/usr/src/backend/prisma
+      - ./backend/nestjs/generated:/usr/src/backend/generated
     depends_on:
       db:
         condition: service_healthy

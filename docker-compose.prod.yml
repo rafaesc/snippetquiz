@@ -23,7 +23,7 @@ x-common-environment: &common-env
 services:
   api_gateway:
     build: 
-      context: ./backend
+      context: ./backend/nestjs
       dockerfile: apps/api-gateway/Dockerfile
     image: client-gateway-prod
     ports:
@@ -33,7 +33,7 @@ services:
 
   auth_service:
     build: 
-      context: ./backend
+      context: ./backend/nestjs
       dockerfile: apps/auth-service/Dockerfile
       args:
         - DATABASE_URL_POSTGRES=${DATABASE_URL_POSTGRES}
@@ -43,7 +43,7 @@ services:
 
   core_service:
     build: 
-      context: ./backend
+      context: ./backend/nestjs
       dockerfile: apps/core-service/Dockerfile
       args:
         - DATABASE_URL_POSTGRES=${DATABASE_URL_POSTGRES}
