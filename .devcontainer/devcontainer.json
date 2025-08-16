@@ -1,9 +1,10 @@
 {
   "name": "Chrome Extension Dev",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm", 
+  "image": "mcr.microsoft.com/devcontainers/base:bullseye",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/python:1": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
     }
@@ -14,7 +15,19 @@
         "typescript.tsserver.experimental.enableProjectDiagnostics": true,
         "terminal.integrated.defaultProfile.linux": "bash",
         "workbench.colorTheme": "oh-lucy",
-        "workbench.iconTheme": "material-icon-theme"
+        "workbench.iconTheme": "material-icon-theme",
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
       },
       "extensions": [
         "dbaeumer.vscode-eslint",
@@ -22,11 +35,13 @@
         "ms-vscode.vscode-typescript-next",
         "eamodio.gitlens",
         "hermitter.oh-lucy-vscode",
-        "pkief.material-icon-theme"
+        "pkief.material-icon-theme",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "github.vscode-github-actions"
       ]
     }
   },
-  "updateContentCommand": "cd backend && npm install && cd ../frontend && npm install && cd ../extension && npm install",
-  "forwardPorts": [3000, 4173, 8080, 5000],
-  "remoteUser": "node"
+  "updateContentCommand": "bash .devcontainer/setup.sh",
+  "forwardPorts": [3000, 4173, 8080, 5000]
 }
