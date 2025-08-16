@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package books;
+
+// Book message definition
+message Book {
+    string id = 1;
+    string title = 2;
+    string author = 3;
+}
+
+// Request message for getting books
+message GetBooksRequest {
+    // Empty for now, can add filtering parameters later
+}
+
+// Response message containing list of books
+message GetBooksResponse {
+    repeated Book books = 1;
+}
+
+// Single book response for streaming
+message BookStreamResponse {
+    Book book = 1;
+}
+
+// BookService definition
+service BookService {
+    rpc GetBooks(GetBooksRequest) returns (GetBooksResponse);
+    rpc GetBooksStream(GetBooksRequest) returns (stream BookStreamResponse);
+}

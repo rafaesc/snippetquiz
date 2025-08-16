@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package quiz_generation;
+
+// Content entry input for quiz generation
+message ContentEntry {
+    int64 id = 1;
+    string page_title = 2;
+    string content = 3;
+}
+
+// Request message for generating quiz questions
+message GenerateQuizRequest {
+    repeated ContentEntry content_entries = 1;
+}
+
+// Question option definition
+message QuestionOption {
+    string option_text = 1;
+    string option_explanation = 2;
+    bool is_correct = 3;
+}
+
+// Question definition
+message Question {
+    string question = 1;
+    string type = 2;
+    repeated QuestionOption options = 3;
+}
+
+// Progress message for each content entry
+message QuizGenerationProgress {
+    oneof message_type {
+        GenerationStatus status = 1;
+        GenerationResult result = 2;
+    }
+}
+
+// Status message indicating which content entry is being processed
+message GenerationStatus {
+    int64 content_entry_id = 1;
+    string page_title = 2;
+    string status = 3; // e.g., "Generating questions for page title X"
+}
+
+// Result message containing generated questions for a content entry
+message GenerationResult {
+    int64 content_entry_id = 1;
+    string page_title = 2;
+    repeated Question questions = 3;
+}
+
+// Quiz Generation Service
+service QuizGenerationService {
+    rpc GenerateQuiz(GenerateQuizRequest) returns (stream QuizGenerationProgress);
+}

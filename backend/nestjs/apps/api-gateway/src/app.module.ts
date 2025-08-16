@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { envs } from './config/envs';
 import { AuthCodeModule } from './auth-code/auth-code.module';
 import { CoreServiceModule } from './core-service/core-service.module';
+import { WebsocketModule } from './ws/websockets.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CoreServiceModule } from './core-service/core-service.module';
     }),
     AuthCodeModule,
     CoreServiceModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [
