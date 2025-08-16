@@ -23,6 +23,12 @@ cd "$WORKSPACE_ROOT/backend/nestjs"
 npm install
 check_success "Backend npm install"
 
+# Install Python backend dependencies
+echo "📦 Installing Python backend dependencies..."
+cd "$WORKSPACE_ROOT/backend/python"
+pip install -r requirements.txt
+check_success "Python backend pip install"
+
 # Install frontend dependencies
 echo "📦 Installing frontend dependencies..."
 cd "$WORKSPACE_ROOT/frontend"
@@ -48,5 +54,6 @@ echo "🎉 Setup completed! All dependencies installed successfully."
 echo "📝 Available commands:"
 echo "  - Frontend: cd frontend && npm run dev"
 echo "  - Backend: cd backend/nestjs && npm run start:dev"
+echo "  - Python Backend: cd backend/python && python server.py"
 echo "  - Extension: cd extension && npm run dev"
 echo "  - Landing: cd landing && npm run dev"
