@@ -13,14 +13,7 @@ import {
 import { type ClientGrpc } from '@nestjs/microservices';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
-import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
-
-class UpdateInstructionDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(5000)
-  instruction: string;
-}
+import { UpdateInstructionDto } from './dto/instructions.dto';
 
 // gRPC service interface
 interface InstructionsService {

@@ -8,8 +8,45 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket as ServerSocket } from 'socket.io';
-import io from 'socket.io-client';
 import { envs } from '../config/envs';
+import { CORE_SERVICE } from '../config/services';
+import { Inject, Logger, OnModuleInit } from '@nestjs/common';
+import { type ClientGrpc } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
+
+// gRPC service interfaces
+interface GenerateQuizByBankRequest {
+  bankId: number;
+}
+
+interface QuizGenerationProgress {
+  message_type: {
+    status?: {
+      content_entry_id: number;
+      page_title: string;
+      status: string;
+    };
+    result?: {
+      content_entry_id: number;
+      page_title: string;
+      questions: Array<{
+        question: string;
+        type: string;
+        options: Array<{
+          option_text: string;
+          option_explanation: string;
+          is_correct: boolean;
+        }>;
+      }>;
+    };
+  };
+}
+
+interface CoreQuizGenerationService {
+  generateQuizByBank(
+    data: GenerateQuizByBankRequest,
+  ): Observable<QuizGenerationProgress>;
+}
 
 @WebSocketGateway({
   namespace: '/ws',
@@ -19,66 +56,54 @@ import { envs } from '../config/envs';
   },
   transports: ['websocket'],
 })
-export class WebsocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class WebsocketGateway implements OnModuleInit {
   @WebSocketServer()
   io: Server;
 
-  // Store connections to core-service for each client
-  private coreServiceConnections = new Map<string, SocketIOClient.Socket>();
+  private logger = new Logger(WebsocketGateway.name);
 
-  @SubscribeMessage('coreMessage')
-  handlePing(@MessageBody() data: any, @ConnectedSocket() client: ServerSocket) {
-    const coreServiceSocket = this.coreServiceConnections.get(client.id);
-    if (coreServiceSocket) {
-      console.log('Send message to core')
-      coreServiceSocket.emit('coreMessage', data);
-    }
+  private coreQuizGenerationService: CoreQuizGenerationService;
+
+  constructor(@Inject(CORE_SERVICE) private readonly coreClient: ClientGrpc) {}
+
+  onModuleInit() {
+    this.coreQuizGenerationService =
+      this.coreClient.getService<CoreQuizGenerationService>(
+        'CoreQuizGenerationService',
+      );
   }
 
-  handleConnection(client: ServerSocket, ...args: any[]) {
-    console.log('handleConnection', client.id);
-    
-    // Create connection to core-service when client connects
-    const coreServiceUrl = `http://localhost:7001`;
-    const coreServiceSocket: SocketIOClient.Socket = io(`${coreServiceUrl}`, {
-      transports: ['websocket'],
+  @SubscribeMessage('generateQuiz')
+  handleGenerateQuiz(
+    @MessageBody() rawData: string,
+    @ConnectedSocket() client: ServerSocket,
+  ) {
+    const data = JSON.parse(rawData);
+    this.logger.log('Generate quiz request received for bank ID: ${data.bankId}');
+
+    const request: GenerateQuizByBankRequest = {
+      bankId: data.bankId,
+    };
+
+    // Call gRPC service and stream results back to client
+    const quizStream =
+      this.coreQuizGenerationService.generateQuizByBank(request);
+
+    quizStream.subscribe({
+      next: (progress: QuizGenerationProgress) => {
+        client.emit('quizProgress', progress);
+      },
+      error: (error) => {
+        client.emit('quizError', {
+          message: 'Failed to generate quiz',
+          error: error.message,
+        });
+      },
+      complete: () => {
+        client.emit('quizComplete', {
+          message: 'Quiz generation completed successfully',
+        });
+      },
     });
-
-    // Store the connection
-    this.coreServiceConnections.set(client.id, coreServiceSocket);
-
-    // Handle core-service connection events
-    coreServiceSocket.on('connect', () => {
-      console.log(`Connected to core-service for client ${client.id}`);
-    });
-
-    coreServiceSocket.on('disconnect', () => {
-      console.log(`Disconnected from core-service for client ${client.id}`);
-    });
-
-    coreServiceSocket.on('error', (error) => {
-      console.error(`Core-service connection error for client ${client.id}:`, error);
-    });
-    
-
-    // Forward messages from core-service to client
-    coreServiceSocket.on('coreMessage', (data) => {
-      console.log('coreMessage', data);
-      client.emit('coreMessage', data);
-    });
-  }
-
-  handleDisconnect(client: ServerSocket) {
-    console.log('handleDisconnect', client.id);
-    
-    // Clean up core-service connection when client disconnects
-    const coreServiceSocket = this.coreServiceConnections.get(client.id);
-    if (coreServiceSocket) {
-      coreServiceSocket.disconnect();
-      this.coreServiceConnections.delete(client.id);
-      console.log(`Cleaned up core-service connection for client ${client.id}`);
-    }
   }
 }

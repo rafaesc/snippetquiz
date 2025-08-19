@@ -17,36 +17,12 @@ import {
 import { type ClientGrpc } from '@nestjs/microservices';
 import { CORE_SERVICE } from '../config/services';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
-
-// DTOs for request validation
-class CreateContentBankDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  name: string;
-}
-
-class UpdateContentBankDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  name: string;
-}
-
-class DuplicateContentBankDto {
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  name?: string;
-}
-
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-  };
-}
+import type { 
+  CreateContentBankDto, 
+  UpdateContentBankDto, 
+  DuplicateContentBankDto 
+} from './dto/content-bank.dto';
+import type { AuthenticatedRequest } from './dto/common.dto';
 
 // gRPC service interface
 interface ContentBankService {
@@ -76,11 +52,12 @@ interface ContentBankService {
 export class ContentBankController implements OnModuleInit {
   private contentBankService: ContentBankService;
 
-  constructor(@Inject(CORE_SERVICE) private readonly client: ClientGrpc) {}
+  constructor(
+    @Inject(CORE_SERVICE) private readonly client: ClientGrpc,
+  ) {}
 
   onModuleInit() {
-    this.contentBankService =
-      this.client.getService<ContentBankService>('ContentBankService');
+    this.contentBankService = this.client.getService<ContentBankService>('ContentBankService');
   }
 
   // GET /content-banks - Get all content banks with pagination
