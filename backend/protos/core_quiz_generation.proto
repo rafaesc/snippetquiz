@@ -5,6 +5,7 @@ package core_quiz_generation;
 // Request message for generating quiz questions by bank ID
 message GenerateQuizByBankRequest {
     int64 bank_id = 1;
+    string user_id = 2;
 }
 
 // Question option definition

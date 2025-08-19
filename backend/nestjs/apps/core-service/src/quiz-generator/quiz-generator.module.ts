@@ -5,6 +5,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { QUIZ_GENERATION_SERVICE } from '../config/services';
 
 import { join } from 'path';
+import { QuizModule } from '../quiz/quiz.module';
+import { QuizService } from '../quiz/quiz.service';
+import { QuizObservableService } from '../quiz/quiz.observable.service';
 
 @Module({
   imports: [
@@ -19,9 +22,9 @@ import { join } from 'path';
         },
       },
     ]),
+    QuizModule,
   ],
-
   controllers: [QuizGeneratorController],
-  providers: [QuizGeneratorService],
+  providers: [QuizGeneratorService, QuizService, QuizObservableService],
 })
 export class QuizGeneratorModule {}

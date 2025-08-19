@@ -7,6 +7,7 @@ import { QuizGenerationProgress } from './dto/quiz-generator.dto';
 
 interface GenerateQuizByBankRequest {
   bank_id: number;
+  user_id: string;
 }
 
 @Controller()
@@ -21,6 +22,6 @@ export class QuizGeneratorController {
   ): Observable<QuizGenerationProgress> {
     this.logger.log(`generateQuiz called with bank_id=${request.bank_id}`);
 
-    return this.quizGeneratorService.generateQuizStream(request.bank_id);
+    return this.quizGeneratorService.generateQuizStream(request.bank_id, request.user_id);
   }
 }
