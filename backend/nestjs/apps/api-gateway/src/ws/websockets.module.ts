@@ -12,9 +12,9 @@ import { envs } from '../config/envs';
         name: CORE_SERVICE,
         transport: Transport.GRPC,
         options: {
-          package: ['quiz_generation'],
+          package: ['core_quiz_generation'],
           protoPath: [
-            join(__dirname, '../../../../protos/quiz_generation.proto'),
+            join(__dirname, '../../../../protos/core_quiz_generation.proto'),
           ],
           url: `${envs.coreServiceHost}:${envs.coreServicePort}`,
         },

@@ -18,77 +18,13 @@ import { type ClientGrpc } from '@nestjs/microservices';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsEnum,
-  IsNumberString,
-  IsNumber,
-} from 'class-validator';
+import type { 
+  CreateContentEntryDto, 
+  CloneContentEntryDto, 
+  ContentType 
+} from './dto/content-entry.dto';
+import type { AuthenticatedRequest } from './dto/common.dto';
 
-// DTOs for API Gateway
-enum ContentType {
-  SELECTED_TEXT = 'selected_text',
-  FULL_HTML = 'full_html',
-  VIDEO_TRANSCRIPT = 'video_transcript',
-}
-
-class CreateContentEntryDto {
-  @IsOptional()
-  @IsString()
-  sourceUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  content?: string;
-
-  @IsEnum(ContentType)
-  @IsNotEmpty()
-  type: ContentType;
-
-  @IsOptional()
-  @IsString()
-  pageTitle?: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  bankId: number;
-
-  // YouTube-related optional fields
-  @IsOptional()
-  @IsString()
-  youtubeVideoId?: string;
-
-  @IsOptional()
-  @IsNumber()
-  youtubeVideoDuration?: number;
-
-  @IsOptional()
-  @IsString()
-  youtubeChannelId?: string;
-
-  @IsOptional()
-  @IsString()
-  youtubeChannelName?: string;
-
-  @IsOptional()
-  @IsString()
-  youtubeAvatarUrl?: string;
-}
-
-class CloneContentEntryDto {
-  @IsNumberString()
-  @IsNotEmpty()
-  targetBankId: string;
-}
-
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-  };
-}
 
 // gRPC service interface
 interface ContentEntryService {

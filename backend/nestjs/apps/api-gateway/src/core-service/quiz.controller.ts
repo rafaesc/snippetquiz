@@ -18,6 +18,11 @@ import { type ClientGrpc } from '@nestjs/microservices';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
+import { 
+  CreateQuizDto, 
+  FindAllQuizzesDto, 
+  FindQuizResponsesDto 
+} from './dto/quiz.dto';
 
 interface CreateQuizRequest {
   bankId: number;
