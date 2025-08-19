@@ -39,7 +39,7 @@ export default function GeneratedQuizzesPage() {
   } = useQuery({
     queryKey: ['quiz-responses', selectedQuiz?.id],
     queryFn: () => selectedQuiz ? apiService.getQuizResponses(selectedQuiz.id) : Promise.resolve(null),
-    enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.totalQuestions,
+    enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
@@ -50,7 +50,7 @@ export default function GeneratedQuizzesPage() {
   } = useQuery({
     queryKey: ['quiz-summary', selectedQuiz?.id],
     queryFn: () => selectedQuiz ? apiService.getQuizSummary(selectedQuiz.id) : Promise.resolve(null),
-    enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.totalQuestions,
+    enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
@@ -109,7 +109,7 @@ export default function GeneratedQuizzesPage() {
 
   // Quiz detail view
   if (selectedQuiz) {
-    const isCompleted = selectedQuiz.questionsCompleted === selectedQuiz.totalQuestions;
+    const isCompleted = selectedQuiz.questionsCompleted === selectedQuiz.questionsCount;
     const isLoading = isLoadingResponses || isLoadingSummary;
     
     return (
@@ -143,7 +143,7 @@ export default function GeneratedQuizzesPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Topics Covered</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {selectedQuiz.topics.map((topic) => (
+                  {selectedQuiz?.topics?.map((topic) => (
                     <Badge key={topic} variant="secondary" className="text-xs">
                       {topic}
                     </Badge>
@@ -153,7 +153,7 @@ export default function GeneratedQuizzesPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Progress</p>
                 <p className="text-lg font-semibold">
-                  {selectedQuiz.questionsCompleted} / {selectedQuiz.totalQuestions}
+                  {selectedQuiz.questionsCompleted} / {selectedQuiz.questionsCount}
                 </p>
               </div>
               <div>

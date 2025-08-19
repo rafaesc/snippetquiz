@@ -10,10 +10,20 @@ message FindAllQuizzesRequest {
 }
 
 message QuizItem {
-  int64 id = 1;
-  string created_at = 2;
-  int32 questions_count = 3;
-  repeated string topics = 4;
+  string id = 1;
+  string name = 2;
+  string created_at = 3;
+  int32 questions_count = 4;
+  int32 questions_completed = 5;
+  int32 content_entries_count = 6;
+  repeated string topics = 7;
+}
+
+message PaginationInfo {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total = 3;
+  int32 total_pages = 4;
 }
 
 message FindAllQuizzesResponse {

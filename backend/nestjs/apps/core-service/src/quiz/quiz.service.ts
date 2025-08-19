@@ -16,7 +16,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class QuizService extends PrismaClient {
   private readonly logger = new Logger(QuizService.name);
-  
+
   constructor() {
     super();
   }
@@ -37,6 +37,7 @@ export class QuizService extends PrismaClient {
       where: { userId },
       select: {
         id: true,
+        bankName: true,
         createdAt: true,
         questionsCount: true,
         questionsCompleted: true,
@@ -53,13 +54,29 @@ export class QuizService extends PrismaClient {
     });
 
     const formattedQuizzes: QuizResponseDto[] = quizzes.map((quiz) => ({
-      id: Number(quiz.id),
-      createdAt: quiz.createdAt,
-      questionsCount: quiz.questionsCount,
-      questionsCompleted: quiz.questionsCompleted,
-      contentEntriesCount: quiz.contentEntriesCount,
+      id: quiz.id.toString(),
+      name: quiz.bankName,
+      created_at: quiz.createdAt,
+      questions_count: quiz.questionsCount,
+      questions_completed: quiz.questionsCompleted,
+      content_entries_count: quiz.contentEntriesCount,
       topics: quiz.quizTopics.map((topic) => topic.topicName),
     }));
+    this.logger.debug(
+      JSON.stringify(
+        {
+          quizzes: formattedQuizzes,
+          pagination: {
+            page,
+            limit,
+            total,
+            total_pages: Math.ceil(total / limit),
+          },
+        },
+        null,
+        2,
+      ),
+    );
 
     return {
       quizzes: formattedQuizzes,
@@ -67,6 +84,7 @@ export class QuizService extends PrismaClient {
         page,
         limit,
         total,
+        total_pages: Math.ceil(total / limit),
       },
     };
   }
@@ -98,7 +116,7 @@ export class QuizService extends PrismaClient {
     }
 
     return {
-      id: Number(quiz.id),
+      id: quiz.id.toString(), // Convert BigInt to string instead of Number
       createdAt: quiz.createdAt,
       questionsCompleted: quiz.questionsCompleted,
       contentEntriesCount: quiz.contentEntriesCount,
