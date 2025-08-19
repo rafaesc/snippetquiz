@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { type ClientGrpc } from '@nestjs/microservices';
-import { Observable, from, map, switchMap, tap, throwError } from 'rxjs';
+import { Observable, finalize, from, map, switchMap, tap, throwError, concatMap, forkJoin, EMPTY } from 'rxjs';
 import { PrismaClient } from 'generated/prisma/postgres';
 import { QUIZ_GENERATION_SERVICE } from '../config/services';
 import {
@@ -11,13 +11,17 @@ import {
   QuizGenerationService,
   mapQuizGenerationProgress,
 } from './dto/quiz-generator.dto';
+import { QuizObservableService } from '../quiz/quiz.observable.service';
 
 @Injectable()
 export class QuizGeneratorService extends PrismaClient {
   private readonly logger = new Logger(QuizGeneratorService.name);
   private quizGenerationService: QuizGenerationService;
 
-  constructor(@Inject(QUIZ_GENERATION_SERVICE) private client: ClientGrpc) {
+  constructor(
+    @Inject(QUIZ_GENERATION_SERVICE) private client: ClientGrpc,
+    private quizObservableService: QuizObservableService
+  ) {
     super();
     this.logger.log('QuizGeneratorService initialized');
   }
@@ -92,7 +96,11 @@ export class QuizGeneratorService extends PrismaClient {
     }
   }
 
-  generateQuizStream(bankId: number): Observable<QuizGenerationProgress> {
+  generateQuizStream(bankId: number, userId: string): Observable<QuizGenerationProgress> {
+    let allContentEntriesProcessed = false;
+    let processedContentEntries = 0;
+    let totalContentEntries = 0;
+
     return from(this.getContentEntriesByBankId(bankId)).pipe(
       switchMap((contentEntries) => {
         if (contentEntries.length === 0) {
@@ -105,6 +113,8 @@ export class QuizGeneratorService extends PrismaClient {
           );
         }
 
+        totalContentEntries = contentEntries.length;
+
         const request: GenerateQuizRequest = {
           contentEntries: contentEntries,
         };
@@ -114,10 +124,86 @@ export class QuizGeneratorService extends PrismaClient {
         );
 
         return this.quizGenerationService.generateQuiz(request).pipe(
-          map((progress: QuizGenerationProgressCamelCase): QuizGenerationProgress => {
-            return mapQuizGenerationProgress(progress);
+          switchMap((progress: QuizGenerationProgressCamelCase): Observable<QuizGenerationProgress> => {
+            if (progress.result) {
+              const contentEntryId = progress.result.contentEntryId;
+              const questions = progress.result.questions;
+
+              this.logger.log(
+                `Processing ${questions.length} questions for content entry ${contentEntryId}`,
+              );
+
+              // Create all questions for this content entry sequentially
+              const questionCreationObservables = questions.map((question) =>
+                this.quizObservableService.createQuestion({
+                  userId,
+                  contentEntryId,
+                  question: question.question,
+                  options: question.options.map((option) => ({
+                    optionText: option.optionText,
+                    optionExplanation: option.optionExplanation,
+                    isCorrect: option.isCorrect,
+                  })),
+                }).pipe(
+                  tap((result) => {
+                    this.logger.log(
+                      `Created question ${result.questionId} for content entry ${contentEntryId}`,
+                    );
+                  })
+                )
+              );
+
+              // Execute all question creations in parallel, then update content entry
+              return forkJoin(questionCreationObservables).pipe(
+                switchMap(() => {
+                  this.logger.log(
+                    `All questions created for content entry ${contentEntryId}, updating content entry`,
+                  );
+                  
+                  return this.quizObservableService.updateContentEntry({
+                    userId,
+                    contentEntryId,
+                  });
+                }),
+                tap(() => {
+                  processedContentEntries++;
+                  this.logger.log(
+                    `Content entry ${contentEntryId} updated. Progress: ${processedContentEntries}/${totalContentEntries}`,
+                  );
+                  
+                  // Create quiz immediately when all content entries are processed
+                  if (processedContentEntries === totalContentEntries) {
+                    allContentEntriesProcessed = true;
+                    this.logger.log(
+                      `All content entries processed. Creating quiz for bankId: ${bankId}`,
+                    );
+                    
+                    this.quizObservableService.createQuiz({
+                      userId,
+                      bankId,
+                    }).subscribe({
+                      next: (result) => {
+                        this.logger.log(
+                          `Quiz created successfully: ${result.message}, Quiz ID: ${result.quizId}`,
+                        );
+                      },
+                      error: (error) => {
+                        this.logger.error(
+                          `Failed to create quiz for bankId ${bankId}:`,
+                          error,
+                        );
+                      },
+                    });
+                  }
+                }),
+                map(() => mapQuizGenerationProgress(progress))
+              );
+            }
+            
+            return from([mapQuizGenerationProgress(progress)]);
           })
         );
-      }));
+      })
+    );
   }
 }

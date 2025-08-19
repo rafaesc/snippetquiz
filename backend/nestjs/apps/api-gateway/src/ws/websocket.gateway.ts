@@ -2,8 +2,6 @@ import {
   WebSocketGateway,
   SubscribeMessage,
   WebSocketServer,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
@@ -12,41 +10,11 @@ import { envs } from '../config/envs';
 import { CORE_SERVICE } from '../config/services';
 import { Inject, Logger, OnModuleInit } from '@nestjs/common';
 import { type ClientGrpc } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
-
-// gRPC service interfaces
-interface GenerateQuizByBankRequest {
-  bankId: number;
-}
-
-interface QuizGenerationProgress {
-  message_type: {
-    status?: {
-      content_entry_id: number;
-      page_title: string;
-      status: string;
-    };
-    result?: {
-      content_entry_id: number;
-      page_title: string;
-      questions: Array<{
-        question: string;
-        type: string;
-        options: Array<{
-          option_text: string;
-          option_explanation: string;
-          is_correct: boolean;
-        }>;
-      }>;
-    };
-  };
-}
-
-interface CoreQuizGenerationService {
-  generateQuizByBank(
-    data: GenerateQuizByBankRequest,
-  ): Observable<QuizGenerationProgress>;
-}
+import {
+  GenerateQuizByBankRequest,
+  QuizGenerationProgress,
+  CoreQuizGenerationService,
+} from './websocket.dto';
 
 @WebSocketGateway({
   namespace: '/ws',
@@ -79,10 +47,13 @@ export class WebsocketGateway implements OnModuleInit {
     @ConnectedSocket() client: ServerSocket,
   ) {
     const data = JSON.parse(rawData);
-    this.logger.log('Generate quiz request received for bank ID: ${data.bankId}');
+    this.logger.log(
+      `Generate quiz request received for bank ID: ${data.bankId}, user ID: ${data.userId}`,
+    );
 
     const request: GenerateQuizByBankRequest = {
       bankId: data.bankId,
+      userId: data.userId,
     };
 
     // Call gRPC service and stream results back to client

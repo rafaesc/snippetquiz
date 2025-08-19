@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma/postgres';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
@@ -11,9 +11,12 @@ import {
   QuizResponseDto,
   QuizResponseItemDto,
 } from './dto/quiz-response.dto';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class QuizService extends PrismaClient {
+  private readonly logger = new Logger(QuizService.name);
+  
   constructor() {
     super();
   }
