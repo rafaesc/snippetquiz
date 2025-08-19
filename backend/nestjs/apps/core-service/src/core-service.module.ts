@@ -3,7 +3,7 @@ import { ContentBankModule } from './content-bank/content-bank.module';
 import { ContentEntryModule } from './content-entry/content-entry.module';
 import { InstructionsModule } from './instructions/instructions.module';
 import { QuizModule } from './quiz/quiz.module';
-import { WebsocketModule } from './ws/websockets.module';
+import { QuizGeneratorModule } from './quiz-generator/quiz-generator.module';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { WebsocketModule } from './ws/websockets.module';
     ContentEntryModule,
     InstructionsModule,
     QuizModule,
-    WebsocketModule,
+    QuizGeneratorModule,
   ],
   controllers: [],
   providers: [],

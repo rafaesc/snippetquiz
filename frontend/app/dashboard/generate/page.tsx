@@ -159,7 +159,7 @@ export default function GenerateQuiz() {
                                     <div className="flex items-center justify-between w-full">
                                         <span>{bank.name}</span>
                                         <Badge variant="secondary" className="ml-2">
-                                            {bank.entryCount || 0} items
+                                            {bank.contentEntries || 0} items
                                         </Badge>
                                     </div>
                                 </SelectItem>
@@ -173,7 +173,7 @@ export default function GenerateQuiz() {
                                 <div>
                                     <p className="font-medium">{selectedBank.name}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {selectedBank.entryCount || 0} content entries available
+                                        {selectedBank.contentEntries || 0} content entries available
                                     </p>
                                 </div>
                                 <Badge variant="outline">

@@ -8,9 +8,9 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  OnModuleInit,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { type ClientGrpc } from '@nestjs/microservices';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
 import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
@@ -22,11 +22,23 @@ class UpdateInstructionDto {
   instruction: string;
 }
 
+// gRPC service interface
+interface InstructionsService {
+  FindInstructionByUserId(data: any): Promise<any>;
+  CreateOrUpdateInstruction(data: any): Promise<any>;
+}
+
 @Controller('instructions')
-export class InstructionsController {
+export class InstructionsController implements OnModuleInit {
+  private instructionsService: InstructionsService;
+
   constructor(
-    @Inject(CORE_SERVICE) private readonly coreServiceClient: ClientProxy,
+    @Inject(CORE_SERVICE) private readonly client: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    this.instructionsService = this.client.getService<InstructionsService>('InstructionsService');
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -34,9 +46,9 @@ export class InstructionsController {
     try {
       const userId = req.user.id;
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('findInstructionByUserId', userId),
-      );
+      const result = await this.instructionsService.FindInstructionByUserId({
+        userId,
+      });
 
       return result;
     } catch (error) {
@@ -72,11 +84,8 @@ export class InstructionsController {
         instruction: instruction.trim(),
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send(
-          'createOrUpdateInstruction',
-          updateInstructionDto,
-        ),
+      const result = await this.instructionsService.CreateOrUpdateInstruction(
+        updateInstructionDto,
       );
 
       return result;

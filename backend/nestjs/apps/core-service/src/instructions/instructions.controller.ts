@@ -1,20 +1,23 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { InstructionsService } from './instructions.service';
-import { CreateInstructionDto } from './dto/create-instruction.dto';
 import { UpdateInstructionDto } from './dto/update-instruction.dto';
 
 @Controller()
 export class InstructionsController {
   constructor(private readonly instructionsService: InstructionsService) {}
 
-  @MessagePattern('findInstructionByUserId')
-  findByUserId(@Payload() userId: string) {
-    return this.instructionsService.findByUserId(userId);
+  @GrpcMethod('InstructionsService', 'FindInstructionByUserId')
+  findByUserId(data: { user_id: string }) {
+    return this.instructionsService.findByUserId(data.user_id);
   }
 
-  @MessagePattern('createOrUpdateInstruction')
-  createOrUpdate(@Payload() updateInstructionDto: UpdateInstructionDto) {
+  @GrpcMethod('InstructionsService', 'CreateOrUpdateInstruction')
+  createOrUpdate(data: { instruction: string; user_id: string }) {
+    const updateInstructionDto: UpdateInstructionDto = {
+      instruction: data.instruction,
+      userId: data.user_id,
+    };
     return this.instructionsService.createOrUpdate(updateInstructionDto);
   }
 }

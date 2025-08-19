@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package quiz;
+
+// Request/Response messages for Quiz operations
+message FindAllQuizzesRequest {
+  optional int32 page = 1;
+  optional int32 limit = 2;
+  string user_id = 3;
+}
+
+message QuizItem {
+  int64 id = 1;
+  string created_at = 2;
+  int32 questions_count = 3;
+  repeated string topics = 4;
+}
+
+message FindAllQuizzesResponse {
+  repeated QuizItem quizzes = 1;
+  PaginationInfo pagination = 2;
+}
+
+message FindOneQuizRequest {
+  int64 id = 1;
+  string user_id = 2;
+}
+
+message QuizQuestion {
+  int64 id = 1;
+  string question = 2;
+  string content_entry_type = 3;
+  optional string content_entry_source_url = 4;
+  repeated QuizQuestionOption options = 5;
+}
+
+message QuizQuestionOption {
+  int64 id = 1;
+  string option_text = 2;
+  string option_explanation = 3;
+  bool is_correct = 4;
+}
+
+message FindOneQuizResponse {
+  int64 id = 1;
+  string created_at = 2;
+  int32 questions_completed = 3;
+  int32 content_entries_count = 4;
+  int32 questions_count = 5;
+  repeated string topics = 6;
+  repeated QuizQuestion questions = 7;
+}
+
+message FindQuizResponsesRequest {
+  optional int32 page = 1;
+  optional int32 limit = 2;
+  int64 quiz_id = 3;
+  string user_id = 4;
+}
+
+message QuizResponseItem {
+  int64 id = 1;
+  string created_at = 2;
+  int32 questions_count = 3;
+  repeated string topics = 4;
+}
+
+message FindQuizResponsesResponse {
+  repeated QuizResponseItem quiz_responses = 1;
+  PaginationInfo pagination = 2;
+}
+
+message FindQuizSummaryRequest {
+  int64 id = 1;
+  string user_id = 2;
+}
+
+message FindQuizSummaryResponse {
+  int32 questions_count = 1;
+  repeated string topics = 2;
+}
+
+message CreateQuizRequest {
+  int64 bank_id = 1;
+  string user_id = 2;
+}
+
+message CreateQuizResponse {
+  string message = 1;
+  int64 quiz_id = 2;
+}
+
+message RemoveQuizRequest {
+  int64 id = 1;
+  string user_id = 2;
+}
+
+message RemoveQuizResponse {
+  string message = 1;
+}
+
+// Quiz service definition
+service QuizService {
+  rpc FindAllQuizzes(FindAllQuizzesRequest) returns (FindAllQuizzesResponse);
+  rpc FindOneQuiz(FindOneQuizRequest) returns (FindOneQuizResponse);
+  rpc FindQuizResponses(FindQuizResponsesRequest) returns (FindQuizResponsesResponse);
+  rpc FindQuizSummary(FindQuizSummaryRequest) returns (FindQuizSummaryResponse);
+  rpc CreateQuiz(CreateQuizRequest) returns (CreateQuizResponse);
+  rpc RemoveQuiz(RemoveQuizRequest) returns (RemoveQuizResponse);
+}

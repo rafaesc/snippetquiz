@@ -11,10 +11,11 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  OnModuleInit,
+  Logger,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { type ClientGrpc } from '@nestjs/microservices';
 import { Throttle } from '@nestjs/throttler';
-import { firstValueFrom } from 'rxjs';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
 import {
@@ -50,9 +51,9 @@ class CreateContentEntryDto {
   @IsString()
   pageTitle?: string;
 
-  @IsNumberString()
+  @IsNumber()
   @IsNotEmpty()
-  bankId: string;
+  bankId: number;
 
   // YouTube-related optional fields
   @IsOptional()
@@ -89,12 +90,28 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+// gRPC service interface
+interface ContentEntryService {
+  FindAllContentEntries(data: any): Promise<any>;
+  FindOneContentEntry(data: any): Promise<any>;
+  CreateContentEntry(data: any): Promise<any>;
+  CloneContentEntry(data: any): Promise<any>;
+  RemoveContentEntry(data: any): Promise<any>;
+}
+
 @Controller('content-entry')
 @UseGuards(JwtAuthGuard)
-export class ContentEntryController {
+export class ContentEntryController implements OnModuleInit {
+  private contentEntryService: ContentEntryService;
+  private readonly logger = new Logger(ContentEntryController.name);
+
   constructor(
-    @Inject(CORE_SERVICE) private readonly coreServiceClient: ClientProxy,
+    @Inject(CORE_SERVICE) private readonly client: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    this.contentEntryService = this.client.getService<ContentEntryService>('ContentEntryService');
+  }
 
   // GET /content-entry/bank/:bankId - Get all content entries for a bank
   @Get('bank/:bankId')
@@ -125,15 +142,13 @@ export class ContentEntryController {
 
       const findAllDto = {
         userId: req.user.id,
-        bankId,
+        bankId: bankId,
         page: pageNum,
         limit: limitNum,
         ...(name && name.trim() && { name: name.trim() }),
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('findAllContentEntries', findAllDto),
-      );
+      const result = await this.contentEntryService.FindAllContentEntries(findAllDto);
 
       return result;
     } catch (error) {
@@ -159,12 +174,10 @@ export class ContentEntryController {
   @Get(':id')
   async findOne(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     try {
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('findOneContentEntry', {
-          id,
-          userId: req.user.id,
-        }),
-      );
+      const result = await this.contentEntryService.FindOneContentEntry({
+        id,
+        userId: req.user.id,
+      });
 
       return result;
     } catch (error) {
@@ -182,6 +195,7 @@ export class ContentEntryController {
     @Request() req: AuthenticatedRequest,
     @Body() createContentEntryDto: CreateContentEntryDto,
   ) {
+      this.logger.log(`Init create request`); 
     try {
       // Validation
       if (
@@ -231,13 +245,22 @@ export class ContentEntryController {
       }
 
       const createDto = {
-        ...createContentEntryDto,
+        sourceUrl: createContentEntryDto.sourceUrl,
+        content: createContentEntryDto.content,
+        type: createContentEntryDto.type,
+        pageTitle: createContentEntryDto.pageTitle,
+        bankId: createContentEntryDto.bankId,
+        youtubeVideoId: createContentEntryDto.youtubeVideoId,
+        youtubeVideoDuration: createContentEntryDto.youtubeVideoDuration,
+        youtubeChannelId: createContentEntryDto.youtubeChannelId,
+        youtubeChannelName: createContentEntryDto.youtubeChannelName,
+        youtubeAvatarUrl: createContentEntryDto.youtubeAvatarUrl,
         userId: req.user.id,
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('createContentEntry', createDto),
-      );
+      this.logger.log(`Received create request: ${createDto.pageTitle}`); 
+
+      const result = await this.contentEntryService.CreateContentEntry(createDto);
 
       return result;
     } catch (error) {
@@ -269,16 +292,12 @@ export class ContentEntryController {
   ) {
     try {
       const cloneDto = {
-        targetBankId,
+        id,
+        targetBankId: targetBankId,
         userId: req.user.id,
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('cloneContentEntry', {
-          id,
-          cloneDto,
-        }),
-      );
+      const result = await this.contentEntryService.CloneContentEntry(cloneDto);
 
       return result;
     } catch (error) {
@@ -307,12 +326,10 @@ export class ContentEntryController {
   @Delete(':id')
   async remove(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     try {
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('removeContentEntry', {
-          id,
-          userId: req.user.id,
-        }),
-      );
+      const result = await this.contentEntryService.RemoveContentEntry({
+        id,
+        userId: req.user.id,
+      });
 
       return result;
     } catch (error) {

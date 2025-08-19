@@ -459,7 +459,7 @@ function Dashboard() {
                                             >
                                                 <div className="font-medium">{bank.name}</div>
                                                 <div className="text-sm text-muted-foreground">
-                                                    {bank.entryCount || 0} items
+                                                    {bank.contentEntries || 0} items
                                                 </div>
                                             </div>
                                         )}

@@ -12,23 +12,39 @@ import {
   HttpException,
   HttpStatus,
   ParseIntPipe,
+  OnModuleInit,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { type ClientGrpc } from '@nestjs/microservices';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { catchError, firstValueFrom } from 'rxjs';
 import { CORE_SERVICE } from '../config/services';
 
 interface CreateQuizRequest {
   bankId: number;
 }
 
+// gRPC service interface
+interface QuizService {
+  FindAllQuizzes(data: any): Promise<any>;
+  FindOneQuiz(data: any): Promise<any>;
+  FindQuizResponses(data: any): Promise<any>;
+  FindQuizSummary(data: any): Promise<any>;
+  CreateQuiz(data: any): Promise<any>;
+  RemoveQuiz(data: any): Promise<any>;
+}
+
 @Controller('quiz')
 @UseGuards(JwtAuthGuard)
-export class QuizController {
+export class QuizController implements OnModuleInit {
+  private quizService: QuizService;
+
   constructor(
-    @Inject(CORE_SERVICE) private readonly coreServiceClient: ClientProxy,
+    @Inject(CORE_SERVICE) private readonly client: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    this.quizService = this.client.getService<QuizService>('QuizService');
+  }
 
   @Get()
   async findAll(
@@ -44,23 +60,14 @@ export class QuizController {
         userId,
       };
 
-      return await firstValueFrom(
-        this.coreServiceClient.send('quiz.findAll', findAllDto).pipe(
-          catchError((error) => {
-            throw new HttpException(
-              error.message || 'Internal server error',
-              error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }),
-        ),
-      );
+      return await this.quizService.FindAllQuizzes(findAllDto);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -70,29 +77,17 @@ export class QuizController {
     try {
       const userId = req.user.id;
 
-      return await firstValueFrom(
-        this.coreServiceClient.send('quiz.findOne', { id, userId }).pipe(
-          catchError((error) => {
-            if (error.message?.includes('not found')) {
-              throw new HttpException(
-                'Quiz not found or you do not have permission to access it',
-                HttpStatus.NOT_FOUND,
-              );
-            }
-            throw new HttpException(
-              error.message || 'Internal server error',
-              error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }),
-        ),
-      );
+      return await this.quizService.FindOneQuiz({ id, userId });
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
+      if (error.message?.includes('not found')) {
+        throw new HttpException(
+          'Quiz not found or you do not have permission to access it',
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -113,31 +108,17 @@ export class QuizController {
         userId,
       };
 
-      return await firstValueFrom(
-        this.coreServiceClient
-          .send('quiz.findResponses', findResponsesDto)
-          .pipe(
-            catchError((error) => {
-              if (error.message?.includes('not found')) {
-                throw new HttpException(
-                  'Quiz not found or you do not have permission to access it',
-                  HttpStatus.NOT_FOUND,
-                );
-              }
-              throw new HttpException(
-                error.message || 'Internal server error',
-                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-              );
-            }),
-          ),
-      );
+      return await this.quizService.FindQuizResponses(findResponsesDto);
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
+      if (error.message?.includes('not found')) {
+        throw new HttpException(
+          'Quiz not found or you do not have permission to access it',
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -150,29 +131,17 @@ export class QuizController {
     try {
       const userId = req.user.id;
 
-      return await firstValueFrom(
-        this.coreServiceClient.send('quiz.findSummary', { id, userId }).pipe(
-          catchError((error) => {
-            if (error.message?.includes('not found')) {
-              throw new HttpException(
-                'Quiz not found or you do not have permission to access it',
-                HttpStatus.NOT_FOUND,
-              );
-            }
-            throw new HttpException(
-              error.message || 'Internal server error',
-              error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }),
-        ),
-      );
+      return await this.quizService.FindQuizSummary({ id, userId });
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
+      if (error.message?.includes('not found')) {
+        throw new HttpException(
+          'Quiz not found or you do not have permission to access it',
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -187,27 +156,17 @@ export class QuizController {
       const userId = req.user.id;
       const createQuizDto = {
         bankId: createQuizRequest.bankId,
+        userId,
       };
 
-      return await firstValueFrom(
-        this.coreServiceClient
-          .send('quiz.create', { createQuizDto, userId })
-          .pipe(
-            catchError((error) => {
-              throw new HttpException(
-                error.message || 'Internal server error',
-                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-              );
-            }),
-          ),
-      );
+      return await this.quizService.CreateQuiz(createQuizDto);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -217,29 +176,17 @@ export class QuizController {
     try {
       const userId = req.user.id;
 
-      return await firstValueFrom(
-        this.coreServiceClient.send('quiz.remove', { id, userId }).pipe(
-          catchError((error) => {
-            if (error.message?.includes('not found')) {
-              throw new HttpException(
-                'Quiz not found or you do not have permission to delete it',
-                HttpStatus.NOT_FOUND,
-              );
-            }
-            throw new HttpException(
-              error.message || 'Internal server error',
-              error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-          }),
-        ),
-      );
+      return await this.quizService.RemoveQuiz({ id, userId });
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
+      if (error.message?.includes('not found')) {
+        throw new HttpException(
+          'Quiz not found or you do not have permission to delete it',
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

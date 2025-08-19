@@ -1,14 +1,14 @@
 export class ContentEntryResponseDto {
   id: string;
-  contentType: string;
+  content_type: string;
   content?: string;
-  sourceUrl?: string;
-  pageTitle?: string;
-  createdAt: Date;
-  questionsGenerated: boolean;
-  promptSummary?: string;
+  source_url?: string;
+  page_title?: string;
+  created_at: Date;
+  questions_generated: boolean;
+  prompt_summary?: string;
   topics?: string[];
-  entryCount?: number;
+  entry_count?: number;
 }
 
 export class PaginatedContentEntriesResponseDto {

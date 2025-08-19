@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package content_entry;
+
+// Enum for content types
+enum ContentType {
+  CONTENT_TYPE_UNSPECIFIED = 0;
+  SELECTED_TEXT = 1;
+  FULL_HTML = 2;
+  VIDEO_TRANSCRIPT = 3;
+}
+
+// Request/Response messages for ContentEntry operations
+message CreateContentEntryRequest {
+  optional string source_url = 1;
+  optional string content = 2;
+  ContentType type = 3;
+  optional string page_title = 4;
+  string bank_id = 5;
+  string user_id = 6;
+  optional string youtube_video_id = 7;
+  optional int32 youtube_video_duration = 8;
+  optional string youtube_channel_id = 9;
+  optional string youtube_channel_name = 10;
+  optional string youtube_avatar_url = 11;
+}
+
+message CreateContentEntryResponse {
+  string id = 1;
+  string message = 2;
+}
+
+message FindAllContentEntriesRequest {
+  optional int32 page = 1;
+  optional int32 limit = 2;
+  optional string name = 3;
+  string bank_id = 4;
+  string user_id = 5;
+}
+
+message ContentEntryItem {
+  string id = 1;
+  optional string source_url = 2;
+  optional string page_title = 3;
+  string created_at = 4;
+  bool questions_generated = 5;
+  repeated string topics = 6;
+}
+
+message PaginationInfo {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total = 3;
+  int32 total_pages = 4;
+}
+
+message FindAllContentEntriesResponse {
+  repeated ContentEntryItem entries = 1;
+  PaginationInfo pagination = 2;
+}
+
+message FindOneContentEntryRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message FindOneContentEntryResponse {
+  string id = 1;
+  optional string source_url = 2;
+  optional string content = 3;
+  ContentType type = 4;
+  optional string page_title = 5;
+  string bank_id = 6;
+  string user_id = 7;
+  string created_at = 8;
+  bool questions_generated = 9;
+  repeated string topics = 10;
+}
+
+message CloneContentEntryRequest {
+  string id = 1;
+  string user_id = 2;
+  string target_bank_id = 3;
+}
+
+message CloneContentEntryResponse {
+  string message = 1;
+}
+
+message RemoveContentEntryRequest {
+  string id = 1;
+  string user_id = 2;
+}
+
+message RemoveContentEntryResponse {
+  string message = 1;
+}
+
+// ContentEntry service definition
+service ContentEntryService {
+  rpc CreateContentEntry(CreateContentEntryRequest) returns (CreateContentEntryResponse);
+  rpc FindAllContentEntries(FindAllContentEntriesRequest) returns (FindAllContentEntriesResponse);
+  rpc FindOneContentEntry(FindOneContentEntryRequest) returns (FindOneContentEntryResponse);
+  rpc CloneContentEntry(CloneContentEntryRequest) returns (CloneContentEntryResponse);
+  rpc RemoveContentEntry(RemoveContentEntryRequest) returns (RemoveContentEntryResponse);
+}

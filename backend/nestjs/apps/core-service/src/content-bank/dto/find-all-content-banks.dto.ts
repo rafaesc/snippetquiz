@@ -26,6 +26,7 @@ export class FindAllContentBanksDto {
   @IsString({ message: 'Name must be a string' })
   name?: string;
 
-  @IsUUID(4, { message: 'User ID must be a valid UUID' })
+  // @IsUUID(4, { message: 'User ID must be a valid UUID' })
+  @IsString({ message: 'User ID must be a string' })
   userId: string; // Make this required
 }

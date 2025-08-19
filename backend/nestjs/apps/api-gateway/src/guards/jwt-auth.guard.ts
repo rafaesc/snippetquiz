@@ -24,10 +24,21 @@ export class JwtAuthGuard implements CanActivate {
         secret: process.env.JWT_AUTH_SECRET,
       });
 
+      // Validate that payload contains required user information
+      if (!payload.id) {
+        throw new UnauthorizedException('Invalid token payload: missing user ID');
+      }
+
       request['user'] = payload;
       request['token'] = token;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      if (error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('Invalid token format');
+      } else if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Token has expired');
+      } else {
+        throw new UnauthorizedException('Invalid token');
+      }
     }
 
     return true;

@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { QuizService } from './quiz.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
@@ -9,33 +9,47 @@ import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 export class QuizController {
   constructor(private readonly quizService: QuizService) {}
 
-  @MessagePattern('quiz.findAll')
-  findAll(@Payload() findAllDto: FindAllQuizzesDto) {
+  @GrpcMethod('QuizService', 'FindAllQuizzes')
+  findAll(data: { page?: number; limit?: number; user_id: string }) {
+    const findAllDto: FindAllQuizzesDto = {
+      page: data.page,
+      limit: data.limit,
+      userId: data.user_id,
+    };
     return this.quizService.findAll(findAllDto);
   }
 
-  @MessagePattern('quiz.findOne')
-  findOne(@Payload() payload: { id: number; userId: string }) {
-    return this.quizService.findOne(payload.id, payload.userId);
+  @GrpcMethod('QuizService', 'FindOneQuiz')
+  findOne(data: { id: number; user_id: string }) {
+    return this.quizService.findOne(data.id, data.user_id);
   }
 
-  @MessagePattern('quiz.findResponses')
-  findQuizResponses(@Payload() findResponsesDto: FindQuizResponsesDto) {
+  @GrpcMethod('QuizService', 'FindQuizResponses')
+  findQuizResponses(data: { page?: number; limit?: number; quiz_id: string; user_id: string }) {
+    const findResponsesDto: FindQuizResponsesDto = {
+      page: data.page,
+      limit: data.limit,
+      quizId: Number(data.quiz_id),
+      userId: data.user_id,
+    };
     return this.quizService.findQuizResponses(findResponsesDto);
   }
 
-  @MessagePattern('quiz.findSummary')
-  findQuizSummary(@Payload() payload: { id: number; userId: string }) {
-    return this.quizService.findQuizSummary(payload.id, payload.userId);
+  @GrpcMethod('QuizService', 'FindQuizSummary')
+  findQuizSummary(data: { id: number; user_id: string }) {
+    return this.quizService.findQuizSummary(data.id, data.user_id);
   }
 
-  @MessagePattern('quiz.create')
-  create(@Payload() payload: { createQuizDto: CreateQuizDto; userId: string }) {
-    return this.quizService.create(payload.createQuizDto, payload.userId);
+  @GrpcMethod('QuizService', 'CreateQuiz')
+  create(data: { bank_id: number; user_id: string }) {
+    const createQuizDto: CreateQuizDto = {
+      bankId: data.bank_id,
+    };
+    return this.quizService.create(createQuizDto, data.user_id);
   }
 
-  @MessagePattern('quiz.remove')
-  remove(@Payload() payload: { id: number; userId: string }) {
-    return this.quizService.remove(payload.id, payload.userId);
+  @GrpcMethod('QuizService', 'RemoveQuiz')
+  remove(data: { id: number; user_id: string }) {
+    return this.quizService.remove(data.id, data.user_id);
   }
 }
