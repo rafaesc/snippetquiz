@@ -48,7 +48,7 @@ export const QuizList: React.FC<QuizListProps> = ({
   };
 
   const isQuizCompleted = (quiz: Quiz): boolean => {
-    return quiz.totalQuestions === quiz.questionsCompleted;
+    return quiz.questionsCount === quiz.questionsCompleted;
   };
 
   const getStatusBadge = (quiz: Quiz) => {
@@ -82,7 +82,7 @@ export const QuizList: React.FC<QuizListProps> = ({
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="text-sm font-medium">
-                    {quiz.questionsCompleted} / {quiz.totalQuestions} questions
+                    {quiz.questionsCompleted} / {quiz.questionsCount} questions
                   </span>
                   {getStatusBadge(quiz)}
                 </div>
@@ -146,12 +146,12 @@ export const QuizList: React.FC<QuizListProps> = ({
             {/* Topics */}
             <div>
               <div className="flex flex-wrap gap-1">
-                {quiz.topics.slice(0, 3).map((topic) => (
+                {(quiz?.topics || [])?.slice(0, 3).map((topic) => (
                   <Badge key={topic} variant="outline" className="text-xs">
                     {topic}
                   </Badge>
                 ))}
-                {quiz.topics.length > 3 && (
+                {(quiz?.topics || [])?.length > 3 && (
                   <Badge variant="outline" className="text-xs">
                     +{quiz.topics.length - 3}
                   </Badge>
@@ -213,7 +213,7 @@ export const QuizList: React.FC<QuizListProps> = ({
                         {new Date(quiz.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {quiz.questionsCompleted} / {quiz.totalQuestions}
+                        {quiz.questionsCompleted} / {quiz.questionsCount}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(quiz)}
@@ -223,12 +223,12 @@ export const QuizList: React.FC<QuizListProps> = ({
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {quiz.topics.slice(0, 2).map((topic) => (
+                          {(quiz?.topics || []).slice(0, 2).map((topic) => (
                             <Badge key={topic} variant="outline" className="text-xs">
                               {topic}
                             </Badge>
                           ))}
-                          {quiz.topics.length > 2 && (
+                          {(quiz?.topics || []).length > 2 && (
                             <Badge variant="outline" className="text-xs">
                               +{quiz.topics.length - 2}
                             </Badge>

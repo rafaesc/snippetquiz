@@ -3,16 +3,16 @@ export class QuizTopicDto {
 }
 
 export class QuizResponseDto {
-  id: number;
-  createdAt: Date;
-  questionsCount: number;
-  questionsCompleted: number;
-  contentEntriesCount: number;
+  id: string;
+  created_at: Date;
+  questions_count: number;
+  questions_completed: number;
+  content_entries_count: number;
   topics: string[];
 }
 
 export class QuizDetailResponseDto {
-  id: number;
+  id: string;
   createdAt: Date;
   questionsCompleted: number;
   contentEntriesCount: number;
@@ -41,6 +41,7 @@ export class PaginatedQuizzesResponseDto {
     page: number;
     limit: number;
     total: number;
+    total_pages: number;
   };
 }
 

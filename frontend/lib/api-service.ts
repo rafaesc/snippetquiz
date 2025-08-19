@@ -171,7 +171,7 @@ export interface Quiz {
   questionsCompleted: number;
   contentEntriesCount: number;
   topics: string[];
-  totalQuestions: number;
+  questionsCount: number;
 }
 
 export interface QuizzesResponse {
