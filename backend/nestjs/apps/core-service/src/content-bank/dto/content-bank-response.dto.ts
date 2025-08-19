@@ -1,14 +1,14 @@
 export class ContentBankResponseDto {
-  id: string; // BigInt as string
+  id: number; // BigInt as string
   name: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  entryCount?: number;
+  user_id: string;
+  created_at: Date;
+  updated_at: Date;
+  entry_count?: number;
 }
 
 export class PaginatedContentBanksResponseDto {
-  contentBanks: ContentBankResponseDto[];
+  content_banks: ContentBankResponseDto[];
   pagination: {
     page: number;
     limit: number;

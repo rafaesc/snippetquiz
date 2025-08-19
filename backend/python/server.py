@@ -1,66 +1,8 @@
 import grpc
 from concurrent import futures
-import asyncio
 import time
-import books_pb2
-import books_pb2_grpc
 import quiz_generation_pb2
 import quiz_generation_pb2_grpc
-
-
-class BookService(books_pb2_grpc.BookServiceServicer):
-    def GetBooks(self, request, context):
-        # Simulate fetching books from a database or external service
-        books = [
-            books_pb2.Book(id="1", title="Book 1", author="Author 1"),
-            books_pb2.Book(id="2", title="Book 2", author="Author 2"),
-            books_pb2.Book(
-                id="3", title="The Great Gatsby", author="F. Scott Fitzgerald"
-            ),
-            books_pb2.Book(id="4", title="To Kill a Mockingbird", author="Harper Lee"),
-            # Add more books as needed
-        ]
-
-        return books_pb2.GetBooksResponse(books=books)
-
-    def GetBooksStream(self, request, context):
-        """Stream books one by one with async delays"""
-        print(f"Starting book stream for request: {request}")
-
-        books = [
-            books_pb2.Book(id="1", title="Book 1", author="Author 1"),
-            books_pb2.Book(id="2", title="Book 2", author="Author 2"),
-            books_pb2.Book(
-                id="3", title="The Great Gatsby", author="F. Scott Fitzgerald"
-            ),
-            books_pb2.Book(id="4", title="To Kill a Mockingbird", author="Harper Lee"),
-            books_pb2.Book(id="5", title="1984", author="George Orwell"),
-            books_pb2.Book(id="6", title="Pride and Prejudice", author="Jane Austen"),
-        ]
-
-        try:
-            for i, book in enumerate(books):
-                # Check if client cancelled the request before processing
-                if not context.is_active():
-                    print(f"Client disconnected, stopping stream at book {i}")
-                    break
-
-                print(f"Streaming book {i+1}: {book.title}")
-
-                # Create the response message
-                response = books_pb2.BookStreamResponse(book=book)
-                yield response
-
-                # Simulate async processing delay (except for the last book)
-                if i < len(books) - 1:
-                    time.sleep(0.5)  # 500ms delay between each book
-
-            print("Finished streaming all books")
-
-        except Exception as e:
-            print(f"Error during streaming: {e}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(f"Streaming error: {str(e)}")
 
 
 class QuizGenerationService(quiz_generation_pb2_grpc.QuizGenerationServiceServicer):
@@ -84,6 +26,8 @@ class QuizGenerationService(quiz_generation_pb2_grpc.QuizGenerationServiceServic
                     )
                 )
                 yield status_message
+
+                print(f"Processing content entry {i+1}: {content_entry.page_title} - {content_entry.id} - {content_entry.content}")
                 
                 # Simulate processing time
                 time.sleep(1)
@@ -156,7 +100,6 @@ class QuizGenerationService(quiz_generation_pb2_grpc.QuizGenerationServiceServic
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    books_pb2_grpc.add_BookServiceServicer_to_server(BookService(), server)
     quiz_generation_pb2_grpc.add_QuizGenerationServiceServicer_to_server(
         QuizGenerationService(), server
     )

@@ -46,11 +46,12 @@ export class ContentBankService extends PrismaClient {
     });
 
     return {
-      id: contentBank.id.toString(),
+      id: Number(contentBank.id),
       name: contentBank.name,
-      userId: contentBank.userId,
-      createdAt: contentBank.createdAt,
-      updatedAt: contentBank.updatedAt,
+      user_id: contentBank.userId,
+      created_at: contentBank.createdAt,
+      updated_at: contentBank.updatedAt,
+      entry_count: 0,
     };
   }
 
@@ -90,13 +91,13 @@ export class ContentBankService extends PrismaClient {
     ]);
 
     return {
-      contentBanks: contentBanks.map((bank) => ({
-        id: bank.id.toString(),
+      content_banks: contentBanks.map((bank) => ({
+        id: Number(bank.id),
         name: bank.name,
-        userId: bank.userId,
-        createdAt: bank.createdAt,
-        updatedAt: bank.updatedAt,
-        entryCount: bank._count.contentEntries,
+        user_id: bank.userId,
+        created_at: bank.createdAt,
+        updated_at: bank.updatedAt,
+        content_entries: bank._count.contentEntries,
       })),
       pagination: {
         page,
@@ -128,12 +129,12 @@ export class ContentBankService extends PrismaClient {
     }
 
     return {
-      id: contentBank.id.toString(),
+      id: Number(contentBank.id),
       name: contentBank.name,
-      userId: contentBank.userId,
-      createdAt: contentBank.createdAt,
-      updatedAt: contentBank.updatedAt,
-      entryCount: contentBank._count.contentEntries,
+      user_id: contentBank.userId,
+      created_at: contentBank.createdAt,
+      updated_at: contentBank.updatedAt,
+      entry_count: contentBank._count.contentEntries,
     };
   }
 
@@ -186,11 +187,11 @@ export class ContentBankService extends PrismaClient {
     });
 
     return {
-      id: updatedBank.id.toString(),
+      id: Number(updatedBank.id),
       name: updatedBank.name,
-      userId: updatedBank.userId,
-      createdAt: updatedBank.createdAt,
-      updatedAt: updatedBank.updatedAt,
+      user_id: updatedBank.userId,
+      created_at: updatedBank.createdAt,
+      updated_at: updatedBank.updatedAt,
     };
   }
 
@@ -335,11 +336,11 @@ export class ContentBankService extends PrismaClient {
     });
 
     return {
-      id: duplicatedBank.id.toString(),
+      id: Number(duplicatedBank.id),
       name: duplicatedBank.name,
-      userId: duplicatedBank.userId,
-      createdAt: duplicatedBank.createdAt,
-      updatedAt: duplicatedBank.updatedAt,
+      user_id: duplicatedBank.userId,
+      created_at: duplicatedBank.createdAt,
+      updated_at: duplicatedBank.updatedAt,
     };
   }
 }

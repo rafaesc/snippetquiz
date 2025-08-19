@@ -12,11 +12,11 @@ import {
   Request,
   HttpStatus,
   HttpException,
+  OnModuleInit,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { type ClientGrpc } from '@nestjs/microservices';
 import { CORE_SERVICE } from '../config/services';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard'; // Assuming you have this guard
-import { firstValueFrom } from 'rxjs';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
 
 // DTOs for request validation
@@ -48,12 +48,40 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+// gRPC service interface
+interface ContentBankService {
+  createContentBank(data: { name: string; userId: string }): Promise<any>;
+  findAllContentBanks(data: {
+    page?: number;
+    limit?: number;
+    name?: string;
+    userId: string;
+  }): Promise<any>;
+  findOneContentBank(data: { id: string; userId: string }): Promise<any>;
+  updateContentBank(data: {
+    id: string;
+    name?: string;
+    userId: string;
+  }): Promise<any>;
+  removeContentBank(data: { id: string; userId: string }): Promise<any>;
+  duplicateContentBank(data: {
+    id: string;
+    userId: string;
+    name?: string;
+  }): Promise<any>;
+}
+
 @Controller('content-bank')
 @UseGuards(JwtAuthGuard)
-export class ContentBankController {
-  constructor(
-    @Inject(CORE_SERVICE) private readonly coreServiceClient: ClientProxy,
-  ) {}
+export class ContentBankController implements OnModuleInit {
+  private contentBankService: ContentBankService;
+
+  constructor(@Inject(CORE_SERVICE) private readonly client: ClientGrpc) {}
+
+  onModuleInit() {
+    this.contentBankService =
+      this.client.getService<ContentBankService>('ContentBankService');
+  }
 
   // GET /content-banks - Get all content banks with pagination
   @Get()
@@ -83,7 +111,7 @@ export class ContentBankController {
         );
       }
 
-      // Validate userId
+      // Validate userId - ADD THIS VALIDATION
       if (!req.user?.id) {
         throw new HttpException('User ID is required', HttpStatus.UNAUTHORIZED);
       }
@@ -95,22 +123,10 @@ export class ContentBankController {
         ...(name && name.trim() && { name: name.trim() }),
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('findAllContentBank', findAllDto),
-      );
-
-      return result;
+      return await this.contentBankService.findAllContentBanks(findAllDto);      
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
-      }
-
-      // Handle RPC exceptions from microservice
-      if (error.status) {
-        throw new HttpException(
-          error.message || 'Microservice error',
-          error.status,
-        );
       }
 
       throw new HttpException(
@@ -124,12 +140,10 @@ export class ContentBankController {
   @Get(':id')
   async findOne(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     try {
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('findOneContentBank', {
-          id,
-          userId: req.user.id,
-        }),
-      );
+      const result = await this.contentBankService.findOneContentBank({
+        id,
+        userId: req.user.id,
+      });
 
       return result;
     } catch (error) {
@@ -170,10 +184,7 @@ export class ContentBankController {
         userId: req.user.id,
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('createContentBank', createDto),
-      );
-
+      const result = await this.contentBankService.createContentBank(createDto);
       return result;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -227,10 +238,7 @@ export class ContentBankController {
         userId: req.user.id,
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('updateContentBank', updateDto),
-      );
-
+      const result = await this.contentBankService.updateContentBank(updateDto);
       return result;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -263,12 +271,10 @@ export class ContentBankController {
   @Delete(':id')
   async remove(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     try {
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('removeContentBank', {
-          id,
-          userId: req.user.id,
-        }),
-      );
+      const result = await this.contentBankService.removeContentBank({
+        id,
+        userId: req.user.id,
+      });
 
       return result;
     } catch (error) {
@@ -306,24 +312,19 @@ export class ContentBankController {
       }
 
       const duplicateDto = {
+        id,
+        userId: req.user.id,
         name: duplicateContentBankDto.name?.trim(),
       };
 
-      const result = await firstValueFrom(
-        this.coreServiceClient.send('duplicateContentBank', {
-          id,
-          userId: req.user.id,
-          duplicateDto,
-        }),
-      );
-
+      const result =
+        await this.contentBankService.duplicateContentBank(duplicateDto);
       return result;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
 
-      // Handle microservice errors
       if (error.message?.includes('not found')) {
         throw new HttpException(
           'Content bank not found or does not belong to user',

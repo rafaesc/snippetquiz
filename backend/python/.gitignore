@@ -171,3 +171,4 @@ poetry.toml
 pyrightconfig.json
 
 *pb2*.py
+*pb2_grpc*.py

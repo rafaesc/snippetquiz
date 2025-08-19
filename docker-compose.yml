@@ -37,6 +37,7 @@ services:
       - ./backend/nestjs/apps:/usr/src/backend/apps
       - ./backend/nestjs/prisma:/usr/src/backend/prisma
       - ./backend/nestjs/generated:/usr/src/backend/generated
+      - ./backend/protos:/usr/src/backend/protos
     depends_on:
       db:
         condition: service_healthy
@@ -76,6 +77,7 @@ services:
       - ./backend/nestjs/apps:/usr/src/backend/apps
       - ./backend/nestjs/prisma:/usr/src/backend/prisma
       - ./backend/nestjs/generated:/usr/src/backend/generated
+      - ./backend/protos:/usr/src/backend/protos
     depends_on:
       db:
         condition: service_healthy

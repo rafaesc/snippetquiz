@@ -1,18 +1,29 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  GrpcStreamMethod,
+  GrpcStreamCall,
+  GrpcMethod,
+} from '@nestjs/microservices';
 import { QuizGeneratorService } from './quiz-generator.service';
-import { Observable } from 'rxjs';
+import { map, Observable, Subject } from 'rxjs';
+import { Logger } from '@nestjs/common';
+import { StreamQuizGeneratorDto } from './dto/stream-quiz-generator.dto';
 
-@Controller('quiz-generator')
+interface GenerateQuizByBankRequest {
+  bank_id: number;
+}
+
+@Controller()
 export class QuizGeneratorController {
-  constructor(private readonly quizGeneratorServiceService: QuizGeneratorService) {}
+  private readonly logger = new Logger(QuizGeneratorController.name);
 
-  @Get('hello')
-  getHello() {
-    return { message: 'hello world' };
-  }
+  constructor(private readonly quizGeneratorService: QuizGeneratorService) {}
 
-  @Get('books')
-  getBooks(): Observable<any> {
-    return this.quizGeneratorServiceService.getBooks();
+  @GrpcMethod('CoreQuizGenerationService', 'GenerateQuizByBank')
+  generateQuiz(request: GenerateQuizByBankRequest): Observable<any> {
+    this.logger.log(`generateQuiz called with bank_id=${request.bank_id}`);
+
+
+    return this.quizGeneratorService.generateQuizStream(request.bank_id);
   }
 }

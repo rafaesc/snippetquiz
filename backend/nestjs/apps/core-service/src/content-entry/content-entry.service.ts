@@ -20,10 +20,6 @@ import DOMPurify from 'dompurify';
 
 @Injectable()
 export class ContentEntryService extends PrismaClient {
-  constructor() {
-    super();
-  }
-
   async create(
     createContentEntryDto: CreateContentEntryDto,
   ): Promise<ContentEntryResponseDto> {
@@ -38,7 +34,7 @@ export class ContentEntryService extends PrismaClient {
       youtubeVideoDuration,
       youtubeChannelId,
       youtubeChannelName,
-      youtubeAvatarUrl
+      youtubeAvatarUrl,
     } = createContentEntryDto;
 
     // Verify that the bank belongs to the user
@@ -124,7 +120,10 @@ export class ContentEntryService extends PrismaClient {
         };
 
         if (type === ContentType.FULL_HTML && processedContent) {
-          const wordCount = processedContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+          const wordCount = processedContent
+            .trim()
+            .split(/\s+/)
+            .filter((word) => word.length > 0).length;
           updateData.wordCount = wordCount;
         }
 
@@ -166,16 +165,25 @@ export class ContentEntryService extends PrismaClient {
       };
 
       // Calculate word count for selected_text and full_html content types
-      if ((type === ContentType.SELECTED_TEXT || type === ContentType.FULL_HTML) && processedContent) {
-        const wordCount = processedContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+      if (
+        (type === ContentType.SELECTED_TEXT ||
+          type === ContentType.FULL_HTML) &&
+        processedContent
+      ) {
+        const wordCount = processedContent
+          .trim()
+          .split(/\s+/)
+          .filter((word) => word.length > 0).length;
         createData.wordCount = wordCount;
       }
 
       // Add YouTube fields for VIDEO_TRANSCRIPT type
       if (type === ContentType.VIDEO_TRANSCRIPT) {
         if (youtubeVideoId) createData.youtubeVideoId = youtubeVideoId;
-        if (youtubeVideoDuration) createData.videoDuration = youtubeVideoDuration;
-        if (youtubeChannelDbId) createData.youtubeChannelId = youtubeChannelDbId;
+        if (youtubeVideoDuration)
+          createData.videoDuration = youtubeVideoDuration;
+        if (youtubeChannelDbId)
+          createData.youtubeChannelId = youtubeChannelDbId;
       }
 
       const newEntry = await this.contentEntry.create({
@@ -195,13 +203,13 @@ export class ContentEntryService extends PrismaClient {
 
     return {
       id: resultEntry.id.toString(),
-      contentType: resultEntry.contentType,
+      content_type: resultEntry.contentType,
       content: resultEntry.content || undefined,
-      sourceUrl: resultEntry.sourceUrl || undefined,
-      pageTitle: resultEntry.pageTitle || undefined,
-      createdAt: resultEntry.createdAt,
-      questionsGenerated: resultEntry.questionsGenerated,
-      promptSummary: resultEntry.promptSummary || undefined,
+      source_url: resultEntry.sourceUrl || undefined,
+      page_title: resultEntry.pageTitle || undefined,
+      created_at: resultEntry.createdAt,
+      questions_generated: resultEntry.questionsGenerated,
+      prompt_summary: resultEntry.promptSummary || undefined,
     };
   }
 
@@ -261,16 +269,16 @@ export class ContentEntryService extends PrismaClient {
     return {
       entries: contentEntries.map((entry) => ({
         id: entry.id.toString(),
-        contentType: entry.contentType,
+        content_type: entry.contentType,
         content: entry.content
           ? entry.content.length > 300
             ? entry.content.substring(0, 300) + '...'
             : entry.content
           : undefined,
-        sourceUrl: entry.sourceUrl || undefined,
-        pageTitle: entry.pageTitle || undefined,
-        createdAt: entry.createdAt,
-        questionsGenerated: entry.questionsGenerated,
+        source_url: entry.sourceUrl || undefined,
+        page_title: entry.pageTitle || undefined,
+        created_at: entry.createdAt,
+        questions_generated: entry.questionsGenerated,
         topics: entry.topics?.map((t) => t.topic.topic) || [],
       })),
       pagination: {
@@ -303,13 +311,13 @@ export class ContentEntryService extends PrismaClient {
 
     return {
       id: contentEntry.id.toString(),
-      contentType: contentEntry.contentType,
+      content_type: contentEntry.contentType,
       content: contentEntry.content?.substring(0, 100),
-      sourceUrl: contentEntry.sourceUrl || undefined,
-      pageTitle: contentEntry.pageTitle || undefined,
-      createdAt: contentEntry.createdAt,
-      questionsGenerated: contentEntry.questionsGenerated,
-      promptSummary: contentEntry.promptSummary || undefined,
+      source_url: contentEntry.sourceUrl || undefined,
+      page_title: contentEntry.pageTitle || undefined,
+      created_at: contentEntry.createdAt,
+      questions_generated: contentEntry.questionsGenerated,
+      prompt_summary: contentEntry.promptSummary || undefined,
     };
   }
 
@@ -377,13 +385,13 @@ export class ContentEntryService extends PrismaClient {
 
     return {
       id: sourceEntry.id.toString(),
-      contentType: sourceEntry.contentType,
+      content_type: sourceEntry.contentType,
       content: sourceEntry.content || undefined,
-      sourceUrl: sourceEntry.sourceUrl || undefined,
-      pageTitle: sourceEntry.pageTitle || undefined,
-      createdAt: sourceEntry.createdAt,
-      questionsGenerated: sourceEntry.questionsGenerated,
-      promptSummary: sourceEntry.promptSummary || undefined,
+      source_url: sourceEntry.sourceUrl || undefined,
+      page_title: sourceEntry.pageTitle || undefined,
+      created_at: sourceEntry.createdAt,
+      questions_generated: sourceEntry.questionsGenerated,
+      prompt_summary: sourceEntry.promptSummary || undefined,
     };
   }
 

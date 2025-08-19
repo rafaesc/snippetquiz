@@ -111,7 +111,7 @@ export interface ContentBank {
   userId: string;
   createdAt: string;
   updatedAt: string;
-  entryCount?: number;
+  contentEntries?: number;
 }
 
 export interface ContentBanksResponse {

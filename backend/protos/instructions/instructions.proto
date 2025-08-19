@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package instructions;
+
+// Request/Response messages for Instructions operations
+message FindInstructionByUserIdRequest {
+  string user_id = 1;
+}
+
+message FindInstructionByUserIdResponse {
+  optional string id = 1;
+  optional string instruction = 2;
+  optional string user_id = 3;
+  optional string created_at = 4;
+  optional string updated_at = 5;
+}
+
+message CreateOrUpdateInstructionRequest {
+  string instruction = 1;
+  string user_id = 2;
+}
+
+message CreateOrUpdateInstructionResponse {
+  string id = 1;
+  string instruction = 2;
+  string user_id = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+// Instructions service definition
+service InstructionsService {
+  rpc FindInstructionByUserId(FindInstructionByUserIdRequest) returns (FindInstructionByUserIdResponse);
+  rpc CreateOrUpdateInstruction(CreateOrUpdateInstructionRequest) returns (CreateOrUpdateInstructionResponse);
+}

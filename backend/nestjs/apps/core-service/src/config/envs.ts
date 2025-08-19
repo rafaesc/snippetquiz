@@ -2,6 +2,7 @@ import 'dotenv/config';
 import * as joi from 'joi';
 
 interface EnvVars {
+  CORE_SERVICE_HOST: string;
   CORE_SERVICE_PORT: number;
   DATABASE_URL_POSTGRES: string;
   NODE_ENV: string;
@@ -9,6 +10,7 @@ interface EnvVars {
 
 const envSchema = joi
   .object({
+    CORE_SERVICE_HOST: joi.string().default('0.0.0.0'),
     CORE_SERVICE_PORT: joi.number().required(),
     DATABASE_URL_POSTGRES: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
@@ -24,6 +26,7 @@ if (error) {
 export const envsVars: EnvVars = value;
 
 export const envs = {
+  coreServiceHost: envsVars.CORE_SERVICE_HOST,
   coreServicePort: envsVars.CORE_SERVICE_PORT,
   databaseUrlPostgres: envsVars.DATABASE_URL_POSTGRES,
   nodeEnv: envsVars.NODE_ENV,

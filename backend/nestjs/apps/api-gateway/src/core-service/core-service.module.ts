@@ -1,22 +1,28 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { CoreServiceService } from './core-service.service';
 import { ContentBankController } from './content-bank.controller';
 import { CORE_SERVICE } from '../config/services';
 import { envs } from '../config/envs';
 import { ContentEntryController } from './content-entry.controller';
 import { InstructionsController } from './instructions.controller';
 import { QuizController } from './quiz.controller';
+import { join } from 'path';
 
 @Module({
   imports: [
     ClientsModule.register([
       {
         name: CORE_SERVICE,
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          host: envs.coreServiceHost,
-          port: envs.coreServicePort,
+          package: ['content_bank', 'content_entry', 'quiz', 'instructions'],
+          protoPath: [
+            join(__dirname, '../../../../protos/content-bank/content-bank.proto'),
+            join(__dirname, '../../../../protos/content-entry/content-entry.proto'),
+            join(__dirname, '../../../../protos/quiz/quiz.proto'),
+            join(__dirname, '../../../../protos/instructions/instructions.proto'),
+          ],
+          url: `${envs.coreServiceHost}:${envs.coreServicePort}`,
         },
       },
     ]),
@@ -27,6 +33,6 @@ import { QuizController } from './quiz.controller';
     InstructionsController,
     QuizController,
   ],
-  providers: [CoreServiceService],
+  providers: [],
 })
 export class CoreServiceModule {}

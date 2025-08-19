@@ -60,7 +60,7 @@ export default function ContentBanks() {
   // Fetch ALL content banks for clone dialog (without pagination)
   const { data: allBanksData } = useQuery({
     queryKey: ['contentBanks'],
-    queryFn: () => apiService.getContentBanks(1, 1000), // Get all banks
+    queryFn: () => apiService.getContentBanks(1, 100), // Get all banks
     enabled: showCloneDialog,
   });
 
@@ -360,7 +360,7 @@ export default function ContentBanks() {
                           <div>
                             <h4 className="font-medium">{bank.name}</h4>
                             <p className="text-sm text-muted-foreground">
-                              {bank.entryCount || 0} entries
+                              {bank.contentEntries || 0} entries
                             </p>
                           </div>
                           {targetBankId === bank.id && (
@@ -567,7 +567,7 @@ export default function ContentBanks() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Content Bank</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{bank.name}"? This will permanently delete all {bank.entryCount || 0} entries in this bank. This action cannot be undone.
+                                  Are you sure you want to delete "{bank.name}"? This will permanently delete all {bank.contentEntries || 0} entries in this bank. This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -591,7 +591,7 @@ export default function ContentBanks() {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{bank.entryCount || 0} entries</span>
+                    <span>{bank.contentEntries || 0} entries</span>
                     <span>Created {new Date(bank.createdAt).toLocaleDateString()}</span>
                   </div>
                   <Button
