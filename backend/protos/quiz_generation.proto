@@ -7,6 +7,7 @@ message ContentEntry {
     int64 id = 1;
     string page_title = 2;
     string content = 3;
+    optional int32 word_count_analyzed = 4;
 }
 
 // Request message for generating quiz questions
@@ -41,13 +42,14 @@ message GenerationStatus {
     int64 content_entry_id = 1;
     string page_title = 2;
     string status = 3; // e.g., "Generating questions for page title X"
+    optional int32 word_count_analyzed = 4;
 }
 
 // Result message containing generated questions for a content entry
 message GenerationResult {
     int64 content_entry_id = 1;
     string page_title = 2;
-    repeated Question questions = 3;
+    repeated Question questions = 4;
 }
 
 // Quiz Generation Service
