@@ -44,17 +44,13 @@ interface ContentEntryDto {
   word_count_analyzed?: number;
 }
 
-interface SummaryDto {
-  questions_generated_so_far: number;
-}
-
 export interface QuizGenerationProgressDto {
-  event: string; // "content_entry_progress" or "content_entry_completed"
   bank_id: string;
   total_content_entries: number;
+  total_content_entries_skipped?: number;
   current_content_entry_index: number;
+  questions_generated_so_far: number;
   content_entry: ContentEntryDto;
-  summary: SummaryDto;
 }
 
 export interface GenerateProgressParams {
@@ -349,49 +345,6 @@ export class QuizObservableService extends PrismaClient {
             },
           }),
         );
-      }),
-    );
-  }
-
-  /**
-   * Generate quiz generation progress information for a specific content entry
-   * Returns progress data matching the gRPC proto structure
-   */
-  generateQuizProgress(
-    params: GenerateProgressParams,
-  ): Observable<any> {
-    const { contentEntryId, userId } = params;
-
-    return from(
-      this.contentEntry.findFirst({
-        where: {
-          id: BigInt(contentEntryId),
-          contentBanks: {
-            some: {
-              contentBank: {
-                userId,
-              },
-            },
-          },
-        },
-        include: {
-          questions: true,
-        },
-      }),
-    ).pipe(
-      switchMap((contentEntry) => {
-        if (!contentEntry) {
-          this.logger.error(
-            `[generateQuizProgress] Content entry not found or access denied for contentEntryId: ${contentEntryId}, userId: ${userId}`,
-          );
-          return throwError(
-            () =>
-              new NotFoundException(
-                'Content entry not found or you do not have permission to access it',
-              ),
-          );
-        }
-        return EMPTY;
       }),
     );
   }

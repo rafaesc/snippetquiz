@@ -70,6 +70,7 @@ export interface QuizGenerationProgress {
 export interface QuizGenerationProgressCamelCase {
   status?: GenerationStatusCamelCase;
   result?: GenerationResultCamelCase;
+  completed?: boolean;
 }
 
 export interface QuizGenerationService {

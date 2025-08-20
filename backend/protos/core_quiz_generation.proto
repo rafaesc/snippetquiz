@@ -15,21 +15,14 @@ message ContentEntry {
     int32 word_count_analyzed = 3;
 }
 
-// Summary of quiz generation progress
-message Summary {
-    int32 questions_generated_so_far = 1;
-    int32 total_questions_expected = 2;
-    int32 failed_entries_count = 3;
-}
-
 // Unified progress message for quiz generation
 message QuizGenerationProgress {
-    string event = 1; // "quiz_generation_progress" or "quiz_generation_completed"
     string bank_id = 2;
     int32 total_content_entries = 3;
-    int32 current_content_entry_index = 4;
-    ContentEntry content_entry = 5;
-    Summary summary = 6;
+    optional int32 total_content_entries_skipped = 4;
+    int32 current_content_entry_index = 5;
+    int32 questions_generated_so_far = 6;
+    ContentEntry content_entry = 7;
 }
 
 // Quiz Generation Service
