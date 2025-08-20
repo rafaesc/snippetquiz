@@ -5,6 +5,7 @@ export interface ContentEntry {
   id: number;
   pageTitle: string;
   content: string;
+  wordCountAnalyzed: number;
 }
 
 export interface GenerateQuizRequest {
@@ -39,12 +40,14 @@ export interface GenerationStatus {
   content_entry_id: number;
   page_title: string;
   status: string;
+  word_count_analyzed: number;
 }
 
 export interface GenerationStatusCamelCase {
   contentEntryId: number;
   pageTitle: string;
   status: string;
+  wordCountAnalyzed: number;
 }
 
 export interface GenerationResultCamelCase {
@@ -82,6 +85,7 @@ export function mapQuizGenerationProgress(
     result.status = {
       content_entry_id: progress.status.contentEntryId,
       page_title: progress.status.pageTitle,
+      word_count_analyzed: progress.status.wordCountAnalyzed,
       status: progress.status.status,
     };
   }

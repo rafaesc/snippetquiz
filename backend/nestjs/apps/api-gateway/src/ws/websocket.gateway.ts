@@ -56,7 +56,6 @@ export class WebsocketGateway implements OnModuleInit {
       userId: data.userId,
     };
 
-    // Call gRPC service and stream results back to client
     const quizStream =
       this.coreQuizGenerationService.generateQuizByBank(request);
 

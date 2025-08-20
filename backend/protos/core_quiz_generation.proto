@@ -8,40 +8,28 @@ message GenerateQuizByBankRequest {
     string user_id = 2;
 }
 
-// Question option definition
-message QuestionOption {
-    string option_text = 1;
-    string option_explanation = 2;
-    bool is_correct = 3;
+// Content entry being processed
+message ContentEntry {
+    string id = 1;
+    string name = 2;
+    int32 word_count_analyzed = 3;
 }
 
-// Question definition
-message Question {
-    string question = 1;
-    string type = 2;
-    repeated QuestionOption options = 3;
+// Summary of quiz generation progress
+message Summary {
+    int32 questions_generated_so_far = 1;
+    int32 total_questions_expected = 2;
+    int32 failed_entries_count = 3;
 }
 
-// Progress message for each content entry
+// Unified progress message for quiz generation
 message QuizGenerationProgress {
-    oneof message_type {
-        GenerationStatus status = 1;
-        GenerationResult result = 2;
-    }
-}
-
-// Status message indicating which content entry is being processed
-message GenerationStatus {
-    int64 content_entry_id = 1;
-    string page_title = 2;
-    string status = 3; // e.g., "Generating questions for page title X"
-}
-
-// Result message containing generated questions for a content entry
-message GenerationResult {
-    int64 content_entry_id = 1;
-    string page_title = 2;
-    repeated Question questions = 3;
+    string event = 1; // "quiz_generation_progress" or "quiz_generation_completed"
+    string bank_id = 2;
+    int32 total_content_entries = 3;
+    int32 current_content_entry_index = 4;
+    ContentEntry content_entry = 5;
+    Summary summary = 6;
 }
 
 // Quiz Generation Service

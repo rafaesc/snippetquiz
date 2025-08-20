@@ -6,27 +6,25 @@ export interface GenerateQuizByBankRequest {
   userId: string;
 }
 
+export interface ContentEntry {
+  id: string;
+  name: string;
+  wordCountAnalyzed: number;
+}
+
+export interface Summary {
+  questionsGeneratedSoFar: number;
+  totalQuestionsExpected: number;
+  failedEntriesCount: number;
+}
+
 export interface QuizGenerationProgress {
-  message_type: {
-    status?: {
-      contentEntryId: number;
-      pageTitle: string;
-      status: string;
-    };
-    result?: {
-      contentEntryId: number;
-      pageTitle: string;
-      questions: Array<{
-        question: string;
-        type: string;
-        options: Array<{
-          optionText: string;
-          optionExplanation: string;
-          isCorrect: boolean;
-        }>;
-      }>;
-    };
-  };
+  event: string; // "quiz_generation_progress" or "quiz_generation_completed"
+  bankId: string;
+  totalContentEntries: number;
+  currentContentEntryIndex: number;
+  contentEntry: ContentEntry;
+  summary: Summary;
 }
 
 export interface CoreQuizGenerationService {
