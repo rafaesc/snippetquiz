@@ -51,8 +51,12 @@ class QuizGenerationService(quiz_generation_pb2_grpc.QuizGenerationServiceServic
                 # Small delay before next content entry
                 if i < len(request.content_entries) - 1:
                     time.sleep(0.5)
-
             print("Finished generating quiz questions for all content entries")
+
+            completed_message = quiz_generation_pb2.QuizGenerationProgress(
+                completed=True
+            )
+            yield completed_message
 
         except Exception as e:
             print(f"Error during quiz generation: {e}")

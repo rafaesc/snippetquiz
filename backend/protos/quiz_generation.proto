@@ -33,7 +33,8 @@ message Question {
 message QuizGenerationProgress {
     oneof message_type {
         GenerationStatus status = 1;
-        GenerationResult result = 2;
+        bool completed = 2;
+        GenerationResult result = 3;
     }
 }
 
