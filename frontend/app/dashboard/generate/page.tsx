@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, Sparkles, AlertCircle, Globe, FileText, Video } from 'lucide-react';
@@ -12,15 +12,18 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { apiService, ContentEntry, ContentBank } from '@/lib/api-service';
+import { QuizGenerationLoader } from '@/components/QuizGenerationLoader';
+import { useQuizWebSocket } from '@/hooks/useQuizWebSocket';
 
 type MediaType = ContentEntry['contentType'];
 
 export default function GenerateQuiz() {
     const router = useRouter();
     const [selectedBankId, setSelectedBankId] = useState<string>('');
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [generationProgress, setGenerationProgress] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    
+    // WebSocket hook for quiz generation
+    const { generateQuiz, progress, isGenerating, progressPercentage, isComplete } = useQuizWebSocket();
     
     const entriesPerPage = 10;
 
@@ -55,37 +58,17 @@ export default function GenerateQuiz() {
         }
     };
 
-    const handleGenerateQuiz = async () => {
+    const handleGenerateQuiz = () => {
         if (!selectedBank || !entriesData || entriesData.pagination.total === 0) return;
-
-        setIsGenerating(true);
-        setGenerationProgress(0);
-
-        // Simulate AI generation progress
-        const progressInterval = setInterval(() => {
-            setGenerationProgress(prev => {
-                if (prev >= 90) {
-                    clearInterval(progressInterval);
-                    return 90;
-                }
-                return prev + Math.random() * 15;
-            });
-        }, 200);
-
-        // Simulate API call
-        setTimeout(() => {
-            clearInterval(progressInterval);
-            setGenerationProgress(100);
-
-            // Complete and navigate to quiz player
-            setTimeout(() => {
-                setIsGenerating(false);
-                setGenerationProgress(0);
-                // Navigate to the quiz player with a new quiz using Next.js router
-                router.push('/dashboard/quizzes/new/play');
-            }, 500);
-        }, 3000);
+        generateQuiz(selectedBankId);
     };
+
+    // Navigate to quiz when generation is complete
+    useEffect(() => {
+        if (isComplete) {
+            router.push('/dashboard/quizzes/new/play');
+        }
+    }, [isComplete, router]);
 
     // Reset pagination when bank changes
     const handleBankChange = (bankId: string) => {
@@ -117,6 +100,17 @@ export default function GenerateQuiz() {
                             Failed to load content banks. Please try again.
                         </AlertDescription>
                     </Alert>
+                </div>
+            </div>
+        );
+    }
+
+    // Show centered loader when generating
+    if (isGenerating) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="w-full max-w-md">
+                    <QuizGenerationLoader progress={progress} progressPercentage={progressPercentage} />
                 </div>
             </div>
         );
@@ -314,50 +308,29 @@ export default function GenerateQuiz() {
             )}
 
             {/* Generate Button */}
-            {isGenerating ? (
-                <div className="space-y-4">
-                    <div className="text-center">
-                        <div className="flex items-center justify-center space-x-2 mb-2">
-                            <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-                            <span className="font-medium">Generating your quiz...</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                            AI is analyzing your content and creating questions
-                        </p>
-                    </div>
-                    <Progress value={generationProgress} className="h-2" />
-                    <p className="text-center text-sm text-muted-foreground">
-                        {generationProgress < 30 && "Analyzing content..."}
-                        {generationProgress >= 30 && generationProgress < 60 && "Generating questions..."}
-                        {generationProgress >= 60 && generationProgress < 90 && "Creating answer options..."}
-                        {generationProgress >= 90 && "Finalizing quiz..."}
+            <div className="text-center space-y-4">
+                <Button
+                    size="lg"
+                    onClick={handleGenerateQuiz}
+                    disabled={!selectedBank || !entriesData || entriesData.pagination.total === 0 || entriesLoading}
+                    className="px-8"
+                >
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Generate Quiz
+                </Button>
+
+                {!selectedBank && (
+                    <p className="text-sm text-muted-foreground">
+                        Select a content bank to enable quiz generation
                     </p>
-                </div>
-            ) : (
-                <div className="text-center space-y-4">
-                    <Button
-                        size="lg"
-                        onClick={handleGenerateQuiz}
-                        disabled={!selectedBank || !entriesData || entriesData.pagination.total === 0 || entriesLoading}
-                        className="px-8"
-                    >
-                        <Sparkles className="h-5 w-5 mr-2" />
-                        Generate Quiz
-                    </Button>
+                )}
 
-                    {!selectedBank && (
-                        <p className="text-sm text-muted-foreground">
-                            Select a content bank to enable quiz generation
-                        </p>
-                    )}
-
-                    {selectedBank && !entriesLoading && entriesData && entriesData.pagination.total === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                            The selected bank needs content entries to generate a quiz
-                        </p>
-                    )}
-                </div>
-            )}
+                {selectedBank && !entriesLoading && entriesData && entriesData.pagination.total === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                        The selected bank needs content entries to generate a quiz
+                    </p>
+                )}
+            </div>
         </div>
     );
 };

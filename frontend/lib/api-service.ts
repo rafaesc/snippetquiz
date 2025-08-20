@@ -167,6 +167,7 @@ export interface CreateContentEntryRequest {
 // Quiz Types
 export interface Quiz {
   id: string;
+  name: string;
   createdAt: string;
   questionsCompleted: number;
   contentEntriesCount: number;

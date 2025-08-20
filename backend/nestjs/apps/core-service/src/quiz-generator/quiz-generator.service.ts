@@ -94,7 +94,7 @@ export class QuizGeneratorService extends PrismaClient {
       for (const entry of contentEntries) {
         if (entry.questionsGenerated) {
           entriesSkipped++;
-          continue;
+          //continue;
         }
         mappedEntries.push({
           id: Number(entry.id),
