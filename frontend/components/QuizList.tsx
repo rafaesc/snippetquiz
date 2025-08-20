@@ -196,6 +196,7 @@ export const QuizList: React.FC<QuizListProps> = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Creation Date</TableHead>
+                  <TableHead>Bank</TableHead>
                   <TableHead>Progress</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Content Entries</TableHead>
@@ -211,6 +212,9 @@ export const QuizList: React.FC<QuizListProps> = ({
                     <TableRow key={quiz.id}>
                       <TableCell className="text-muted-foreground">
                         {new Date(quiz.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {quiz.name || 'N/A'}
                       </TableCell>
                       <TableCell className="font-medium">
                         {quiz.questionsCompleted} / {quiz.questionsCount}
@@ -291,72 +295,6 @@ export const QuizList: React.FC<QuizListProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Server-side Pagination */}
-      {pagination.total > pagination.limit && (
-        <div className="flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
-                  className={pagination.page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-
-              {Array.from({ length: Math.min(5, Math.ceil(pagination.total / pagination.limit)) }, (_, i) => {
-                const totalPages = Math.ceil(pagination.total / pagination.limit);
-                let pageNumber;
-
-                if (totalPages <= 5) {
-                  pageNumber = i + 1;
-                } else if (pagination.page <= 3) {
-                  pageNumber = i + 1;
-                } else if (pagination.page >= totalPages - 2) {
-                  pageNumber = totalPages - 4 + i;
-                } else {
-                  pageNumber = pagination.page - 2 + i;
-                }
-
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      onClick={() => handlePageChange(pageNumber)}
-                      isActive={pagination.page === pageNumber}
-                      className="cursor-pointer"
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              {Math.ceil(pagination.total / pagination.limit) > 5 && pagination.page < Math.ceil(pagination.total / pagination.limit) - 2 && (
-                <>
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink
-                      onClick={() => handlePageChange(Math.ceil(pagination.total / pagination.limit))}
-                      className="cursor-pointer"
-                    >
-                      {Math.ceil(pagination.total / pagination.limit)}
-                    </PaginationLink>
-                  </PaginationItem>
-                </>
-              )}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => handlePageChange(Math.min(Math.ceil(pagination.total / pagination.limit), pagination.page + 1))}
-                  className={pagination.page === Math.ceil(pagination.total / pagination.limit) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
     </div>
   );
 };

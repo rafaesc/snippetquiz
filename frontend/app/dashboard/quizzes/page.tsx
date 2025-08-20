@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { QuizList } from '@/components/QuizList';
 import { apiService, Quiz, QuizResponse, QuizSummaryResponse } from '@/lib/api-service';
 
@@ -29,7 +30,6 @@ export default function GeneratedQuizzesPage() {
   } = useQuery({
     queryKey: ['quizzes', page, limit],
     queryFn: () => apiService.getQuizzes(page, limit),
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch quiz responses when a quiz is selected
@@ -40,7 +40,6 @@ export default function GeneratedQuizzesPage() {
     queryKey: ['quiz-responses', selectedQuiz?.id],
     queryFn: () => selectedQuiz ? apiService.getQuizResponses(selectedQuiz.id) : Promise.resolve(null),
     enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
-    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Fetch quiz summary when a quiz is selected
@@ -51,7 +50,6 @@ export default function GeneratedQuizzesPage() {
     queryKey: ['quiz-summary', selectedQuiz?.id],
     queryFn: () => selectedQuiz ? apiService.getQuizSummary(selectedQuiz.id) : Promise.resolve(null),
     enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
-    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const handleViewSummary = (quiz: Quiz) => {
@@ -68,6 +66,7 @@ export default function GeneratedQuizzesPage() {
   };
 
   const handlePageChange = (newPage: number) => {
+    console.log(newPage);
     setPage(newPage);
   };
 
@@ -273,31 +272,39 @@ export default function GeneratedQuizzesPage() {
           
           {/* Pagination */}
           {quizzesData.pagination.total > limit && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, quizzesData.pagination.total)} of {quizzesData.pagination.total} quizzes
-              </p>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm">
-                  Page {page} of {Math.ceil(quizzesData.pagination.total / limit)}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page >= Math.ceil(quizzesData.pagination.total / limit)}
-                >
-                  Next
-                </Button>
-              </div>
+            <div className="flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(Math.max(1, page - 1))}
+                      className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: Math.min(5, Math.ceil(quizzesData.pagination.total / limit)) }, (_, i) => {
+                    const pageNum = i + Math.max(1, page - 2);
+                    const totalPages = Math.ceil(quizzesData.pagination.total / limit);
+                    if (pageNum > totalPages) return null;
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(pageNum)}
+                          isActive={page === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(Math.min(Math.ceil(quizzesData.pagination.total / limit), page + 1))}
+                      className={page >= Math.ceil(quizzesData.pagination.total / limit) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </>

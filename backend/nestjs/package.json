@@ -44,6 +44,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^11.1.6",
     "@prisma/client": "^6.13.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "@types/nodemailer": "^6.4.17",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
@@ -54,6 +55,7 @@
     "dompurify": "^3.2.6",
     "dotenv": "^17.2.1",
     "fastify-cookie": "^5.6.1",
+    "ioredis": "^5.7.0",
     "joi": "^18.0.0",
     "jsdom": "^26.1.0",
     "nodemailer": "^7.0.5",
@@ -62,6 +64,7 @@
     "redis": "^5.8.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
