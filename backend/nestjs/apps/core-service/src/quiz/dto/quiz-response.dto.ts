@@ -11,13 +11,26 @@ export class QuizResponseDto {
   topics: string[];
 }
 
-export class QuizDetailResponseDto {
+export class QuizQuestionOption {
   id: string;
-  createdAt: Date;
-  questionsCompleted: number;
-  contentEntriesCount: number;
+  option_text: string;
+}
+
+export class QuizQuestion {
+  id: string;
+  question: string;
+  content_entry_type: string;
+  content_entry_source_url: string;
+  options: QuizQuestionOption[];
+}
+
+export class FindOneQuizResponse {
+  id: string;
+  created_at: Date;
+  questions_completed: number;
+  content_entries_count: number;
   topics: string[];
-  totalQuestions: number;
+  questions: QuizQuestion[];
 }
 
 export class QuizSummaryResponseDto {

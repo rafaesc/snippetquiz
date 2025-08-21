@@ -73,6 +73,7 @@ export class WebsocketGateway implements OnModuleInit {
         client.emit('quizComplete', {
           message: 'Quiz generation completed successfully',
         });
+        client.disconnect();
       },
     });
   }

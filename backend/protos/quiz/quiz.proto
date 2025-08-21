@@ -37,7 +37,7 @@ message FindOneQuizRequest {
 }
 
 message QuizQuestion {
-  int64 id = 1;
+  string id = 1;
   string question = 2;
   string content_entry_type = 3;
   optional string content_entry_source_url = 4;
@@ -45,18 +45,15 @@ message QuizQuestion {
 }
 
 message QuizQuestionOption {
-  int64 id = 1;
+  string id = 1;
   string option_text = 2;
-  string option_explanation = 3;
-  bool is_correct = 4;
 }
 
 message FindOneQuizResponse {
-  int64 id = 1;
+  string id = 1;
   string created_at = 2;
   int32 questions_completed = 3;
   int32 content_entries_count = 4;
-  int32 questions_count = 5;
   repeated string topics = 6;
   repeated QuizQuestion questions = 7;
 }
@@ -69,7 +66,7 @@ message FindQuizResponsesRequest {
 }
 
 message QuizResponseItem {
-  int64 id = 1;
+  string id = 1;
   string created_at = 2;
   int32 questions_count = 3;
   repeated string topics = 4;

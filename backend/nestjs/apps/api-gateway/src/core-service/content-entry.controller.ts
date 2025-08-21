@@ -194,7 +194,7 @@ export class ContentEntryController implements OnModuleInit {
         userId: req.user.id,
       };
 
-      this.logger.log(`Received create request: ${createDto.pageTitle}`); 
+      this.logger.log(`Received create request: ${createDto.pageTitle} - ${createDto.type}`); 
 
       const result = await this.contentEntryService.CreateContentEntry(createDto);
 

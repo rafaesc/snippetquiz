@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { QuizProvider } from "@/contexts/QuizContext";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
@@ -32,7 +33,9 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
       <ProtectedRoute>
-        <DashboardContent>{children}</DashboardContent>
+        <QuizProvider>
+          <DashboardContent>{children}</DashboardContent>
+        </QuizProvider>
       </ProtectedRoute>
     </AuthProvider>
   );

@@ -15,17 +15,30 @@ message ContentEntry {
     int32 word_count_analyzed = 3;
 }
 
+// Quiz generation completed
+message CoreQuizGenerationCompleted {
+    string quiz_id = 1;
+}
+
 // Unified progress message for quiz generation
-message QuizGenerationProgress {
-    string bank_id = 2;
-    int32 total_content_entries = 3;
-    optional int32 total_content_entries_skipped = 4;
-    int32 current_content_entry_index = 5;
-    int32 questions_generated_so_far = 6;
-    ContentEntry content_entry = 7;
+message CoreQuizGenerationProgress {
+    string bank_id = 1;
+    int32 total_content_entries = 2;
+    optional int32 total_content_entries_skipped = 3;
+    int32 current_content_entry_index = 4;
+    int32 questions_generated_so_far = 5;
+    ContentEntry content_entry = 6;
+}
+
+// Status message indicating which content entry is being processed
+message CoreQuizGenerationStatus {
+    oneof message_type {
+        CoreQuizGenerationProgress progress = 1;
+        CoreQuizGenerationCompleted completed = 2;
+    }
 }
 
 // Quiz Generation Service
 service CoreQuizGenerationService {
-    rpc GenerateQuizByBank(GenerateQuizByBankRequest) returns (stream QuizGenerationProgress);
+    rpc GenerateQuizByBank(GenerateQuizByBankRequest) returns (stream CoreQuizGenerationStatus);
 }
