@@ -18,7 +18,7 @@ export class ContentEntryController {
   create(data: {
     source_url?: string;
     content?: string;
-    type: number;
+    type: string;
     page_title?: string;
     bank_id: string;
     user_id: string;
@@ -28,18 +28,12 @@ export class ContentEntryController {
     youtube_channel_name?: string;
     youtube_avatar_url?: string;
   }) {
-    this.logger.log(`Received create request: ${data.page_title}`);
-    // Map gRPC enum to TypeScript enum
-    const typeMap = {
-      1: ContentType.SELECTED_TEXT,
-      2: ContentType.FULL_HTML,
-      3: ContentType.VIDEO_TRANSCRIPT,
-    };
+    this.logger.log(`Received create request: ${data.page_title?.substring(0, 10)} - ${data.type} - ${data.content?.substring(0, 20)}`);
 
     const createDto: CreateContentEntryDto = {
       sourceUrl: data.source_url,
       content: data.content,
-      type: typeMap[data.type] || ContentType.SELECTED_TEXT,
+      type: data.type as ContentType,
       pageTitle: data.page_title,
       bankId: data.bank_id,
       userId: data.user_id,

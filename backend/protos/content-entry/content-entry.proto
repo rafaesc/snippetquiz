@@ -5,9 +5,9 @@ package content_entry;
 // Enum for content types
 enum ContentType {
   CONTENT_TYPE_UNSPECIFIED = 0;
-  SELECTED_TEXT = 1;
-  FULL_HTML = 2;
-  VIDEO_TRANSCRIPT = 3;
+  selected_text = 1;
+  full_html = 2;
+  video_transcript = 3;
 }
 
 // Request/Response messages for ContentEntry operations
@@ -44,7 +44,9 @@ message ContentEntryItem {
   optional string page_title = 3;
   string created_at = 4;
   bool questions_generated = 5;
-  repeated string topics = 6;
+  string content_type = 6;
+  string content = 7;
+  repeated string topics = 9;
 }
 
 message PaginationInfo {

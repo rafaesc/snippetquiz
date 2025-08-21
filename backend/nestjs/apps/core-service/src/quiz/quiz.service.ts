@@ -4,7 +4,7 @@ import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 import {
   PaginatedQuizzesResponseDto,
-  QuizDetailResponseDto,
+  FindOneQuizResponse,
   QuizSummaryResponseDto,
   PaginatedQuizResponsesDto,
   QuizResponseDto,
@@ -88,7 +88,7 @@ export class QuizService extends PrismaClient {
     };
   }
 
-  async findOne(id: number, userId: string): Promise<QuizDetailResponseDto> {
+  async findOne(id: number, userId: string): Promise<FindOneQuizResponse> {
     const quiz = await this.quiz.findFirst({
       where: {
         id: BigInt(id),
@@ -105,6 +105,20 @@ export class QuizService extends PrismaClient {
             topicName: true,
           },
         },
+        quizQuestions: {
+          select: {
+            id: true,
+            question: true,
+            contentEntryType: true,
+            contentEntrySourceUrl: true,
+            options: {
+              select: {
+                id: true,
+                optionText: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -115,12 +129,21 @@ export class QuizService extends PrismaClient {
     }
 
     return {
-      id: quiz.id.toString(), // Convert BigInt to string instead of Number
-      createdAt: quiz.createdAt,
-      questionsCompleted: quiz.questionsCompleted,
-      contentEntriesCount: quiz.contentEntriesCount,
+      id: quiz.id.toString(),
+      created_at: quiz.createdAt,
+      questions_completed: quiz.questionsCompleted,
+      content_entries_count: quiz.contentEntriesCount,
       topics: quiz.quizTopics.map((topic) => topic.topicName),
-      totalQuestions: quiz.questionsCount,
+      questions: quiz.quizQuestions.map((question) => ({
+        id: question.id.toString(),
+        question: question.question,
+        content_entry_type: question.contentEntryType,
+        content_entry_source_url: question.contentEntrySourceUrl || '',
+        options: question.options.map((option) => ({
+          id: option.id.toString(),
+          option_text: option.optionText,
+        })),
+      })),
     };
   }
 
@@ -256,7 +279,6 @@ export class QuizService extends PrismaClient {
     return { message: 'Quiz deleted successfully' };
   }
 
-  
   /**
    * Create a quiz entity using the user_id and bank id, validate if the bank id has the same user id.
    * Create the QuizQuestions and QuizQuestionOption using the list of Question and Options of all the entries of the content Bank.
@@ -265,7 +287,7 @@ export class QuizService extends PrismaClient {
   createQuiz(params: {
     userId: string;
     bankId: number;
-  }): Observable<{ message: string; quizId: number }> {
+  }): Observable<{ quizId: string }> {
     const { userId, bankId } = params;
 
     return from(
@@ -322,7 +344,15 @@ export class QuizService extends PrismaClient {
             const allQuestions = contentBank.contentEntries.flatMap(
               (entry) => entry.contentEntry.questions,
             );
-
+            
+            // Create a Map for quick lookup of content entries by ID
+            const contentEntryMap = new Map(
+              contentBank.contentEntries.map((entry) => [
+                entry.contentEntry.id,
+                entry.contentEntry,
+              ])
+            );
+            
             if (allQuestions.length === 0) {
               return from(
                 this.quiz.update({
@@ -334,26 +364,28 @@ export class QuizService extends PrismaClient {
                 }),
               ).pipe(
                 map(() => ({
-                  message: 'Quiz created successfully with no questions',
-                  quizId: Number(quiz.id),
+                  quizId: quiz.id.toString(),
                 })),
               );
             }
-
+            
             // Create quiz questions and options
             const createQuizQuestions = allQuestions.map(
               async (question, index) => {
+                // Get the content entry for this question
+                const contentEntry = contentEntryMap.get(question.contentEntryId);
+                
                 const quizQuestion = await this.quizQuestion.create({
                   data: {
                     question: question.question,
                     type: question.type,
-                    contentEntryType: 'text', // Default value
-                    contentEntrySourceUrl: null,
+                    contentEntryType: contentEntry?.contentType || 'text',
+                    contentEntrySourceUrl: contentEntry?.sourceUrl || null,
                     contentEntryId: question.contentEntryId,
                     quizId: quiz.id,
                   },
                 });
-
+            
                 // Create quiz question options
                 await Promise.all(
                   question.options.map(async (option, optionIndex) => {
@@ -367,11 +399,11 @@ export class QuizService extends PrismaClient {
                     });
                   }),
                 );
-
+            
                 return quizQuestion;
               },
             );
-
+            
             return from(Promise.all(createQuizQuestions)).pipe(
               switchMap((createdQuestions) => {
                 // Update quiz with counts
@@ -385,8 +417,7 @@ export class QuizService extends PrismaClient {
                   }),
                 ).pipe(
                   map(() => ({
-                    message: 'Quiz created successfully',
-                    quizId: Number(quiz.id),
+                    quizId: quiz.id.toString(),
                   })),
                 );
               }),

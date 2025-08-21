@@ -17,7 +17,7 @@ import {
   QuizGenerationProgressCamelCase,
   QuizGenerationService,
 } from './dto/quiz-generator.dto';
-import { QuizGenerationProgressDto } from './dto/core-quiz-generation.dto';
+import { CoreQuizGenerationStatus } from './dto/core-quiz-generation.dto';
 import { QuizService } from '../quiz/quiz.service';
 import { ContentEntryService } from '../content-entry/content-entry.service';
 
@@ -89,7 +89,7 @@ export class QuizGeneratorService extends PrismaClient {
       for (const entry of contentEntries) {
         if (entry.questionsGenerated) {
           entriesSkipped++;
-          continue;
+          //continue;
         }
         mappedEntries.push({
           id: Number(entry.id),
@@ -117,7 +117,7 @@ export class QuizGeneratorService extends PrismaClient {
   generateQuizStream(
     bankId: number,
     userId: string,
-  ): Observable<QuizGenerationProgressDto> {
+  ): Observable<CoreQuizGenerationStatus> {
     let processedContentEntries = 0;
     let totalContentEntries = 0;
     let entriesSkipped = 0;
@@ -154,7 +154,7 @@ export class QuizGeneratorService extends PrismaClient {
       switchMap(
         (
           progress: QuizGenerationProgressCamelCase,
-        ): Observable<QuizGenerationProgressDto> => {
+        ): Observable<CoreQuizGenerationStatus> => {
           if (progress.result) {
             const contentEntryId = progress.result.contentEntryId;
             const questions = progress.result.questions;
@@ -216,7 +216,7 @@ export class QuizGeneratorService extends PrismaClient {
                 tap({
                   next: (result) => {
                     this.logger.log(
-                      `Quiz created successfully: ${result.message}, Quiz ID: ${result.quizId}`,
+                      `Quiz created successfully Quiz ID: ${result.quizId}`,
                     );
                   },
                   error: (error) => {
@@ -226,8 +226,12 @@ export class QuizGeneratorService extends PrismaClient {
                     );
                   },
                 }),
-                switchMap(() => {
-                  return EMPTY;
+                map((result) => {
+                  return {
+                    completed: {
+                      quiz_id: result.quizId,
+                    },
+                  };
                 }),
               );
           }
@@ -239,15 +243,17 @@ export class QuizGeneratorService extends PrismaClient {
             })
             .pipe(
               map((questionsGenerated) => ({
-                bank_id: bankId.toString(),
-                total_content_entries: totalContentEntries,
-                current_content_entry_index: processedContentEntries,
-                questions_generated_so_far: questionsGenerated,
-                total_content_entries_skipped: entriesSkipped,
-                content_entry: {
-                  id: progress?.status?.contentEntryId?.toString(),
-                  name: progress?.status?.pageTitle,
-                  word_count_analyzed: progress?.status?.wordCountAnalyzed,
+                progress: {
+                  bank_id: bankId.toString(),
+                  total_content_entries: totalContentEntries,
+                  current_content_entry_index: processedContentEntries,
+                  questions_generated_so_far: questionsGenerated,
+                  total_content_entries_skipped: entriesSkipped,
+                  content_entry: {
+                    id: progress?.status?.contentEntryId?.toString(),
+                    name: progress?.status?.pageTitle,
+                    word_count_analyzed: progress?.status?.wordCountAnalyzed,
+                  },
                 },
               })),
             );

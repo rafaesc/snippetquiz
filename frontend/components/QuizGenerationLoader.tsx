@@ -1,18 +1,7 @@
 import { Sparkles } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { QuizGenerationProgress } from '@/hooks/useQuizWebSocket';
 
-interface QuizGenerationProgress {
-  bankId: string;
-  totalContentEntries: number;
-  totalContentEntriesSkipped: number;
-  currentContentEntryIndex: number;
-  questionsGeneratedSoFar: number;
-  contentEntry: {
-    id: string;
-    name: string;
-    wordCountAnalyzed: number;
-  };
-}
 
 interface QuizGenerationLoaderProps {
   progress: QuizGenerationProgress | null;

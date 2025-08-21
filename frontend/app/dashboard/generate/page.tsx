@@ -14,11 +14,13 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { apiService, ContentEntry, ContentBank } from '@/lib/api-service';
 import { QuizGenerationLoader } from '@/components/QuizGenerationLoader';
 import { useQuizWebSocket } from '@/hooks/useQuizWebSocket';
+import { useQuiz } from '@/contexts/QuizContext';
 
 type MediaType = ContentEntry['contentType'];
 
 export default function GenerateQuiz() {
     const router = useRouter();
+    const { setCurrentQuizId } = useQuiz();
     const [selectedBankId, setSelectedBankId] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(1);
     
@@ -66,9 +68,13 @@ export default function GenerateQuiz() {
     // Navigate to quiz when generation is complete
     useEffect(() => {
         if (isComplete) {
-            router.push('/dashboard/quizzes/new/play');
+            const quizId = progress?.completed?.quizId;
+            if (quizId) {
+                setCurrentQuizId(quizId);
+                router.push('/dashboard/quizzes/play');
+            }
         }
-    }, [isComplete, router]);
+    }, [isComplete, router, setCurrentQuizId, progress]);
 
     // Reset pagination when bank changes
     const handleBankChange = (bankId: string) => {
@@ -106,11 +112,11 @@ export default function GenerateQuiz() {
     }
 
     // Show centered loader when generating
-    if (isGenerating) {
+    if (isGenerating || isComplete) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
                 <div className="w-full max-w-md">
-                    <QuizGenerationLoader progress={progress} progressPercentage={progressPercentage} />
+                    <QuizGenerationLoader progress={progress?.progress || null} progressPercentage={progressPercentage} />
                 </div>
             </div>
         );
