@@ -14,6 +14,7 @@ import   {
   QuizResponsesResponse,
   QuizSummaryResponse,
   FindOneQuizResponse,
+  UpdateQuizResponse,
 } from './types';
 
 const API_BASE_URL = process.env.API_URL || 'http://localhost:5000';
@@ -461,6 +462,19 @@ export const apiService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to delete quiz');
+    }
+
+    return response.json();
+  },
+
+  updateQuiz: async (quizId: number, optionId: number): Promise<UpdateQuizResponse> => {
+    const response = await makeAuthenticatedRequest(`/api/quiz/${quizId}/option/${optionId}`, {
+      method: 'PUT',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update quiz');
     }
 
     return response.json();

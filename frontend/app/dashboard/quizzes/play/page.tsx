@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,90 +10,87 @@ import { useQuiz } from "@/contexts/QuizContext";
 import { apiService } from "@/lib/api-service";
 
 export default function QuizPlayerPage() {
-  const params = useParams();
-  const router = useRouter();
-  const id = params.id as string;
   const { currentQuizId } = useQuiz();
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
+  // Add state to maintain previous question during transition
+  const [displayQuestion, setDisplayQuestion] = useState<any>(null);
 
   const {
     data: quiz,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["quiz", currentQuizId],
     queryFn: () => apiService.getQuiz(currentQuizId!),
     enabled: !!currentQuizId,
   });
 
-  const currentQuestion = quiz?.questions[currentQuestionIndex];
-  const progress = quiz
-    ? ((currentQuestionIndex + 1) / quiz?.questions?.length) * 100
-    : 0;
-
-  const handleAnswerSelect = async (answer: string) => {
-    if (selectedAnswer || isTransitioning) return;
-
-    setSelectedAnswer(answer);
-    setUserAnswers((prev) => ({
-      ...prev,
-      [currentQuestion.id]: answer,
-    }));
-
-    // Call TODO service when user answers a question
-    try {
-      console.log({
-        title: `Quiz Answer Recorded`,
-        description: `User answered question: "${currentQuestion.question}" with answer: "${answer}"`,
-        quizId: quiz.id,
-        questionId: currentQuestion.id,
-        userAnswer: answer,
-      });
-    } catch (error) {
-      console.error("Failed to create TODO for answer:", error);
-      // Continue with quiz flow even if TODO creation fails
+  // Update display question when quiz data changes and not transitioning
+  useEffect(() => {
+    if (quiz?.question && !isTransitioning) {
+      setDisplayQuestion(quiz.question);
     }
+  }, [quiz?.question, isTransitioning]);
 
-    // Short delay to show selection
-    setTimeout(() => {
+  // Add mutation for updating quiz
+  const updateQuizMutation = useMutation({
+    mutationFn: ({ quizId, optionId }: { quizId: number; optionId: number }) =>
+      apiService.updateQuiz(quizId, optionId),
+    onSuccess: async () => {
+      // Start transition out
       setIsTransitioning(true);
 
-      // Transition delay
+      // Refetch the quiz data to get the next question
+      const updatedQuiz = await refetch();
+
+      // Wait for transition animation, then update display
       setTimeout(() => {
-        if (currentQuestionIndex < quiz.questions.length - 1) {
-          // Move to next question
-          setCurrentQuestionIndex((prev) => prev + 1);
-          setSelectedAnswer(null);
-          setIsTransitioning(false);
-        } else {
-          // Quiz completed - navigate to summary
-          router.push(`/dashboard/quizzes/${id}/summary`);
+        // Update display question with new data
+        if (updatedQuiz.data?.question) {
+          setDisplayQuestion(updatedQuiz.data.question);
         }
-      }, 300);
-    }, 500);
-  };
 
-  const getOptionButtonClass = (option: string) => {
-    const baseClass =
-      "w-full p-4 text-left rounded-lg border-2 transition-all duration-200 hover:border-primary hover:bg-primary/5 break-words";
+        // Reset states
+        setSelectedAnswer(null);
+        setIsTransitioning(false);
+      }, 500); // Match the transition duration
 
-    if (selectedAnswer === option) {
-      return `${baseClass} border-primary bg-primary/10 text-primary font-medium`;
-    }
-
-    return `${baseClass} border-border bg-background hover:scale-[1.02]`;
-  };
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update quiz:", error);
+      setSelectedAnswer(null);
+      setIsTransitioning(false);
+    },
+  });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading quiz...</p>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if ((!quiz || !quiz.question)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground">No questions available</p>
+          <Button
+            onClick={() => router.push("/dashboard/quizzes")}
+            className="mt-4"
+          >
+            Back to Quizzes
+          </Button>
         </div>
       </div>
     );
@@ -115,26 +112,51 @@ export default function QuizPlayerPage() {
     );
   }
 
-  if (
-    !quiz ||
-    !quiz.questions ||
-    quiz.questions.length === 0 ||
-    !currentQuestion?.question
-  ) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-muted-foreground">No questions available</p>
-          <Button
-            onClick={() => router.push("/dashboard/quizzes")}
-            className="mt-4"
-          >
-            Back to Quizzes
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Use displayQuestion for rendering to maintain question during transition
+  const currentQuestion = displayQuestion || quiz?.question;
+
+  const progress = quiz
+    ? ((quiz.questionsCompleted + 1) / (quiz?.totalQuestions || 1)) * 100
+    : 0;
+
+  const handleAnswerSelect = async (answer: string) => {
+    if (selectedAnswer || isTransitioning || updateQuizMutation.isPending) {
+      return;
+    }
+
+    setSelectedAnswer(answer);
+
+    try {
+      // Find the selected option to get its ID
+      const selectedOption = currentQuestion?.options.find(
+        (option: any) => option.optionText === answer
+      );
+
+      if (!selectedOption || !quiz?.id) {
+        throw new Error("Invalid option or quiz ID");
+      }
+
+      // Update the quiz with the selected option
+      await updateQuizMutation.mutateAsync({
+        quizId: parseInt(quiz.id),
+        optionId: parseInt(selectedOption.id),
+      });
+    } catch (error) {
+      setSelectedAnswer(null);
+      setIsTransitioning(false);
+    }
+  };
+
+  const getOptionButtonClass = (option: string) => {
+    const baseClass =
+      "w-full p-4 text-left rounded-lg border-2 transition-all duration-200 hover:border-primary hover:bg-primary/5 break-words";
+
+    if (selectedAnswer === option) {
+      return `${baseClass} border-primary bg-primary/10 text-primary font-medium`;
+    }
+
+    return `${baseClass} border-border bg-background hover:scale-[1.02]`;
+  };
 
   return (
     <>
@@ -156,14 +178,14 @@ export default function QuizPlayerPage() {
           {/* Progress Section */}
           <div className="text-center space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground">
-              Question {currentQuestionIndex + 1} of {quiz.questions.length}
+              Question {quiz.questionsCompleted + 1} of {quiz?.totalQuestions}
             </h2>
             <Progress value={progress} className="h-2" />
           </div>
 
           {/* Question Card */}
           <Card
-            className={`transition-all duration-300 ${
+            className={`transition-all duration-500 ease-in-out ${
               isTransitioning
                 ? "opacity-0 scale-95 translate-y-4"
                 : "opacity-100 scale-100 translate-y-0"
@@ -193,7 +215,7 @@ export default function QuizPlayerPage() {
 
                 {/* Options */}
                 <div className="space-y-3 w-full">
-                  {currentQuestion.options.map((option, index) => (
+                  {currentQuestion.options.map((option: any, index: any) => (
                     <Button
                       key={option.id}
                       variant="outline"
@@ -205,7 +227,7 @@ export default function QuizPlayerPage() {
                         <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-sm font-medium mt-0.5">
                           {String.fromCharCode(65 + index)}
                         </div>
-                        <span className="flex-1 break-words min-w-0 text-center leading-relaxed">
+                        <span className="flex-1 break-words min-w-0 text-left leading-relaxed">
                           {option.optionText}
                         </span>
                       </div>
@@ -214,23 +236,25 @@ export default function QuizPlayerPage() {
                 </div>
 
                 {/* Selection Feedback */}
-                {selectedAnswer && (
-                  <div className="text-center animate-fade-in">
-                    <p className="text-sm text-muted-foreground">
-                      {currentQuestionIndex < quiz.questions.length - 1
-                        ? "Moving to next question..."
-                        : "Completing quiz..."}
-                    </p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Additional Info */}
-          <div className="text-center text-sm text-muted-foreground">
-            <p>Select an answer to continue</p>
-          </div>
+
+          {selectedAnswer ? (
+            <div className="text-center animate-fade-in">
+              <p className="text-sm text-muted-foreground">
+                {quiz.questionsCompleted < quiz?.totalQuestions - 1
+                  ? "Moving to next question..."
+                  : "Completing quiz..."}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center text-sm text-muted-foreground">
+              <p>Select an answer to continue</p>
+            </div>
+          )}
         </div>
       </div>
     </>
