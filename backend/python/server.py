@@ -1,9 +1,13 @@
 import grpc
 from concurrent import futures
 import time
+import os
+from dotenv import load_dotenv
 import quiz_generation_pb2
 import quiz_generation_pb2_grpc
 
+# Load environment variables from .env file
+load_dotenv()
 
 class QuizGenerationService(quiz_generation_pb2_grpc.QuizGenerationServiceServicer):
     def GenerateQuiz(self, request, context):
@@ -106,17 +110,22 @@ class QuizGenerationService(quiz_generation_pb2_grpc.QuizGenerationServiceServic
 
 
 def serve():
+    # Get port from environment variable, default to 50051
+    port = os.getenv('QUIZ_GENERATION_SERVICE_PORT', '50051')
+    # Get host from environment variable, default to '[::]' (all interfaces)
+    host = os.getenv('QUIZ_GENERATION_SERVICE_HOST', '[::]')
+    
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     quiz_generation_pb2_grpc.add_QuizGenerationServiceServicer_to_server(
         QuizGenerationService(), server
     )
-    server.add_insecure_port("[::]:50051")
+    server.add_insecure_port(f"{host}:{port}")
     server.start()
-    print("gRPC Server started. Listening on port 50051...")
+    print(f"gRPC Server started. Listening on {host}:{port}...")
     try:
-        while True:
-            pass
+        server.wait_for_termination()
     except KeyboardInterrupt:
+        print("Shutting down server...")
         server.stop(0)
 
 

@@ -7,7 +7,8 @@ import { QUIZ_GENERATION_SERVICE } from '../config/services';
 import { join } from 'path';
 import { QuizModule } from '../quiz/quiz.module';
 import { QuizService } from '../quiz/quiz.service';
-import { QuizObservableService } from '../quiz/quiz.observable.service';
+import { ContentEntryModule } from '../content-entry/content-entry.module';
+import { ContentEntryService } from '../content-entry/content-entry.service';
 
 @Module({
   imports: [
@@ -17,14 +18,18 @@ import { QuizObservableService } from '../quiz/quiz.observable.service';
         transport: Transport.GRPC,
         options: {
           package: 'quiz_generation',
-          protoPath: join(__dirname, '../../../../protos/quiz_generation.proto'),
+          protoPath: join(
+            __dirname,
+            '../../../../protos/quiz_generation.proto',
+          ),
           url: 'localhost:50051',
         },
       },
     ]),
     QuizModule,
+    ContentEntryModule,
   ],
   controllers: [QuizGeneratorController],
-  providers: [QuizGeneratorService, QuizService, QuizObservableService],
+  providers: [QuizGeneratorService, QuizService, ContentEntryService],
 })
 export class QuizGeneratorModule {}

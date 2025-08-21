@@ -2,30 +2,24 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { type ClientGrpc } from '@nestjs/microservices';
 import {
   Observable,
-  finalize,
   from,
   map,
   switchMap,
   tap,
-  throwError,
-  concatMap,
   forkJoin,
   EMPTY,
-  takeWhile,
   of,
-  take,
 } from 'rxjs';
-import { ContentEntry, PrismaClient } from 'generated/prisma/postgres';
+import { PrismaClient } from 'generated/prisma/postgres';
 import { QUIZ_GENERATION_SERVICE } from '../config/services';
 import {
   GenerateQuizRequest,
   QuizGenerationProgressCamelCase,
   QuizGenerationService,
 } from './dto/quiz-generator.dto';
-import {
-  QuizGenerationProgressDto,
-  QuizObservableService,
-} from '../quiz/quiz.observable.service';
+import { QuizGenerationProgressDto } from './dto/core-quiz-generation.dto';
+import { QuizService } from '../quiz/quiz.service';
+import { ContentEntryService } from '../content-entry/content-entry.service';
 
 @Injectable()
 export class QuizGeneratorService extends PrismaClient {
@@ -34,7 +28,8 @@ export class QuizGeneratorService extends PrismaClient {
 
   constructor(
     @Inject(QUIZ_GENERATION_SERVICE) private client: ClientGrpc,
-    private quizObservableService: QuizObservableService,
+    private quizService: QuizService,
+    private contentEntryService: ContentEntryService,
   ) {
     super();
     this.logger.log('QuizGeneratorService initialized');
@@ -94,7 +89,7 @@ export class QuizGeneratorService extends PrismaClient {
       for (const entry of contentEntries) {
         if (entry.questionsGenerated) {
           entriesSkipped++;
-          //continue;
+          continue;
         }
         mappedEntries.push({
           id: Number(entry.id),
@@ -170,7 +165,7 @@ export class QuizGeneratorService extends PrismaClient {
 
             // Create all questions for this content entry sequentially
             const questionCreationObservables = questions.map((question) =>
-              this.quizObservableService
+              this.quizService
                 .createQuestion({
                   userId,
                   contentEntryId,
@@ -193,7 +188,7 @@ export class QuizGeneratorService extends PrismaClient {
             // Execute all question creations in parallel, then update content entry
             return forkJoin(questionCreationObservables).pipe(
               switchMap(() =>
-                this.quizObservableService.updateContentEntry({
+                this.contentEntryService.updateContentEntry({
                   userId,
                   contentEntryId,
                 }),
@@ -212,7 +207,7 @@ export class QuizGeneratorService extends PrismaClient {
               `All content entries processed. Creating quiz for bankId: ${bankId}`,
             );
 
-            return this.quizObservableService
+            return this.quizService
               .createQuiz({
                 userId,
                 bankId,
@@ -237,7 +232,7 @@ export class QuizGeneratorService extends PrismaClient {
               );
           }
 
-          return this.quizObservableService
+          return this.quizService
             .getQuestionsGenerated({
               userId,
               contentBankId: bankId,

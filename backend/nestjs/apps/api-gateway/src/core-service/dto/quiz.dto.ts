@@ -1,12 +1,5 @@
-import { IsNumber, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export class CreateQuizDto {
-  @IsNumber()
-  @IsNotEmpty()
-  @Type(() => Number)
-  bankId: number;
-}
 
 export class FindAllQuizzesDto {
   @IsOptional()

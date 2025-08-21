@@ -19,7 +19,6 @@ import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
 import { 
-  CreateQuizDto, 
   FindAllQuizzesDto, 
   FindQuizResponsesDto 
 } from './dto/quiz.dto';
@@ -34,7 +33,6 @@ interface QuizService {
   FindOneQuiz(data: any): Promise<any>;
   FindQuizResponses(data: any): Promise<any>;
   FindQuizSummary(data: any): Promise<any>;
-  CreateQuiz(data: any): Promise<any>;
   RemoveQuiz(data: any): Promise<any>;
 }
 
@@ -143,31 +141,6 @@ export class QuizController implements OnModuleInit {
           'Quiz not found or you do not have permission to access it',
           HttpStatus.NOT_FOUND,
         );
-      }
-      throw new HttpException(
-        error.message || 'Internal server error',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post()
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 quiz creations per minute
-  async create(
-    @Body() createQuizRequest: CreateQuizRequest,
-    @Request() req: any,
-  ) {
-    try {
-      const userId = req.user.id;
-      const createQuizDto = {
-        bankId: createQuizRequest.bankId,
-        userId,
-      };
-
-      return await this.quizService.CreateQuiz(createQuizDto);
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
       }
       throw new HttpException(
         error.message || 'Internal server error',

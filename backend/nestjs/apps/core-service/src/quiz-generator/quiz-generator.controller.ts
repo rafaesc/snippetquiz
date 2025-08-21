@@ -3,7 +3,7 @@ import { GrpcMethod } from '@nestjs/microservices';
 import { QuizGeneratorService } from './quiz-generator.service';
 import { Observable } from 'rxjs';
 import { Logger } from '@nestjs/common';
-import { QuizGenerationProgressDto } from '../quiz/quiz.observable.service';
+import { QuizGenerationProgressDto } from './dto/core-quiz-generation.dto';
 
 interface GenerateQuizByBankRequest {
   bank_id: number;
