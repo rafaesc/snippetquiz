@@ -152,6 +152,11 @@ export type FindOneQuizResponse = {
   createdAt: string;
   questionsCompleted: number;
   contentEntriesCount: number;
+  totalQuestions: number;
   topics: string[];
-  questions: QuizQuestion[];
+  question?: QuizQuestion | null;
+}
+
+export interface UpdateQuizResponse {
+  success: boolean;
 }

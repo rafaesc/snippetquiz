@@ -3,6 +3,7 @@ import { GrpcMethod } from '@nestjs/microservices';
 import { QuizService } from './quiz.service';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
+import { UpdateQuizDto } from './dto/update-quiz.dto';
 
 @Controller()
 export class QuizController {
@@ -42,5 +43,14 @@ export class QuizController {
   @GrpcMethod('QuizService', 'RemoveQuiz')
   remove(data: { id: number; user_id: string }) {
     return this.quizService.remove(data.id, data.user_id);
+  }
+
+  @GrpcMethod('QuizService', 'UpdateQuiz')
+  updateQuiz(data: { quiz_id: number; user_id: string; question_option_id: number }) {
+    return this.quizService.updateQuiz({
+      userId: data.user_id,
+      quizId: data.quiz_id,
+      questionOptionId: data.question_option_id,
+    });
   }
 }

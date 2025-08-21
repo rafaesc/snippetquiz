@@ -61,21 +61,6 @@ export class QuizService extends PrismaClient {
       content_entries_count: quiz.contentEntriesCount,
       topics: quiz.quizTopics.map((topic) => topic.topicName),
     }));
-    this.logger.debug(
-      JSON.stringify(
-        {
-          quizzes: formattedQuizzes,
-          pagination: {
-            page,
-            limit,
-            total,
-            total_pages: Math.ceil(total / limit),
-          },
-        },
-        null,
-        2,
-      ),
-    );
 
     return {
       quizzes: formattedQuizzes,
@@ -118,6 +103,9 @@ export class QuizService extends PrismaClient {
               },
             },
           },
+          orderBy: {
+            id: 'asc',
+          },
         },
       },
     });
@@ -128,22 +116,28 @@ export class QuizService extends PrismaClient {
       );
     }
 
+    const currentQuestion = quiz.quizQuestions[quiz.questionsCompleted];
+
     return {
       id: quiz.id.toString(),
       created_at: quiz.createdAt,
       questions_completed: quiz.questionsCompleted,
       content_entries_count: quiz.contentEntriesCount,
       topics: quiz.quizTopics.map((topic) => topic.topicName),
-      questions: quiz.quizQuestions.map((question) => ({
-        id: question.id.toString(),
-        question: question.question,
-        content_entry_type: question.contentEntryType,
-        content_entry_source_url: question.contentEntrySourceUrl || '',
-        options: question.options.map((option) => ({
-          id: option.id.toString(),
-          option_text: option.optionText,
-        })),
-      })),
+      total_questions: quiz.questionsCount,
+      question: currentQuestion
+        ? {
+            id: currentQuestion.id.toString(),
+            question: currentQuestion.question,
+            content_entry_type: currentQuestion.contentEntryType,
+            content_entry_source_url:
+              currentQuestion.contentEntrySourceUrl || '',
+            options: currentQuestion.options.map((option) => ({
+              id: option.id.toString(),
+              option_text: option.optionText,
+            })),
+          }
+        : null,
     };
   }
 
@@ -344,15 +338,15 @@ export class QuizService extends PrismaClient {
             const allQuestions = contentBank.contentEntries.flatMap(
               (entry) => entry.contentEntry.questions,
             );
-            
+
             // Create a Map for quick lookup of content entries by ID
             const contentEntryMap = new Map(
               contentBank.contentEntries.map((entry) => [
                 entry.contentEntry.id,
                 entry.contentEntry,
-              ])
+              ]),
             );
-            
+
             if (allQuestions.length === 0) {
               return from(
                 this.quiz.update({
@@ -368,13 +362,15 @@ export class QuizService extends PrismaClient {
                 })),
               );
             }
-            
+
             // Create quiz questions and options
             const createQuizQuestions = allQuestions.map(
               async (question, index) => {
                 // Get the content entry for this question
-                const contentEntry = contentEntryMap.get(question.contentEntryId);
-                
+                const contentEntry = contentEntryMap.get(
+                  question.contentEntryId,
+                );
+
                 const quizQuestion = await this.quizQuestion.create({
                   data: {
                     question: question.question,
@@ -385,7 +381,7 @@ export class QuizService extends PrismaClient {
                     quizId: quiz.id,
                   },
                 });
-            
+
                 // Create quiz question options
                 await Promise.all(
                   question.options.map(async (option, optionIndex) => {
@@ -399,11 +395,11 @@ export class QuizService extends PrismaClient {
                     });
                   }),
                 );
-            
+
                 return quizQuestion;
               },
             );
-            
+
             return from(Promise.all(createQuizQuestions)).pipe(
               switchMap((createdQuestions) => {
                 // Update quiz with counts
@@ -580,5 +576,124 @@ export class QuizService extends PrismaClient {
         return of(questionsGeneratedSoFar);
       }),
     );
+  }
+
+  async updateQuiz(params: {
+    userId: string;
+    quizId: number;
+    questionOptionId: number;
+  }): Promise<{ message: string; success: boolean }> {
+    const { userId, quizId, questionOptionId } = params;
+
+    // Validate if the quiz belongs to the user
+    const quiz = await this.quiz.findFirst({
+      where: {
+        id: BigInt(quizId),
+        userId,
+      },
+      select: {
+        id: true,
+        questionsCompleted: true,
+        questionsCount: true,
+        quizQuestions: {
+          select: {
+            id: true,
+            options: {
+              select: {
+                id: true,
+                isCorrect: true,
+                optionText: true,
+              },
+            },
+          },
+          orderBy: {
+            id: 'asc',
+          },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(
+        'Quiz not found or you do not have permission to access it',
+      );
+    }
+
+    // Check if quiz is already completed
+    if (quiz.questionsCompleted >= quiz.questionsCount) {
+      return {
+        message: 'Quiz is already completed',
+        success: false,
+      };
+    }
+
+    // Get the current question (next question to answer)
+    const currentQuestion = quiz.quizQuestions[quiz.questionsCompleted];
+
+    if (!currentQuestion) {
+      return {
+        message: 'No more questions available',
+        success: false,
+      };
+    }
+
+    // Validate if the question_option_id exists in the current question's options
+    const selectedOption = currentQuestion.options.find(
+      (option) => option.id === BigInt(questionOptionId),
+    );
+
+    if (!selectedOption) {
+      return {
+        message: 'Invalid question option selected',
+        success: false,
+      };
+    }
+
+    // Find the correct answer for this question
+    const correctOption = currentQuestion.options.find(
+      (option) => option.isCorrect,
+    );
+
+    if (!correctOption) {
+      this.logger.error(
+        `No correct option found for question ${currentQuestion.id}`,
+      );
+      return {
+        message: 'Question configuration error',
+        success: false,
+      };
+    }
+
+    // Create a new QuizQuestionResponse
+    await this.quizQuestionResponse.create({
+      data: {
+        quizId: BigInt(quizId),
+        quizQuestionId: currentQuestion.id,
+        quizQuestionOptionId: BigInt(questionOptionId),
+        isCorrect: selectedOption.isCorrect,
+        correctAnswer: correctOption.optionText,
+        responseTime: '0',
+      },
+    });
+
+    // Step 5: Increment Quiz.questionsCompleted
+    const updatedQuestionsCompleted = quiz.questionsCompleted + 1;
+    const completedAt =
+      updatedQuestionsCompleted >= quiz.questionsCount ? new Date() : null;
+
+    await this.quiz.update({
+      where: {
+        id: BigInt(quizId),
+      },
+      data: {
+        questionsCompleted: updatedQuestionsCompleted,
+        completedAt,
+      },
+    });
+
+    return {
+      message: 'Quiz updated successfully',
+      success: true,
+    };
   }
 }

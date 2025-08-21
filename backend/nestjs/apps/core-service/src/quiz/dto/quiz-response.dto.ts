@@ -29,8 +29,9 @@ export class FindOneQuizResponse {
   created_at: Date;
   questions_completed: number;
   content_entries_count: number;
+  total_questions: number;
   topics: string[];
-  questions: QuizQuestion[];
+  question?: QuizQuestion | null;
 }
 
 export class QuizSummaryResponseDto {
