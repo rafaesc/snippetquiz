@@ -2,125 +2,38 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuiz } from "@/contexts/QuizContext";
-
-interface QuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
-  sourceUrl: string;
-}
-
-interface Quiz {
-  id: string;
-  title: string;
-  currentQuestionIndex: number;
-  questions: QuizQuestion[];
-}
-
-// Mock quiz data
-const mockQuiz: Quiz = {
-  id: "1",
-  title: "React & JavaScript Fundamentals",
-  currentQuestionIndex: 2, // Starting at question 3 (0-indexed)
-  questions: [
-    {
-      id: "q1",
-      question: "What is the virtual DOM in React?",
-      options: [
-        "A copy of the real DOM stored in memory",
-        "A programming concept where UI is kept in memory",
-        "A JavaScript representation of the real DOM",
-        "All of the above",
-      ],
-      correctAnswer: "All of the above",
-      explanation:
-        "The virtual DOM is a programming concept where a virtual representation of the real DOM is kept in memory and synced with the real DOM.",
-      sourceUrl: "https://react.dev/learn/react-developer-tools",
-    },
-    {
-      id: "q2",
-      question: "Which hook is used to manage state in functional components?",
-      options: ["useEffect", "useState", "useContext", "useReducer"],
-      correctAnswer: "useState",
-      explanation:
-        "useState is the primary hook for managing local state in functional components.",
-      sourceUrl: "https://react.dev/reference/react/useState",
-    },
-    {
-      id: "q3",
-      question: "What does JSX stand for?",
-      options: [
-        "JavaScript XML",
-        "JavaScript Extension",
-        "Java Syntax Extension",
-        "JavaScript eXtended",
-      ],
-      correctAnswer: "JavaScript XML",
-      explanation:
-        "JSX stands for JavaScript XML and allows you to write HTML-like syntax in JavaScript.",
-      sourceUrl: "https://react.dev/learn/writing-markup-with-jsx",
-    },
-    {
-      id: "q4",
-      question: "Which method is used to update state in a class component?",
-      options: [
-        "this.updateState()",
-        "this.setState()",
-        "this.changeState()",
-        "this.modifyState()",
-      ],
-      correctAnswer: "this.setState()",
-      explanation:
-        "this.setState() is the method used to update state in React class components.",
-      sourceUrl: "https://react.dev/reference/react/Component#setstate",
-    },
-    {
-      id: "q5",
-      question: "What is the purpose of useEffect hook?",
-      options: [
-        "To manage component state",
-        "To perform side effects in functional components",
-        "To create context",
-        "To optimize performance",
-      ],
-      correctAnswer: "To perform side effects in functional components",
-      explanation:
-        "useEffect lets you perform side effects in functional components, such as data fetching, subscriptions, or DOM manipulation.",
-      sourceUrl: "https://react.dev/reference/react/useEffect",
-    },
-  ],
-};
+import { apiService } from "@/lib/api-service";
 
 export default function QuizPlayerPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const { currentQuizId, setCurrentQuizId, quizData, setQuizData } = useQuiz();
+  const { currentQuizId } = useQuiz();
 
-  const [quiz] = useState<Quiz>(mockQuiz);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(
-    quiz.currentQuestionIndex
-  );
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
 
-  // Set the current quiz ID when component mounts
-  useEffect(() => {
-    if (id && Number(id) !== currentQuizId) {
-      setCurrentQuizId(Number(id));
-      setQuizData(quiz);
-    }
-  }, [id, currentQuizId, setCurrentQuizId, quiz, setQuizData]);
+  const {
+    data: quiz,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["quiz", currentQuizId],
+    queryFn: () => apiService.getQuiz(currentQuizId!),
+    enabled: !!currentQuizId,
+  });
 
-  const currentQuestion = quiz.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+  const currentQuestion = quiz?.questions[currentQuestionIndex];
+  const progress = quiz
+    ? ((currentQuestionIndex + 1) / quiz?.questions?.length) * 100
+    : 0;
 
   const handleAnswerSelect = async (answer: string) => {
     if (selectedAnswer || isTransitioning) return;
@@ -130,6 +43,20 @@ export default function QuizPlayerPage() {
       ...prev,
       [currentQuestion.id]: answer,
     }));
+
+    // Call TODO service when user answers a question
+    try {
+      console.log({
+        title: `Quiz Answer Recorded`,
+        description: `User answered question: "${currentQuestion.question}" with answer: "${answer}"`,
+        quizId: quiz.id,
+        questionId: currentQuestion.id,
+        userAnswer: answer,
+      });
+    } catch (error) {
+      console.error("Failed to create TODO for answer:", error);
+      // Continue with quiz flow even if TODO creation fails
+    }
 
     // Short delay to show selection
     setTimeout(() => {
@@ -144,8 +71,6 @@ export default function QuizPlayerPage() {
           setIsTransitioning(false);
         } else {
           // Quiz completed - navigate to summary
-          // Store results in context instead of localStorage
-          setQuizData({ ...quiz, userAnswers, completed: true });
           router.push(`/dashboard/quizzes/${id}/summary`);
         }
       }, 300);
@@ -163,9 +88,57 @@ export default function QuizPlayerPage() {
     return `${baseClass} border-border bg-background hover:scale-[1.02]`;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-destructive">Failed to load quiz</p>
+          <Button
+            onClick={() => router.push("/dashboard/quizzes")}
+            className="mt-4"
+          >
+            Back to Quizzes
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    !quiz ||
+    !quiz.questions ||
+    quiz.questions.length === 0 ||
+    !currentQuestion?.question
+  ) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground">No questions available</p>
+          <Button
+            onClick={() => router.push("/dashboard/quizzes")}
+            className="mt-4"
+          >
+            Back to Quizzes
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Header remains the same */}
+      {/* Header */}
       <div className="bg-background">
         <div className="flex h-16 items-center justify-between px-4 md:px-6">
           <Button
@@ -203,16 +176,29 @@ export default function QuizPlayerPage() {
                   <h3 className="text-xl md:text-2xl font-semibold leading-relaxed">
                     {currentQuestion.question}
                   </h3>
+                  {/* Show content source info */}
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {currentQuestion.contentEntrySourceUrl && (
+                      <a
+                        href={currentQuestion.contentEntrySourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        View Source
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Options */}
                 <div className="space-y-3 w-full">
                   {currentQuestion.options.map((option, index) => (
                     <Button
-                      key={index}
+                      key={option.id}
                       variant="outline"
-                      className={getOptionButtonClass(option)}
-                      onClick={() => handleAnswerSelect(option)}
+                      className={getOptionButtonClass(option.optionText)}
+                      onClick={() => handleAnswerSelect(option.optionText)}
                       disabled={!!selectedAnswer || isTransitioning}
                     >
                       <div className="flex items-start space-x-3 w-full min-w-0">
@@ -220,7 +206,7 @@ export default function QuizPlayerPage() {
                           {String.fromCharCode(65 + index)}
                         </div>
                         <span className="flex-1 break-words min-w-0 text-center leading-relaxed">
-                          {option}
+                          {option.optionText}
                         </span>
                       </div>
                     </Button>

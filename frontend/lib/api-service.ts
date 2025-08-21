@@ -1,3 +1,21 @@
+import   {
+  UserProfile,
+  GetInstructionsResponse,
+  UpdateInstructionsResponse,
+  ContentBank,
+  ContentBanksResponse,
+  CreateContentBankRequest,
+  UpdateContentBankRequest,
+  DuplicateContentBankRequest,
+  ContentEntry,
+  ContentEntriesResponse,
+  CreateContentEntryRequest,
+  QuizzesResponse,
+  QuizResponsesResponse,
+  QuizSummaryResponse,
+  FindOneQuizResponse,
+} from './types';
+
 const API_BASE_URL = process.env.API_URL || 'http://localhost:5000';
 
 // Token management (now using cookies instead of localStorage)
@@ -72,141 +90,6 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
 
   return response;
 };
-
-export interface DashboardData {
-  title: string;
-  isAuthenticated: boolean;
-}
-
-export interface UserProfile {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    created_date: string;
-    verified: boolean;
-  }
-  banks: {
-    id: string;
-    name: string;
-  }[];
-}
-
-export interface GetInstructionsResponse {
-  instruction: string;
-  updatedAt: string; // ISO date string
-}
-
-export interface UpdateInstructionsResponse {
-  id: string;
-  instruction: string;
-  updatedAt: string; // ISO date string
-}
-
-
-// Content Bank Types
-export interface ContentBank {
-  id: string;
-  name: string;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-  contentEntries?: number;
-}
-
-export interface ContentBanksResponse {
-  contentBanks: ContentBank[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-export interface CreateContentBankRequest {
-  name: string;
-}
-
-export interface UpdateContentBankRequest {
-  name: string;
-}
-
-export interface DuplicateContentBankRequest {
-  name?: string;
-}
-
-// Content Entry Types
-export interface ContentEntry {
-  id: string;
-  contentType: 'full_html' | 'selected_text' | 'video_transcript';
-  content?: string;
-  sourceUrl?: string;
-  pageTitle?: string;
-  createdAt: string;
-  topics?: string[];
-  questionsGenerated?: boolean;
-}
-
-export interface ContentEntriesResponse {
-  entries: ContentEntry[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-export interface CreateContentEntryRequest {
-  sourceUrl?: string;
-  content?: string;
-  type: 'full_html' | 'selected_text' | 'video_transcript';
-  pageTitle?: string;
-  bankId: string;
-}
-
-// Quiz Types
-export interface Quiz {
-  id: string;
-  name: string;
-  createdAt: string;
-  questionsCompleted: number;
-  contentEntriesCount: number;
-  topics: string[];
-  questionsCount: number;
-}
-
-export interface QuizzesResponse {
-  quizzes: Quiz[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-export interface QuizResponse {
-  isCorrect: boolean;
-  question: string;
-  answer: string;
-  correctAnswer: string;
-  explanation: string;
-  sourceUrl: string;
-}
-
-export interface QuizResponsesResponse {
-  responses: QuizResponse[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-export interface QuizSummaryResponse {
-  topics: string[];
-  totalQuestions: number;
-  totalCorrectAnswers: number;
-}
 
 // API service functions
 export const apiService = {
@@ -532,9 +415,9 @@ export const apiService = {
     return response.json();
   },
 
-  getQuiz: async (id: string): Promise<Quiz> => {
+  getQuiz: async (id: number): Promise<FindOneQuizResponse> => {
     const response = await makeAuthenticatedRequest(`/api/quiz/${id}`);
-
+    console.log('get', id, response)
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch quiz');

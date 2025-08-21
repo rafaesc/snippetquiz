@@ -13,7 +13,8 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { ResponsiveEntryTable } from '@/components/ResponsiveEntryTable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { apiService, ContentBank, ContentEntry } from '@/lib/api-service';
+import { apiService } from '@/lib/api-service';
+import { ContentBank, ContentEntry } from '@/lib/types';
 
 type View = 'list' | 'bank';
 type MediaType = ContentEntry['contentType'];

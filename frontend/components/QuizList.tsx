@@ -1,16 +1,38 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Play, Eye, Trash2, MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
-import { Quiz, QuizzesResponse } from '@/lib/api-service';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Play, Eye, Trash2, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Quiz, QuizzesResponse } from "@/lib/types";
+import { useQuiz } from "@/contexts/QuizContext";
 
 interface QuizListProps {
   quizzesData: QuizzesResponse;
@@ -23,15 +45,16 @@ export const QuizList: React.FC<QuizListProps> = ({
   quizzesData,
   onViewSummary,
   onDelete,
-  onPageChange
 }) => {
+  const { setCurrentQuizId } = useQuiz();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const { quizzes, pagination } = quizzesData;
+  const { quizzes } = quizzesData;
 
   const handleContinue = (quiz: Quiz) => {
-    router.push(`/dashboard/quizzes/${quiz.id}/play`);
+    setCurrentQuizId(Number(quiz.id));
+    router.push("/dashboard/quizzes/play");
   };
 
   const handleDelete = async (quiz: Quiz) => {
@@ -40,7 +63,7 @@ export const QuizList: React.FC<QuizListProps> = ({
       try {
         await onDelete(quiz.id);
       } catch (error) {
-        console.error('Failed to delete quiz:', error);
+        console.error("Failed to delete quiz:", error);
       } finally {
         setIsDeleting(null);
       }
@@ -54,16 +77,10 @@ export const QuizList: React.FC<QuizListProps> = ({
   const getStatusBadge = (quiz: Quiz) => {
     const completed = isQuizCompleted(quiz);
     return (
-      <Badge variant={completed ? 'default' : 'secondary'}>
-        {completed ? 'Completed' : 'Incomplete'}
+      <Badge variant={completed ? "default" : "secondary"}>
+        {completed ? "Completed" : "Incomplete"}
       </Badge>
     );
-  };
-
-  const handlePageChange = (page: number) => {
-    if (onPageChange) {
-      onPageChange(page);
-    }
   };
 
   // Mobile card component
@@ -93,7 +110,10 @@ export const QuizList: React.FC<QuizListProps> = ({
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background border">
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-background border"
+                >
                   {!completed && (
                     <DropdownMenuItem onClick={() => handleContinue(quiz)}>
                       <Play className="mr-2 h-4 w-4" />
@@ -117,7 +137,8 @@ export const QuizList: React.FC<QuizListProps> = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete this quiz? This action cannot be undone.
+                          Are you sure you want to delete this quiz? This action
+                          cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -127,7 +148,7 @@ export const QuizList: React.FC<QuizListProps> = ({
                           disabled={isDeleting === quiz.id}
                           className="bg-destructive hover:bg-destructive/90"
                         >
-                          {isDeleting === quiz.id ? 'Deleting...' : 'Delete'}
+                          {isDeleting === quiz.id ? "Deleting..." : "Delete"}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -167,7 +188,11 @@ export const QuizList: React.FC<QuizListProps> = ({
                   Continue
                 </Button>
               ) : (
-                <Button size="sm" variant="outline" onClick={() => onViewSummary(quiz)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onViewSummary(quiz)}
+                >
                   <Eye className="h-4 w-4 mr-1" />
                   View Summary
                 </Button>
@@ -213,22 +238,20 @@ export const QuizList: React.FC<QuizListProps> = ({
                       <TableCell className="text-muted-foreground">
                         {new Date(quiz.createdAt).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
-                        {quiz.name || 'N/A'}
-                      </TableCell>
+                      <TableCell>{quiz.name || "N/A"}</TableCell>
                       <TableCell className="font-medium">
                         {quiz.questionsCompleted} / {quiz.questionsCount}
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(quiz)}
-                      </TableCell>
-                      <TableCell>
-                        {quiz.contentEntriesCount}
-                      </TableCell>
+                      <TableCell>{getStatusBadge(quiz)}</TableCell>
+                      <TableCell>{quiz.contentEntriesCount}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {(quiz?.topics || []).slice(0, 2).map((topic) => (
-                            <Badge key={topic} variant="outline" className="text-xs">
+                            <Badge
+                              key={topic}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {topic}
                             </Badge>
                           ))}
@@ -242,35 +265,51 @@ export const QuizList: React.FC<QuizListProps> = ({
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-background border">
+                          <DropdownMenuContent
+                            align="end"
+                            className="bg-background border"
+                          >
                             {!completed && (
-                              <DropdownMenuItem onClick={() => handleContinue(quiz)}>
+                              <DropdownMenuItem
+                                onClick={() => handleContinue(quiz)}
+                              >
                                 <Play className="mr-2 h-4 w-4" />
                                 Continue
                               </DropdownMenuItem>
                             )}
                             {completed && (
-                              <DropdownMenuItem onClick={() => onViewSummary(quiz)}>
+                              <DropdownMenuItem
+                                onClick={() => onViewSummary(quiz)}
+                              >
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Summary
                               </DropdownMenuItem>
                             )}
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}
+                                >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Delete
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
+                                  <AlertDialogTitle>
+                                    Delete Quiz
+                                  </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete this quiz? This action cannot be undone.
+                                    Are you sure you want to delete this quiz?
+                                    This action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -279,7 +318,9 @@ export const QuizList: React.FC<QuizListProps> = ({
                                     onClick={() => handleDelete(quiz)}
                                     disabled={isDeleting === quiz.id}
                                   >
-                                    {isDeleting === quiz.id ? 'Deleting...' : 'Delete'}
+                                    {isDeleting === quiz.id
+                                      ? "Deleting..."
+                                      : "Delete"}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
