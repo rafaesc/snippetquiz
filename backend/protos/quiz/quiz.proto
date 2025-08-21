@@ -90,16 +90,6 @@ message FindQuizSummaryResponse {
   repeated string topics = 2;
 }
 
-message CreateQuizRequest {
-  int64 bank_id = 1;
-  string user_id = 2;
-}
-
-message CreateQuizResponse {
-  string message = 1;
-  int64 quiz_id = 2;
-}
-
 message RemoveQuizRequest {
   int64 id = 1;
   string user_id = 2;
@@ -115,6 +105,5 @@ service QuizService {
   rpc FindOneQuiz(FindOneQuizRequest) returns (FindOneQuizResponse);
   rpc FindQuizResponses(FindQuizResponsesRequest) returns (FindQuizResponsesResponse);
   rpc FindQuizSummary(FindQuizSummaryRequest) returns (FindQuizSummaryResponse);
-  rpc CreateQuiz(CreateQuizRequest) returns (CreateQuizResponse);
   rpc RemoveQuiz(RemoveQuizRequest) returns (RemoveQuizResponse);
 }

@@ -3,7 +3,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma/postgres';
+import { PrismaClient, ContentEntry } from 'generated/prisma/postgres';
 import {
   CreateContentEntryDto,
   ContentType,
@@ -17,6 +17,7 @@ import {
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
+import { Observable, from, switchMap, throwError } from 'rxjs';
 
 @Injectable()
 export class ContentEntryService extends PrismaClient {
@@ -421,5 +422,53 @@ export class ContentEntryService extends PrismaClient {
     });
 
     return { message: 'Content entry deleted successfully' };
+  }
+
+  
+
+  /**
+   * Update a Content Entry, using a content entry id, and user id,
+   * to enable the column questions_generated to true.
+   */
+  updateContentEntry(params: {
+    userId: string;
+    contentEntryId: number;
+  }): Observable<ContentEntry> {
+    const { userId, contentEntryId } = params;
+
+    return from(
+      this.contentEntry.findFirst({
+        where: {
+          id: BigInt(contentEntryId),
+          contentBanks: {
+            some: {
+              contentBank: {
+                userId,
+              },
+            },
+          },
+        },
+      }),
+    ).pipe(
+      switchMap((contentEntry) => {
+        if (!contentEntry) {
+          return throwError(
+            () =>
+              new NotFoundException(
+                'Content entry not found or you do not have permission to access it',
+              ),
+          );
+        }
+
+        return from(
+          this.contentEntry.update({
+            where: { id: BigInt(contentEntryId) },
+            data: {
+              questionsGenerated: true,
+            },
+          }),
+        );
+      }),
+    );
   }
 }

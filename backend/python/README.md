@@ -1,6 +1,6 @@
-# Python gRPC Book Service
+# Python gRPC Quiz Generation Service
 
-A simple gRPC server implementation in Python that provides a book service.
+A simple gRPC server implementation in Python that provides a quiz generation service.
 
 ## Setup
 
@@ -11,12 +11,12 @@ pip install -r requirements.txt
 
 2. Generate gRPC Python files from the protobuf definition:
 ```bash
-python -m grpc_tools.protoc --proto_path=../protos --python_out=generated --grpc_python_out=generated ../protos/books.proto
+python -m grpc_tools.protoc --proto_path=../protos --python_out=. --grpc_python_out=. ../protos/quiz_generation.proto
 ```
 
 This will generate:
-- `books_pb2.py` - Contains the message classes
-- `books_pb2_grpc.py` - Contains the service classes
+- `quiz_generation_pb2.py` - Contains the message classes
+- `quiz_generation_pb2_grpc.py` - Contains the service classes
 
 ## Running the Server
 

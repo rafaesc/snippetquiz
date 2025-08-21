@@ -1,7 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { QuizService } from './quiz.service';
-import { CreateQuizDto } from './dto/create-quiz.dto';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 
@@ -38,14 +37,6 @@ export class QuizController {
   @GrpcMethod('QuizService', 'FindQuizSummary')
   findQuizSummary(data: { id: number; user_id: string }) {
     return this.quizService.findQuizSummary(data.id, data.user_id);
-  }
-
-  @GrpcMethod('QuizService', 'CreateQuiz')
-  create(data: { bank_id: number; user_id: string }) {
-    const createQuizDto: CreateQuizDto = {
-      bankId: data.bank_id,
-    };
-    return this.quizService.create(createQuizDto, data.user_id);
   }
 
   @GrpcMethod('QuizService', 'RemoveQuiz')

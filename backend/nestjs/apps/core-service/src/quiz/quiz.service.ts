@@ -1,6 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma/postgres';
-import { CreateQuizDto } from './dto/create-quiz.dto';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 import {
@@ -11,7 +10,7 @@ import {
   QuizResponseDto,
   QuizResponseItemDto,
 } from './dto/quiz-response.dto';
-import { Observable } from 'rxjs';
+import { Observable, from, switchMap, map, throwError, of } from 'rxjs';
 
 @Injectable()
 export class QuizService extends PrismaClient {
@@ -234,165 +233,6 @@ export class QuizService extends PrismaClient {
     };
   }
 
-  async create(
-    createQuizDto: CreateQuizDto,
-    userId: string,
-  ): Promise<{ message: string; quizId: number }> {
-    const { bankId } = createQuizDto;
-
-    // Create a dummy quiz (as per the original implementation)
-    const quiz = await this.quiz.create({
-      data: {
-        userId,
-        bankId: BigInt(bankId),
-        contentEntriesCount: 3,
-        questionsCount: 3,
-        questionsCompleted: 0,
-        bankName: 'Dummy Quiz Bank',
-      },
-    });
-
-    // Create dummy topics for the quiz
-    const topics = ['JavaScript', 'Programming', 'Web Development'];
-    await Promise.all(
-      topics.map((topic) =>
-        this.quizTopic.create({
-          data: {
-            quizId: quiz.id,
-            topicName: topic,
-          },
-        }),
-      ),
-    );
-
-    // Create dummy questions with options
-    const questionsData = [
-      {
-        question:
-          'What is the correct way to declare a variable in JavaScript?',
-        contentEntryType: 'text',
-        contentEntrySourceUrl:
-          'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types',
-        options: [
-          {
-            optionText: 'var myVar = 5;',
-            optionExplanation:
-              'This is the traditional way to declare variables in JavaScript.',
-            isCorrect: true,
-          },
-          {
-            optionText: 'variable myVar = 5;',
-            optionExplanation: 'This is not valid JavaScript syntax.',
-            isCorrect: false,
-          },
-          {
-            optionText: 'declare myVar = 5;',
-            optionExplanation: 'This is not valid JavaScript syntax.',
-            isCorrect: false,
-          },
-          {
-            optionText: 'int myVar = 5;',
-            optionExplanation: 'This is Java/C++ syntax, not JavaScript.',
-            isCorrect: false,
-          },
-        ],
-      },
-      {
-        question:
-          'Which method is used to add an element to the end of an array?',
-        contentEntryType: 'text',
-        contentEntrySourceUrl:
-          'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push',
-        options: [
-          {
-            optionText: 'array.push(element)',
-            optionExplanation:
-              'Correct! The push() method adds elements to the end of an array.',
-            isCorrect: true,
-          },
-          {
-            optionText: 'array.add(element)',
-            optionExplanation: 'JavaScript arrays do not have an add() method.',
-            isCorrect: false,
-          },
-          {
-            optionText: 'array.append(element)',
-            optionExplanation:
-              'JavaScript arrays do not have an append() method.',
-            isCorrect: false,
-          },
-          {
-            optionText: 'array.insert(element)',
-            optionExplanation:
-              'JavaScript arrays do not have an insert() method.',
-            isCorrect: false,
-          },
-        ],
-      },
-      {
-        question: 'What does the "===" operator do in JavaScript?',
-        contentEntryType: 'text',
-        contentEntrySourceUrl:
-          'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality',
-        options: [
-          {
-            optionText: 'Strict equality comparison',
-            optionExplanation:
-              'Correct! The === operator checks for strict equality without type coercion.',
-            isCorrect: true,
-          },
-          {
-            optionText: 'Assignment operator',
-            optionExplanation: 'The assignment operator is =, not ===.',
-            isCorrect: false,
-          },
-          {
-            optionText: 'Loose equality comparison',
-            optionExplanation: 'Loose equality comparison uses ==, not ===.',
-            isCorrect: false,
-          },
-          {
-            optionText: 'Greater than or equal',
-            optionExplanation: 'Greater than or equal uses >=, not ===.',
-            isCorrect: false,
-          },
-        ],
-      },
-    ];
-
-    // Create questions and their options
-    for (const questionData of questionsData) {
-      const question = await this.quizQuestion.create({
-        data: {
-          question: questionData.question,
-          type: 'multiple_choice',
-          contentEntryType: questionData.contentEntryType,
-          contentEntrySourceUrl: questionData.contentEntrySourceUrl,
-          quizId: quiz.id,
-        },
-      });
-
-      // Create options for this question
-      await Promise.all(
-        questionData.options.map((option) =>
-          this.quizQuestionOption.create({
-            data: {
-              quizQuestionId: question.id,
-              optionText: option.optionText,
-              optionExplanation: option.optionExplanation,
-              isCorrect: option.isCorrect,
-            },
-          }),
-        ),
-      );
-    }
-
-    return {
-      message: 'Dummy quiz created successfully',
-      quizId: Number(quiz.id),
-    };
-  }
-
   async remove(id: number, userId: string): Promise<{ message: string }> {
     // Check if the quiz exists and belongs to the user
     const quiz = await this.quiz.findFirst({
@@ -414,5 +254,300 @@ export class QuizService extends PrismaClient {
     });
 
     return { message: 'Quiz deleted successfully' };
+  }
+
+  
+  /**
+   * Create a quiz entity using the user_id and bank id, validate if the bank id has the same user id.
+   * Create the QuizQuestions and QuizQuestionOption using the list of Question and Options of all the entries of the content Bank.
+   * And finally update the Quiz entity contentEntriesCount and questionsCount
+   */
+  createQuiz(params: {
+    userId: string;
+    bankId: number;
+  }): Observable<{ message: string; quizId: number }> {
+    const { userId, bankId } = params;
+
+    return from(
+      this.contentBank.findFirst({
+        where: {
+          id: BigInt(bankId),
+          userId,
+        },
+        include: {
+          contentEntries: {
+            include: {
+              contentEntry: {
+                include: {
+                  questions: {
+                    include: {
+                      options: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    ).pipe(
+      switchMap((contentBank) => {
+        if (!contentBank) {
+          this.logger.error(
+            `[createQuiz] Content bank not found for bankId: ${bankId}, userId: ${userId}`,
+          );
+          return throwError(
+            () =>
+              new NotFoundException(
+                'Content bank not found or you do not have permission to access it',
+              ),
+          );
+        }
+
+        // Create the quiz
+        return from(
+          this.quiz.create({
+            data: {
+              userId,
+              bankId: BigInt(bankId),
+              bankName: contentBank.name,
+              contentEntriesCount: 0,
+              questionsCount: 0,
+              questionsCompleted: 0,
+            },
+          }),
+        ).pipe(
+          switchMap((quiz) => {
+            // Collect all questions from all content entries
+            const allQuestions = contentBank.contentEntries.flatMap(
+              (entry) => entry.contentEntry.questions,
+            );
+
+            if (allQuestions.length === 0) {
+              return from(
+                this.quiz.update({
+                  where: { id: quiz.id },
+                  data: {
+                    contentEntriesCount: contentBank.contentEntries.length,
+                    questionsCount: 0,
+                  },
+                }),
+              ).pipe(
+                map(() => ({
+                  message: 'Quiz created successfully with no questions',
+                  quizId: Number(quiz.id),
+                })),
+              );
+            }
+
+            // Create quiz questions and options
+            const createQuizQuestions = allQuestions.map(
+              async (question, index) => {
+                const quizQuestion = await this.quizQuestion.create({
+                  data: {
+                    question: question.question,
+                    type: question.type,
+                    contentEntryType: 'text', // Default value
+                    contentEntrySourceUrl: null,
+                    contentEntryId: question.contentEntryId,
+                    quizId: quiz.id,
+                  },
+                });
+
+                // Create quiz question options
+                await Promise.all(
+                  question.options.map(async (option, optionIndex) => {
+                    return this.quizQuestionOption.create({
+                      data: {
+                        quizQuestionId: quizQuestion.id,
+                        optionText: option.optionText,
+                        optionExplanation: option.optionExplanation,
+                        isCorrect: option.isCorrect,
+                      },
+                    });
+                  }),
+                );
+
+                return quizQuestion;
+              },
+            );
+
+            return from(Promise.all(createQuizQuestions)).pipe(
+              switchMap((createdQuestions) => {
+                // Update quiz with counts
+                return from(
+                  this.quiz.update({
+                    where: { id: quiz.id },
+                    data: {
+                      contentEntriesCount: contentBank.contentEntries.length,
+                      questionsCount: createdQuestions.length,
+                    },
+                  }),
+                ).pipe(
+                  map(() => ({
+                    message: 'Quiz created successfully',
+                    quizId: Number(quiz.id),
+                  })),
+                );
+              }),
+            );
+          }),
+        );
+      }),
+    );
+  }
+
+  /**
+   * Create Question, should receive a list of options and a single question,
+   * using content entry id, and user_id, (content entry id should have the same user_id.),
+   * should create the question and the question options in the same method,
+   * for the question the type column would be hardcoded in the code.
+   */
+  createQuestion(params: {
+    userId: string;
+    contentEntryId: number;
+    question: string;
+    options: {
+      optionText: string;
+      optionExplanation: string;
+      isCorrect: boolean;
+    }[];
+  }): Observable<{ message: string; questionId: number }> {
+    const { userId, contentEntryId, question, options } = params;
+
+    return from(
+      this.contentEntry.findFirst({
+        select: {
+          questionsGenerated: true,
+        },
+        where: {
+          id: BigInt(contentEntryId),
+          contentBanks: {
+            some: {
+              contentBank: {
+                userId,
+              },
+            },
+          },
+        },
+      }),
+    ).pipe(
+      switchMap((contentEntry) => {
+        if (!contentEntry) {
+          this.logger.error(
+            `[createQuestion] Content entry not found or access denied for contentEntryId: ${contentEntryId}, userId: ${userId}`,
+          );
+          return throwError(
+            () =>
+              new NotFoundException(
+                'Content entry not found or you do not have permission to access it',
+              ),
+          );
+        }
+
+        if (contentEntry.questionsGenerated) {
+          this.logger.error(
+            `[createQuestion] Content entry already has questions generated for contentEntryId: ${contentEntryId}, userId: ${userId}`,
+          );
+          return of({
+            message: 'Content entry already has questions generated',
+            questionId: 0,
+          });
+        }
+
+        if (!options || options.length === 0) {
+          this.logger.error(
+            `[createQuestion] No options provided for question`,
+          );
+          return of({
+            message: 'No options provided for question',
+            questionId: 0,
+          });
+        }
+
+        // Create the question with hardcoded type
+        return from(
+          this.question.create({
+            data: {
+              question,
+              type: 'multiple_choice', // Hardcoded as requested
+              contentEntryId: BigInt(contentEntryId),
+            },
+          }),
+        ).pipe(
+          switchMap((createdQuestion) => {
+            // Create question options
+            const createOptions = options.map((option, index) => {
+              return this.questionOption.create({
+                data: {
+                  questionId: createdQuestion.id,
+                  optionText: option.optionText,
+                  optionExplanation: option.optionExplanation,
+                  isCorrect: option.isCorrect,
+                },
+              });
+            });
+
+            return from(Promise.all(createOptions)).pipe(
+              map(() => ({
+                message: 'Question created successfully',
+                questionId: Number(createdQuestion.id),
+              })),
+            );
+          }),
+        );
+      }),
+    );
+  }
+
+  /**
+   * Generate quiz generation progress information for a specific content entry
+   * Returns progress data matching the gRPC proto structure
+   */
+  getQuestionsGenerated(params: {
+    userId: string;
+    contentBankId: number;
+  }): Observable<number> {
+    const { userId, contentBankId } = params;
+
+    return from(
+      this.contentBank.findFirst({
+        where: {
+          id: BigInt(contentBankId),
+          userId,
+        },
+        include: {
+          contentEntries: {
+            include: {
+              contentEntry: {
+                include: {
+                  questions: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ).pipe(
+      switchMap((contentBank) => {
+        if (!contentBank) {
+          this.logger.error(
+            `[generateQuizProgress] Content bank not found for contentBankId: ${contentBankId}`,
+          );
+          return throwError(
+            () => new NotFoundException('Content bank not found'),
+          );
+        }
+
+        let questionsGeneratedSoFar = 0;
+
+        contentBank.contentEntries.forEach((entry) => {
+          const entryQuestionCount = entry.contentEntry.questions.length;
+          questionsGeneratedSoFar += entryQuestionCount;
+        });
+
+        return of(questionsGeneratedSoFar);
+      }),
+    );
   }
 }
