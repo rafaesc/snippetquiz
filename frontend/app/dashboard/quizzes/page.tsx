@@ -1,15 +1,30 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Calendar, ExternalLink, ChevronLeft, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { QuizList } from '@/components/QuizList';
-import { apiService, Quiz, QuizResponse, QuizSummaryResponse } from '@/lib/api-service';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Calendar,
+  ExternalLink,
+  ChevronLeft,
+  CheckCircle,
+  XCircle,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { QuizList } from "@/components/QuizList";
+import { apiService } from "@/lib/api-service";
+import { Quiz, QuizResponse, QuizSummaryResponse } from "@/lib/types";
 
 interface QuizWithDetails extends Quiz {
   responses?: QuizResponse[];
@@ -17,7 +32,9 @@ interface QuizWithDetails extends Quiz {
 }
 
 export default function GeneratedQuizzesPage() {
-  const [selectedQuiz, setSelectedQuiz] = useState<QuizWithDetails | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizWithDetails | null>(
+    null
+  );
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -26,37 +43,41 @@ export default function GeneratedQuizzesPage() {
     data: quizzesData,
     isLoading: isLoadingQuizzes,
     error: quizzesError,
-    refetch: refetchQuizzes
+    refetch: refetchQuizzes,
   } = useQuery({
-    queryKey: ['quizzes', page, limit],
+    queryKey: ["quizzes", page, limit],
     queryFn: () => apiService.getQuizzes(page, limit),
   });
 
   // Fetch quiz responses when a quiz is selected
-  const {
-    data: responsesData,
-    isLoading: isLoadingResponses,
-  } = useQuery({
-    queryKey: ['quiz-responses', selectedQuiz?.id],
-    queryFn: () => selectedQuiz ? apiService.getQuizResponses(selectedQuiz.id) : Promise.resolve(null),
-    enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
+  const { data: responsesData, isLoading: isLoadingResponses } = useQuery({
+    queryKey: ["quiz-responses", selectedQuiz?.id],
+    queryFn: () =>
+      selectedQuiz
+        ? apiService.getQuizResponses(selectedQuiz.id)
+        : Promise.resolve(null),
+    enabled:
+      !!selectedQuiz &&
+      selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
   });
 
   // Fetch quiz summary when a quiz is selected
-  const {
-    data: summaryData,
-    isLoading: isLoadingSummary,
-  } = useQuery({
-    queryKey: ['quiz-summary', selectedQuiz?.id],
-    queryFn: () => selectedQuiz ? apiService.getQuizSummary(selectedQuiz.id) : Promise.resolve(null),
-    enabled: !!selectedQuiz && selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
+  const { data: summaryData, isLoading: isLoadingSummary } = useQuery({
+    queryKey: ["quiz-summary", selectedQuiz?.id],
+    queryFn: () =>
+      selectedQuiz
+        ? apiService.getQuizSummary(selectedQuiz.id)
+        : Promise.resolve(null),
+    enabled:
+      !!selectedQuiz &&
+      selectedQuiz.questionsCompleted === selectedQuiz.questionsCount,
   });
 
   const handleViewSummary = (quiz: Quiz) => {
     const quizWithDetails: QuizWithDetails = {
       ...quiz,
       responses: responsesData?.responses,
-      summary: summaryData as QuizSummaryResponse
+      summary: summaryData as QuizSummaryResponse,
     };
     setSelectedQuiz(quizWithDetails);
   };
@@ -66,7 +87,6 @@ export default function GeneratedQuizzesPage() {
   };
 
   const handlePageChange = (newPage: number) => {
-    console.log(newPage);
     setPage(newPage);
   };
 
@@ -76,7 +96,9 @@ export default function GeneratedQuizzesPage() {
       <div className="p-4 md:p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Generated Quizzes</h1>
-          <p className="text-muted-foreground">View and manage your quiz history</p>
+          <p className="text-muted-foreground">
+            View and manage your quiz history
+          </p>
         </div>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -92,11 +114,16 @@ export default function GeneratedQuizzesPage() {
       <div className="p-4 md:p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Generated Quizzes</h1>
-          <p className="text-muted-foreground">View and manage your quiz history</p>
+          <p className="text-muted-foreground">
+            View and manage your quiz history
+          </p>
         </div>
         <Alert variant="destructive">
           <AlertDescription>
-            Failed to load quizzes: {quizzesError instanceof Error ? quizzesError.message : 'Unknown error'}
+            Failed to load quizzes:{" "}
+            {quizzesError instanceof Error
+              ? quizzesError.message
+              : "Unknown error"}
           </AlertDescription>
         </Alert>
         <Button onClick={() => refetchQuizzes()} variant="outline">
@@ -108,9 +135,10 @@ export default function GeneratedQuizzesPage() {
 
   // Quiz detail view
   if (selectedQuiz) {
-    const isCompleted = selectedQuiz.questionsCompleted === selectedQuiz.questionsCount;
+    const isCompleted =
+      selectedQuiz.questionsCompleted === selectedQuiz.questionsCount;
     const isLoading = isLoadingResponses || isLoadingSummary;
-    
+
     return (
       <div className="p-4 md:p-6 space-y-6">
         {/* Header with back button */}
@@ -121,7 +149,9 @@ export default function GeneratedQuizzesPage() {
           <div>
             <h1 className="text-2xl font-bold">Quiz Summary</h1>
             <p className="text-muted-foreground">
-              {isCompleted ? 'Detailed results for your completed quiz' : 'Quiz in progress'}
+              {isCompleted
+                ? "Detailed results for your completed quiz"
+                : "Quiz in progress"}
             </p>
           </div>
         </div>
@@ -140,7 +170,9 @@ export default function GeneratedQuizzesPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Topics Covered</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Topics Covered
+                </p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {selectedQuiz?.topics?.map((topic) => (
                     <Badge key={topic} variant="secondary" className="text-xs">
@@ -150,18 +182,22 @@ export default function GeneratedQuizzesPage() {
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Progress</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Progress
+                </p>
                 <p className="text-lg font-semibold">
-                  {selectedQuiz.questionsCompleted} / {selectedQuiz.questionsCount}
+                  {selectedQuiz.questionsCompleted} /{" "}
+                  {selectedQuiz.questionsCount}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Score</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Score
+                </p>
                 <p className="text-lg font-semibold">
-                  {isCompleted && summaryData ? 
-                    `${summaryData.totalCorrectAnswers} / ${summaryData.totalQuestions}` : 
-                    'In Progress'
-                  }
+                  {isCompleted && summaryData
+                    ? `${summaryData.totalCorrectAnswers} / ${summaryData.totalQuestions}`
+                    : "In Progress"}
                 </p>
               </div>
             </div>
@@ -173,7 +209,8 @@ export default function GeneratedQuizzesPage() {
           <Card>
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">
-                This quiz is still in progress. Complete all questions to view detailed results.
+                This quiz is still in progress. Complete all questions to view
+                detailed results.
               </p>
             </CardContent>
           </Card>
@@ -192,24 +229,32 @@ export default function GeneratedQuizzesPage() {
                   <div className="space-y-4">
                     {/* Question */}
                     <div>
-                      <h3 className="font-medium text-lg">Question {index + 1}</h3>
-                      <p className="text-foreground mt-1">{response.question}</p>
+                      <h3 className="font-medium text-lg">
+                        Question {index + 1}
+                      </h3>
+                      <p className="text-foreground mt-1">
+                        {response.question}
+                      </p>
                     </div>
 
                     {/* Answers */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className={`p-3 rounded-lg border ${
-                        response.isCorrect 
-                          ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                          : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-                      }`}>
+                      <div
+                        className={`p-3 rounded-lg border ${
+                          response.isCorrect
+                            ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+                            : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800"
+                        }`}
+                      >
                         <div className="flex items-center space-x-2">
                           {response.isCorrect ? (
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           ) : (
                             <XCircle className="h-4 w-4 text-red-600" />
                           )}
-                          <span className="text-sm font-medium">Your Answer</span>
+                          <span className="text-sm font-medium">
+                            Your Answer
+                          </span>
                         </div>
                         <p className="mt-1">{response.answer}</p>
                       </div>
@@ -218,7 +263,9 @@ export default function GeneratedQuizzesPage() {
                         <div className="p-3 rounded-lg border bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
                           <div className="flex items-center space-x-2">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium">Correct Answer</span>
+                            <span className="text-sm font-medium">
+                              Correct Answer
+                            </span>
                           </div>
                           <p className="mt-1">{response.correctAnswer}</p>
                         </div>
@@ -240,7 +287,11 @@ export default function GeneratedQuizzesPage() {
                           asChild
                           className="text-primary hover:text-primary"
                         >
-                          <a href={response.sourceUrl} target="_blank" rel="noopener noreferrer">
+                          <a
+                            href={response.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             <ExternalLink className="h-4 w-4 mr-2" />
                             View Source
                           </a>
@@ -261,15 +312,21 @@ export default function GeneratedQuizzesPage() {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold dark:text-white">Generated Quizzes</h1>
-        <p className="text-muted-foreground">View and manage your quiz history</p>
+        <h1 className="text-2xl font-bold dark:text-white">
+          Generated Quizzes
+        </h1>
+        <p className="text-muted-foreground">
+          View and manage your quiz history
+        </p>
       </div>
 
       {quizzesData?.quizzes && quizzesData.quizzes.length > 0 ? (
         <>
-          <QuizList quizzesData={quizzesData} onViewSummary={handleViewSummary} />
+          <QuizList
+            quizzesData={quizzesData}
+            onViewSummary={handleViewSummary}
+          />
 
-          
           {/* Pagination */}
           {quizzesData.pagination.total > limit && (
             <div className="flex justify-center">
@@ -278,29 +335,54 @@ export default function GeneratedQuizzesPage() {
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => handlePageChange(Math.max(1, page - 1))}
-                      className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      className={
+                        page === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
                     />
                   </PaginationItem>
-                  {Array.from({ length: Math.min(5, Math.ceil(quizzesData.pagination.total / limit)) }, (_, i) => {
-                    const pageNum = i + Math.max(1, page - 2);
-                    const totalPages = Math.ceil(quizzesData.pagination.total / limit);
-                    if (pageNum > totalPages) return null;
-                    return (
-                      <PaginationItem key={pageNum}>
-                        <PaginationLink
-                          onClick={() => handlePageChange(pageNum)}
-                          isActive={page === pageNum}
-                          className="cursor-pointer"
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      </PaginationItem>
-                    );
-                  })}
+                  {Array.from(
+                    {
+                      length: Math.min(
+                        5,
+                        Math.ceil(quizzesData.pagination.total / limit)
+                      ),
+                    },
+                    (_, i) => {
+                      const pageNum = i + Math.max(1, page - 2);
+                      const totalPages = Math.ceil(
+                        quizzesData.pagination.total / limit
+                      );
+                      if (pageNum > totalPages) return null;
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(pageNum)}
+                            isActive={page === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                  )}
                   <PaginationItem>
                     <PaginationNext
-                      onClick={() => handlePageChange(Math.min(Math.ceil(quizzesData.pagination.total / limit), page + 1))}
-                      className={page >= Math.ceil(quizzesData.pagination.total / limit) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      onClick={() =>
+                        handlePageChange(
+                          Math.min(
+                            Math.ceil(quizzesData.pagination.total / limit),
+                            page + 1
+                          )
+                        )
+                      }
+                      className={
+                        page >= Math.ceil(quizzesData.pagination.total / limit)
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
                     />
                   </PaginationItem>
                 </PaginationContent>
@@ -311,7 +393,9 @@ export default function GeneratedQuizzesPage() {
       ) : (
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">No quizzes found. Create your first quiz to get started!</p>
+            <p className="text-muted-foreground">
+              No quizzes found. Create your first quiz to get started!
+            </p>
           </CardContent>
         </Card>
       )}
