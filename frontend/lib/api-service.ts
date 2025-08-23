@@ -418,7 +418,6 @@ export const apiService = {
 
   getQuiz: async (id: number): Promise<FindOneQuizResponse> => {
     const response = await makeAuthenticatedRequest(`/api/quiz/${id}`);
-    console.log('get', id, response)
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch quiz');

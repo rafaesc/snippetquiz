@@ -122,7 +122,7 @@ export default function QuizPlayerPage() {
   const currentQuestion = displayQuestion || quiz?.question;
 
   const progress = quiz
-    ? ((quiz.questionsCompleted + 1) / (quiz?.totalQuestions || 1)) * 100
+    ? ((quiz.questionsCompleted) / (quiz?.totalQuestions || 1)) * 100
     : 0;
 
   const handleAnswerSelect = async (answer: string) => {
