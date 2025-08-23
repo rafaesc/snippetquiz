@@ -41,26 +41,32 @@ export default function QuizPlayerPage() {
   const updateQuizMutation = useMutation({
     mutationFn: ({ quizId, optionId }: { quizId: number; optionId: number }) =>
       apiService.updateQuiz(quizId, optionId),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
       // Start transition out
       setIsTransitioning(true);
 
+      // Check if quiz is completed (no more questions)
+      if (data?.completed) {
+        // Quiz is completed, redirect to summary page
+        router.push(`/dashboard/quizzes/${currentQuizId}/summary`);
+        return;
+      }
+  
       // Refetch the quiz data to get the next question
       const updatedQuiz = await refetch();
-
+  
       // Wait for transition animation, then update display
       setTimeout(() => {
         // Update display question with new data
         if (updatedQuiz.data?.question) {
           setDisplayQuestion(updatedQuiz.data.question);
         }
-
+  
         // Reset states
         setSelectedAnswer(null);
         setIsTransitioning(false);
       }, 500); // Match the transition duration
-
-      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     },
     onError: (error) => {
       console.error("Failed to update quiz:", error);

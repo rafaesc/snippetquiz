@@ -36,17 +36,17 @@ export class FindOneQuizResponse {
 
 export class QuizSummaryResponseDto {
   topics: string[];
-  totalQuestions: number;
-  totalCorrectAnswers: number;
+  total_questions: number;
+  total_correct_answers: number;
 }
 
 export class QuizResponseItemDto {
-  isCorrect: boolean;
+  is_correct: boolean;
   question: string;
   answer: string;
-  correctAnswer: string;
+  correct_answer: string;
   explanation: string;
-  sourceUrl: string;
+  source_url: string;
 }
 
 export class PaginatedQuizzesResponseDto {

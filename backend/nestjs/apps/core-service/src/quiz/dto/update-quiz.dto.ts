@@ -7,4 +7,5 @@ export class UpdateQuizDto {
 export class UpdateQuizResponseDto {
   message: string;
   success: boolean;
+  completed?: boolean;
 }

@@ -11,6 +11,7 @@ import {
   QuizResponseItemDto,
 } from './dto/quiz-response.dto';
 import { Observable, from, switchMap, map, throwError, of } from 'rxjs';
+import { UpdateQuizResponseDto } from './dto/update-quiz.dto';
 
 @Injectable()
 export class QuizService extends PrismaClient {
@@ -191,12 +192,12 @@ export class QuizService extends PrismaClient {
 
     const formattedResponses: QuizResponseItemDto[] = responses.map(
       (response) => ({
-        isCorrect: response.isCorrect,
+        is_correct: response.isCorrect,
         question: response.quizQuestion.question,
         answer: response.quizQuestionOption.optionText,
-        correctAnswer: response.correctAnswer,
+        correct_answer: response.correctAnswer,
         explanation: response.quizQuestionOption.optionExplanation,
-        sourceUrl: response.quizQuestion.contentEntrySourceUrl || '',
+        source_url: response.quizQuestion.contentEntrySourceUrl || '',
       }),
     );
 
@@ -245,8 +246,8 @@ export class QuizService extends PrismaClient {
 
     return {
       topics: quiz.quizTopics.map((topic) => topic.topicName),
-      totalQuestions: quiz.questionsCount,
-      totalCorrectAnswers,
+      total_questions: quiz.questionsCount,
+      total_correct_answers: totalCorrectAnswers,
     };
   }
 
@@ -575,7 +576,7 @@ export class QuizService extends PrismaClient {
     userId: string;
     quizId: number;
     questionOptionId: number;
-  }): Promise<{ message: string; success: boolean }> {
+  }): Promise<UpdateQuizResponseDto> {
     const { userId, quizId, questionOptionId } = params;
 
     // Validate if the quiz belongs to the user
@@ -669,10 +670,10 @@ export class QuizService extends PrismaClient {
       },
     });
 
-    // Step 5: Increment Quiz.questionsCompleted
+    // Increment Quiz.questionsCompleted
     const updatedQuestionsCompleted = quiz.questionsCompleted + 1;
-    const completedAt =
-      updatedQuestionsCompleted >= quiz.questionsCount ? new Date() : null;
+    const isCompleted = updatedQuestionsCompleted >= quiz.questionsCount;
+    const completedAt = isCompleted ? new Date() : null;
 
     await this.quiz.update({
       where: {
@@ -687,6 +688,7 @@ export class QuizService extends PrismaClient {
     return {
       message: 'Quiz updated successfully',
       success: true,
+      completed: isCompleted,
     };
   }
 }
