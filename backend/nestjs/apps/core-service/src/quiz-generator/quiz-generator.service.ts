@@ -9,6 +9,8 @@ import {
   forkJoin,
   EMPTY,
   of,
+  catchError,
+  concatMap,
 } from 'rxjs';
 import { PrismaClient } from 'generated/prisma/postgres';
 import { QUIZ_GENERATION_SERVICE } from '../config/services';
@@ -151,7 +153,7 @@ export class QuizGeneratorService extends PrismaClient {
           processedContentEntries++;
         }
       }),
-      switchMap(
+      concatMap(
         (
           progress: QuizGenerationProgressCamelCase,
         ): Observable<CoreQuizGenerationStatus> => {
