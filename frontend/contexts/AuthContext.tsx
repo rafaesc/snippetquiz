@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiService, tokenService, UserProfile } from "@/lib/api-service";
+import { apiService, tokenService } from "@/lib/api-service";
+import { UserProfile } from "@/lib/types";
 
 interface AuthContextType {
     user: UserProfile["user"] | null;
