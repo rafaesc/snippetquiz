@@ -9,7 +9,6 @@ import {
   forkJoin,
   EMPTY,
   of,
-  catchError,
   concatMap,
 } from 'rxjs';
 import { PrismaClient } from 'generated/prisma/postgres';
@@ -48,10 +47,26 @@ export class QuizGeneratorService extends PrismaClient {
 
   async getContentEntriesByBankId(
     bankId: number,
+    userId: string,
   ): Promise<{ request: GenerateQuizRequest; entriesSkipped: number }> {
-    this.logger.log(`Starting to fetch content entries for bankId: ${bankId}`);
-
     try {
+      const contentBank = await this.contentBank.findFirst({
+        where: {
+          id: BigInt(bankId),
+          userId: userId,
+        },
+      });
+
+      if (!contentBank) {
+        throw new Error(
+          `Content bank not found or access denied for user ${userId}`,
+        );
+      }
+
+      this.logger.log(
+        `Content bank ${bankId} validated for user ${userId}`,
+      );
+
       const contentEntries = await this.contentEntry.findMany({
         where: {
           contentBanks: {
@@ -117,7 +132,7 @@ export class QuizGeneratorService extends PrismaClient {
     let entriesSkipped = 0;
 
     return from(
-      this.getContentEntriesByBankId(bankId).then(
+      this.getContentEntriesByBankId(bankId, userId).then(
         (response: {
           request: GenerateQuizRequest;
           entriesSkipped: number;

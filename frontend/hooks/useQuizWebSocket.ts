@@ -48,9 +48,9 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
       return; // Already initialized
     }
 
-    // Initialize WebSocket connection
-    socketRef.current = io(API_BASE_URL + "/ws", {
+    socketRef.current = io(API_BASE_URL + "/api/ws", {
       transports: ["websocket"],
+      path: "/api/ws",
       withCredentials: true,
     });
 
@@ -58,12 +58,15 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
 
     // Connection event handlers
     socket.on("connect", () => {
-      console.log("Connected to WebSocket server");
       setIsConnected(true);
     });
 
     socket.on("disconnect", () => {
-      console.log("Disconnected from WebSocket server");
+      setIsConnected(false);
+      setIsGenerating(false);
+    });
+
+    socket.on("connect_error", (error) => {
       setIsConnected(false);
       setIsGenerating(false);
     });
