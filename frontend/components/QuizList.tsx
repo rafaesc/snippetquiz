@@ -31,6 +31,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Quiz, QuizzesResponse } from "@/lib/types";
 import { useQuiz } from "@/contexts/QuizContext";
 
@@ -205,137 +211,177 @@ export const QuizList: React.FC<QuizListProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Mobile Cards - visible on small screens */}
-      <div className="block md:hidden space-y-3">
-        {quizzes.map((quiz) => (
-          <QuizCard key={quiz.id} quiz={quiz} />
-        ))}
-      </div>
+    <TooltipProvider>
+      <div className="space-y-4">
+        {/* Mobile Cards - visible on small screens */}
+        <div className="block md:hidden space-y-3">
+          {quizzes.map((quiz) => (
+            <QuizCard key={quiz.id} quiz={quiz} />
+          ))}
+        </div>
 
-      {/* Desktop Table - visible on medium screens and up */}
-      <Card className="hidden md:block">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Creation Date</TableHead>
-                  <TableHead>Bank</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Content Entries</TableHead>
-                  <TableHead>Topics</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quizzes.map((quiz) => {
-                  const completed = isQuizCompleted(quiz);
+        {/* Desktop Table - visible on medium screens and up */}
+        <Card className="hidden md:block">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Creation Date</TableHead>
+                    <TableHead>Bank</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Content Entries</TableHead>
+                    <TableHead>Topics</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quizzes.map((quiz) => {
+                    const completed = isQuizCompleted(quiz);
 
-                  return (
-                    <TableRow key={quiz.id}>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(quiz.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>{quiz.name || "N/A"}</TableCell>
-                      <TableCell className="font-medium">
-                        {quiz.questionsCompleted} / {quiz.questionsCount}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(quiz)}</TableCell>
-                      <TableCell>{quiz.contentEntriesCount}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {(quiz?.topics || []).slice(0, 2).map((topic) => (
-                            <Badge
-                              key={topic}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {topic}
-                            </Badge>
-                          ))}
-                          {(quiz?.topics || []).length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{quiz.topics.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="bg-background border"
-                          >
-                            {!completed && (
-                              <DropdownMenuItem
-                                onClick={() => handleContinue(quiz)}
-                              >
-                                <Play className="mr-2 h-4 w-4" />
-                                Continue
-                              </DropdownMenuItem>
-                            )}
-                            {completed && (
-                              <DropdownMenuItem
-                                onClick={() => onViewSummary(quiz)}
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Summary
-                              </DropdownMenuItem>
-                            )}
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem
-                                  onSelect={(e) => e.preventDefault()}
+                    return (
+                      <TableRow key={quiz.id}>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(quiz.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>{quiz.name || "N/A"}</TableCell>
+                        <TableCell className="font-medium">
+                          {quiz.questionsCompleted} / {quiz.questionsCount}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(quiz)}</TableCell>
+                        <TableCell>{quiz.contentEntriesCount}</TableCell>
+                        <TableCell>
+                          {(quiz?.topics || []).length > 2 ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex flex-wrap gap-1 cursor-pointer">
+                                  {(quiz?.topics || [])
+                                    .slice(0, 2)
+                                    .map((topic) => (
+                                      <Badge
+                                        key={topic}
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {topic}
+                                      </Badge>
+                                    ))}
+                                  {(quiz?.topics || []).length > 2 && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      +{(quiz?.topics || []).length - 2}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <div className="flex flex-wrap gap-1">
+                                  {(quiz?.topics || []).map((topic) => (
+                                    <Badge
+                                      key={topic}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {topic}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {(quiz?.topics || []).map((topic) => (
+                                <Badge
+                                  key={topic}
+                                  variant="outline"
+                                  className="text-xs"
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
+                                  {topic}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="bg-background border"
+                            >
+                              {!completed && (
+                                <DropdownMenuItem
+                                  onClick={() => handleContinue(quiz)}
+                                >
+                                  <Play className="mr-2 h-4 w-4" />
+                                  Continue
                                 </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Delete Quiz
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this quiz?
-                                    This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(quiz)}
-                                    disabled={isDeleting === quiz.id}
+                              )}
+                              {completed && (
+                                <DropdownMenuItem
+                                  onClick={() => onViewSummary(quiz)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Summary
+                                </DropdownMenuItem>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
                                   >
-                                    {isDeleting === quiz.id
-                                      ? "Deleting..."
-                                      : "Delete"}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Delete Quiz
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this quiz?
+                                      This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(quiz)}
+                                      disabled={isDeleting === quiz.id}
+                                    >
+                                      {isDeleting === quiz.id
+                                        ? "Deleting..."
+                                        : "Delete"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </TooltipProvider>
   );
 };
