@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
@@ -166,7 +166,6 @@ export default function QuizPlayerPage() {
 
   return (
     <>
-      {/* Header */}
       <div className="bg-background">
         <div className="flex h-16 items-center justify-between px-4 md:px-6">
           <Button
@@ -178,10 +177,8 @@ export default function QuizPlayerPage() {
         </div>
       </div>
 
-      {/* Quiz Content */}
       <div className="flex items-center justify-center py-8 px-4">
         <div className="w-full max-w-2xl space-y-6">
-          {/* Progress Section */}
           <div className="text-center space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground">
               Question {quiz.questionsCompleted + 1} of {quiz?.totalQuestions}
@@ -189,7 +186,6 @@ export default function QuizPlayerPage() {
             <Progress value={progress} className="h-2" />
           </div>
 
-          {/* Question Card */}
           <Card
             className={`transition-all duration-500 ease-in-out ${
               isTransitioning
@@ -199,12 +195,10 @@ export default function QuizPlayerPage() {
           >
             <CardContent className="p-4 md:p-6">
               <div className="space-y-6">
-                {/* Question */}
                 <div>
                   <h3 className="text-xl md:text-2xl font-semibold leading-relaxed">
                     {currentQuestion.question}
                   </h3>
-                  {/* Show content source info */}
                   <div className="mt-2 text-sm text-muted-foreground">
                     {currentQuestion.contentEntrySourceUrl && (
                       <a
@@ -219,7 +213,6 @@ export default function QuizPlayerPage() {
                   </div>
                 </div>
 
-                {/* Options */}
                 <div className="space-y-3 w-full">
                   {currentQuestion.options.map((option: any, index: any) => (
                     <Button
@@ -241,12 +234,9 @@ export default function QuizPlayerPage() {
                   ))}
                 </div>
 
-                {/* Selection Feedback */}
               </div>
             </CardContent>
           </Card>
-
-          {/* Additional Info */}
 
           {selectedAnswer ? (
             <div className="text-center animate-fade-in">
