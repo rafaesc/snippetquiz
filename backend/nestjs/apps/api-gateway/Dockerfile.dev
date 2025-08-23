@@ -2,9 +2,12 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/backend
 
+COPY ./nestjs ./nestjs
+COPY ./protos ./protos
+
+WORKDIR /usr/src/backend/nestjs
+
 COPY package*.json ./
 RUN npm install
-
-COPY . .
 
 EXPOSE 5000

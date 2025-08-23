@@ -19,7 +19,7 @@ export interface Summary {
 }
 
 export interface QuizGenerationProgress {
-  event: string; // "quiz_generation_progress" or "quiz_generation_completed"
+  event: string;
   bankId: string;
   totalContentEntries: number;
   currentContentEntryIndex: number;

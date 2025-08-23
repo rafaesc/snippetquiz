@@ -4,6 +4,8 @@ import * as joi from 'joi';
 interface EnvVars {
   CORE_SERVICE_HOST: string;
   CORE_SERVICE_PORT: number;
+  AI_GENERATION_SERVICE_HOST: string;
+  AI_GENERATION_SERVICE_PORT: number;
   DATABASE_URL_POSTGRES: string;
   NODE_ENV: string;
 }
@@ -12,6 +14,8 @@ const envSchema = joi
   .object({
     CORE_SERVICE_HOST: joi.string().default('0.0.0.0'),
     CORE_SERVICE_PORT: joi.number().required(),
+    AI_GENERATION_SERVICE_HOST: joi.string().default('localhost'),
+    AI_GENERATION_SERVICE_PORT: joi.number().default(50051),
     DATABASE_URL_POSTGRES: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
   })
@@ -28,6 +32,8 @@ export const envsVars: EnvVars = value;
 export const envs = {
   coreServiceHost: envsVars.CORE_SERVICE_HOST,
   coreServicePort: envsVars.CORE_SERVICE_PORT,
+  aiGenerationServiceHost: envsVars.AI_GENERATION_SERVICE_HOST,
+  aiGenerationServicePort: envsVars.AI_GENERATION_SERVICE_PORT,
   databaseUrlPostgres: envsVars.DATABASE_URL_POSTGRES,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',
