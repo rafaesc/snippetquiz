@@ -449,13 +449,6 @@ export class QuizService extends PrismaClient {
         },
         where: {
           id: BigInt(contentEntryId),
-          contentBanks: {
-            some: {
-              contentBank: {
-                userId,
-              },
-            },
-          },
         },
       }),
     ).pipe(
