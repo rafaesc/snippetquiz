@@ -26,3 +26,6 @@ ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 # Expose the gRPC port
 EXPOSE 50051
+
+# Use exec form to ensure proper signal forwarding
+CMD ["python", "-u", "server.py"]

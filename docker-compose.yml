@@ -15,6 +15,8 @@ x-common-environment: &common-env
     AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST}
     CORE_SERVICE_PORT: ${CORE_SERVICE_PORT}
     CORE_SERVICE_HOST: ${CORE_SERVICE_HOST}
+    AI_GENERATION_SERVICE_HOST: ${AI_GENERATION_SERVICE_HOST}
+    AI_GENERATION_SERVICE_PORT: ${AI_GENERATION_SERVICE_PORT}
     EMAIL_USERNAME: ${EMAIL_USERNAME}
     EMAIL_PASSWORD: ${EMAIL_PASSWORD}
 
@@ -31,12 +33,11 @@ services:
 
   api_gateway:
     build: 
-      context: ./backend/nestjs
-      dockerfile: apps/api-gateway/Dockerfile.dev
+      context: ./backend
+      dockerfile: nestjs/apps/api-gateway/Dockerfile.dev
     volumes:
-      - ./backend/nestjs/apps:/usr/src/backend/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/prisma
-      - ./backend/nestjs/generated:/usr/src/backend/generated
+      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
+      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
       - ./backend/protos:/usr/src/backend/protos
     depends_on:
       db:
@@ -51,12 +52,11 @@ services:
 
   auth_service:
     build: 
-      context: ./backend/nestjs
-      dockerfile: apps/auth-service/Dockerfile.dev
+      context: ./backend
+      dockerfile: nestjs/apps/auth-service/Dockerfile.dev
     volumes:
-      - ./backend/nestjs/apps:/usr/src/backend/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/prisma
-      - ./backend/nestjs/generated:/usr/src/backend/generated
+      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
+      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
     depends_on:
       db:
         condition: service_healthy
@@ -71,12 +71,11 @@ services:
 
   core_service:
     build: 
-      context: ./backend/nestjs
-      dockerfile: apps/core-service/Dockerfile.dev
+      context: ./backend
+      dockerfile: nestjs/apps/core-service/Dockerfile.dev
     volumes:
-      - ./backend/nestjs/apps:/usr/src/backend/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/prisma
-      - ./backend/nestjs/generated:/usr/src/backend/generated
+      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
+      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
       - ./backend/protos:/usr/src/backend/protos
     depends_on:
       db:
@@ -88,6 +87,18 @@ services:
     environment:
       <<: *common-env
     command: npm run start:dev core-service
+
+  ai_service:
+    build:
+      context: ./backend
+      dockerfile: python/Dockerfile.dev
+    volumes:
+        - ./backend/python/server.py:/usr/app/python/server.py
+    ports:
+      - "50051:50051"
+    environment:
+      <<: *common-env
+    command: python -u server.py
 
   frontend:
     build:

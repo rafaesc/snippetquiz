@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package quiz_generation;
+package ai_generation;
 
 // Content entry input for quiz generation
 message ContentEntry {

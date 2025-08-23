@@ -13,7 +13,7 @@ import {
   concatMap,
 } from 'rxjs';
 import { PrismaClient } from 'generated/prisma/postgres';
-import { QUIZ_GENERATION_SERVICE } from '../config/services';
+import { AI_GENERATION_SERVICE } from '../config/services';
 import {
   GenerateQuizRequest,
   QuizGenerationProgressCamelCase,
@@ -29,7 +29,7 @@ export class QuizGeneratorService extends PrismaClient {
   private quizGenerationService: QuizGenerationService;
 
   constructor(
-    @Inject(QUIZ_GENERATION_SERVICE) private client: ClientGrpc,
+    @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
     private quizService: QuizService,
     private contentEntryService: ContentEntryService,
   ) {
