@@ -182,6 +182,9 @@ CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
 CREATE INDEX "users_email_idx" ON "public"."users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "public"."topics"("user_id", "topic");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "public"."youtube_channels"("channel_id");
 
 -- CreateIndex
@@ -189,6 +192,9 @@ CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" 
 
 -- CreateIndex
 CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "public"."content_entry_topics"("content_entry_id", "topic_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "public"."quiz_topics"("quiz_id", "topic_name");
 
 -- AddForeignKey
 ALTER TABLE "public"."content_banks" ADD CONSTRAINT "content_banks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

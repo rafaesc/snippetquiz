@@ -69,36 +69,6 @@ services:
     command: sh -c "npx prisma migrate deploy --schema=prisma/db-postgres/schema.prisma || true && npm run start:dev auth-service"
 
 
-  core_service:
-    build: 
-      context: ./backend
-      dockerfile: nestjs/apps/core-service/Dockerfile.dev
-    volumes:
-      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
-      - ./backend/protos:/usr/src/backend/protos
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_started
-    ports:
-      - "7000:7000"
-    environment:
-      <<: *common-env
-    command: npm run start:dev core-service
-
-  ai_service:
-    build:
-      context: ./backend
-      dockerfile: python/Dockerfile.dev
-    volumes:
-        - ./backend/python/server.py:/usr/app/python/server.py
-    ports:
-      - "50051:50051"
-    environment:
-      <<: *common-env
-    command: python -u server.py
 
   frontend:
     build:

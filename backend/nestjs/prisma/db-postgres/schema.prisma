@@ -58,6 +58,7 @@ model Topic {
   user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   contentEntries ContentEntryTopic[]
 
+  @@unique([userId, topic])
   @@map("topics")
 }
 
@@ -198,6 +199,7 @@ model QuizTopic {
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
+  @@unique([quizId, topicName])
   @@map("quiz_topics")
 }
 

@@ -24,4 +24,10 @@ This will generate:
 python server.py
 ```
 
+## User Container
+
+```bash
+cd ./backend && docker build -f python/Dockerfile.dev -t snippetquiz-python . && docker run -p 50051:50051 snippetquiz-python
+```
+
 The server will start on port 50051.

@@ -17,7 +17,7 @@ import { AI_GENERATION_SERVICE } from '../config/services';
 import {
   GenerateQuizRequest,
   QuizGenerationProgressCamelCase,
-  QuizGenerationService,
+  AiGenerationService,
 } from './dto/quiz-generator.dto';
 import { CoreQuizGenerationStatus } from './dto/core-quiz-generation.dto';
 import { QuizService } from '../quiz/quiz.service';
@@ -26,7 +26,7 @@ import { ContentEntryService } from '../content-entry/content-entry.service';
 @Injectable()
 export class QuizGeneratorService extends PrismaClient {
   private readonly logger = new Logger(QuizGeneratorService.name);
-  private quizGenerationService: QuizGenerationService;
+  private aiGenerationService: AiGenerationService;
 
   constructor(
     @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
@@ -34,22 +34,14 @@ export class QuizGeneratorService extends PrismaClient {
     private contentEntryService: ContentEntryService,
   ) {
     super();
-    this.logger.log('QuizGeneratorService initialized');
   }
 
   onModuleInit() {
-    this.logger.log('Initializing gRPC client connection');
     try {
-      this.quizGenerationService =
-        this.client.getService<QuizGenerationService>('QuizGenerationService');
-      this.logger.log(
-        'QuizGenerationService gRPC client successfully initialized',
+      this.aiGenerationService = this.client.getService<AiGenerationService>(
+        'AiGenerationService',
       );
     } catch (error) {
-      this.logger.error(
-        'Failed to initialize QuizGenerationService gRPC client',
-        error,
-      );
       throw error;
     }
   }
@@ -145,7 +137,7 @@ export class QuizGeneratorService extends PrismaClient {
               completed: true,
             });
           }
-          return this.quizGenerationService.generateQuiz(request);
+          return this.aiGenerationService.generateQuiz(request);
         },
       ),
       tap((progress) => {
