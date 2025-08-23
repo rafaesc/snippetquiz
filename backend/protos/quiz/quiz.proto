@@ -67,14 +67,16 @@ message FindQuizResponsesRequest {
 }
 
 message QuizResponseItem {
-  string id = 1;
-  string created_at = 2;
-  int32 questions_count = 3;
-  repeated string topics = 4;
+  bool is_correct = 1;
+  string question = 2;
+  string answer = 3;
+  string correct_answer = 4;
+  string explanation = 5;
+  string source_url = 6;
 }
 
 message FindQuizResponsesResponse {
-  repeated QuizResponseItem quiz_responses = 1;
+  repeated QuizResponseItem responses = 1;
   PaginationInfo pagination = 2;
 }
 
@@ -84,8 +86,9 @@ message FindQuizSummaryRequest {
 }
 
 message FindQuizSummaryResponse {
-  int32 questions_count = 1;
-  repeated string topics = 2;
+  int32 total_questions = 1;
+  int32 total_correct_answers = 2;
+  repeated string topics = 3;
 }
 
 message RemoveQuizRequest {
@@ -106,6 +109,7 @@ message UpdateQuizRequest {
 message UpdateQuizResponse {
   string message = 1;
   bool success = 2;
+  bool completed = 3;
 }
 
 // Quiz service definition
@@ -115,5 +119,5 @@ service QuizService {
   rpc FindQuizResponses(FindQuizResponsesRequest) returns (FindQuizResponsesResponse);
   rpc FindQuizSummary(FindQuizSummaryRequest) returns (FindQuizSummaryResponse);
   rpc RemoveQuiz(RemoveQuizRequest) returns (RemoveQuizResponse);
-  rpc UpdateQuiz(UpdateQuizRequest) returns (FindQuizSummaryResponse);
+  rpc UpdateQuiz(UpdateQuizRequest) returns (UpdateQuizResponse);
 }

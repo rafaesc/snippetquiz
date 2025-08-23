@@ -159,4 +159,5 @@ export type FindOneQuizResponse = {
 
 export interface UpdateQuizResponse {
   success: boolean;
+  completed?: boolean;
 }
