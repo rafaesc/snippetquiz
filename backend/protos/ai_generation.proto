@@ -15,6 +15,18 @@ message GenerateQuizRequest {
     repeated ContentEntry content_entries = 1;
 }
 
+// Request message for generating topics
+message GenerateTopicsRequest {
+    string content = 1;
+    string page_title = 2;
+    repeated string existing_topics = 3;
+}
+
+// Response message for generated topics
+message GenerateTopicsResponse {
+    repeated string topics = 1;
+}
+
 // Question option definition
 message QuestionOption {
     string option_text = 1;
@@ -54,6 +66,7 @@ message GenerationResult {
 }
 
 // Quiz Generation Service
-service QuizGenerationService {
+service AiGenerationService {
     rpc GenerateQuiz(GenerateQuizRequest) returns (stream QuizGenerationProgress);
+    rpc GenerateTopics(GenerateTopicsRequest) returns (GenerateTopicsResponse);
 }

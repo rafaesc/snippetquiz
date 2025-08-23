@@ -160,16 +160,6 @@ export default function QuizSummaryPage() {
                 {correctAnswers} out of {totalQuestions} correct
               </div>
               {getScoreBadge()}
-              {/* Topics List */}
-              {summary.topics && summary.topics.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-2 mt-4">
-                  {summary.topics.map((topic) => (
-                    <Badge key={topic} variant="secondary" className="text-xs">
-                      {topic}
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

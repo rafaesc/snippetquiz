@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
+  Logger,
 } from '@nestjs/common';
 import { PrismaClient, ContentEntry } from 'generated/prisma/postgres';
 import {
@@ -18,9 +20,28 @@ import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
 import { Observable, from, switchMap, throwError } from 'rxjs';
+import { type ClientGrpc } from '@nestjs/microservices';
+import { AI_GENERATION_SERVICE } from '../config/services';
+import { AiGenerationService } from '../quiz-generator/dto/quiz-generator.dto';
 
 @Injectable()
 export class ContentEntryService extends PrismaClient {
+  private aiGenerationService: AiGenerationService;
+  private readonly logger = new Logger(ContentEntryService.name);
+
+  constructor(
+    @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
+  ) {
+    super();
+    
+    try {
+      this.aiGenerationService =
+        this.client.getService<AiGenerationService>('AiGenerationService');
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async create(
     createContentEntryDto: CreateContentEntryDto,
   ): Promise<ContentEntryResponseDto> {
@@ -113,7 +134,6 @@ export class ContentEntryService extends PrismaClient {
       });
 
       if (existingEntry) {
-        // Calculate word count for the updated content
         const updateData: any = {
           content: processedContent,
           pageTitle,
@@ -198,6 +218,15 @@ export class ContentEntryService extends PrismaClient {
           contentBankId: BigInt(bankId),
         },
       });
+
+      this.generateTopicsForContentEntry(newEntry.id.toString(), userId).catch(
+        (error) => {
+          console.error(
+            `Failed to generate topics for content entry ${newEntry.id}:`,
+            error,
+          );
+        },
+      );
 
       resultEntry = newEntry;
     }
@@ -424,7 +453,107 @@ export class ContentEntryService extends PrismaClient {
     return { message: 'Content entry deleted successfully' };
   }
 
-  
+
+  async generateTopicsForContentEntry(
+    contentEntryId: string,
+    userId: string,
+  ): Promise<{ message: string; topicsCreated: number }> {
+    try {
+      const contentEntry = await this.contentEntry.findFirst({
+        where: {
+          id: BigInt(contentEntryId),
+          contentBanks: {
+            some: {
+              contentBank: {
+                userId,
+              },
+            },
+          },
+        },
+      });
+
+      if (!contentEntry) {
+        throw new NotFoundException(
+          'Content entry not found or does not belong to user',
+        );
+      }
+
+      const existingTopics = await this.topic.findMany({
+        where: {
+          userId,
+        },
+        select: {
+          topic: true,
+        },
+      });
+
+      const existingTopicNames = existingTopics.map((t) => t.topic);
+
+      const generateTopicsRequest = {
+        content: contentEntry.content || '',
+        pageTitle: contentEntry.pageTitle || '',
+        existingTopics: existingTopicNames,
+      };
+
+      const topicsResponse = await new Promise<{ topics?: string[] }>(
+        (resolve, reject) => {
+          this.aiGenerationService
+            .generateTopics(generateTopicsRequest)
+            .subscribe({
+              next: (response) => resolve(response),
+              error: (error) => reject(error),
+            });
+        },
+      );
+
+      const generatedTopics = topicsResponse.topics || [];
+      let topicsCreated = 0;
+
+      for (const topicName of generatedTopics) {
+        try {
+          const topic = await this.topic.upsert({
+            where: {
+              userId_topic: {
+                userId,
+                topic: topicName,
+              },
+            },
+            update: {},
+            create: {
+              userId,
+              topic: topicName,
+            },
+          });
+
+          await this.contentEntryTopic.upsert({
+            where: {
+              contentEntryId_topicId: {
+                contentEntryId: contentEntry.id,
+                topicId: topic.id,
+              },
+            },
+            update: {},
+            create: {
+              contentEntryId: contentEntry.id,
+              topicId: topic.id,
+            },
+          });
+
+          topicsCreated++;
+        } catch (error) {
+          this.logger.error(`Error creating topic "${topicName}":`, error);
+        }
+      }
+
+      return {
+        message: `Successfully generated and linked ${topicsCreated} topics to content entry`,
+        topicsCreated,
+      };
+    } catch (error) {
+      this.logger.error('Error generating topics for content entry:', error);
+      throw error;
+    }
+  }
 
   /**
    * Update a Content Entry, using a content entry id, and user id,

@@ -274,11 +274,7 @@ export class QuizService extends PrismaClient {
     return { message: 'Quiz deleted successfully' };
   }
 
-  /**
-   * Create a quiz entity using the user_id and bank id, validate if the bank id has the same user id.
-   * Create the QuizQuestions and QuizQuestionOption using the list of Question and Options of all the entries of the content Bank.
-   * And finally update the Quiz entity contentEntriesCount and questionsCount
-   */
+
   createQuiz(params: {
     userId: string;
     bankId: number;
@@ -296,6 +292,11 @@ export class QuizService extends PrismaClient {
             include: {
               contentEntry: {
                 include: {
+                  topics: {
+                    include: {
+                      topic: true,
+                    },
+                  },
                   questions: {
                     include: {
                       options: true,
@@ -321,7 +322,6 @@ export class QuizService extends PrismaClient {
           );
         }
 
-        // Create the quiz
         return from(
           this.quiz.create({
             data: {
@@ -338,6 +338,10 @@ export class QuizService extends PrismaClient {
             // Collect all questions from all content entries
             const allQuestions = contentBank.contentEntries.flatMap(
               (entry) => entry.contentEntry.questions,
+            );
+            // Collect all questions from all content entries
+            const allTopics = contentBank.contentEntries.flatMap(
+              (entry) => entry.contentEntry.topics.map((topic) => topic.topic.topic),
             );
 
             // Create a Map for quick lookup of content entries by ID
@@ -366,7 +370,7 @@ export class QuizService extends PrismaClient {
 
             // Create quiz questions and options
             const createQuizQuestions = allQuestions.map(
-              async (question, index) => {
+              async (question) => {
                 // Get the content entry for this question
                 const contentEntry = contentEntryMap.get(
                   question.contentEntryId,
@@ -403,19 +407,42 @@ export class QuizService extends PrismaClient {
 
             return from(Promise.all(createQuizQuestions)).pipe(
               switchMap((createdQuestions) => {
-                // Update quiz with counts
-                return from(
-                  this.quiz.update({
-                    where: { id: quiz.id },
-                    data: {
-                      contentEntriesCount: contentBank.contentEntries.length,
-                      questionsCount: createdQuestions.length,
+                // Create quiz topics using upsert
+                const uniqueTopics = [...new Set(allTopics)];
+                const createQuizTopics = uniqueTopics.map(async (topicName) => {
+                  return this.quizTopic.upsert({
+                    where: {
+                      quizId_topicName: {
+                        quizId: quiz.id,
+                        topicName: topicName,
+                      },
                     },
+                    update: {},
+                    create: {
+                      quizId: quiz.id,
+                      topicName: topicName,
+                    },
+                  });
+                });
+
+                // Execute topic creation in parallel with quiz update
+                return from(Promise.all(createQuizTopics)).pipe(
+                  switchMap(() => {
+                    // Update quiz with counts
+                    return from(
+                      this.quiz.update({
+                        where: { id: quiz.id },
+                        data: {
+                          contentEntriesCount: contentBank.contentEntries.length,
+                          questionsCount: createdQuestions.length,
+                        },
+                      }),
+                    ).pipe(
+                      map(() => ({
+                        quizId: quiz.id.toString(),
+                      })),
+                    );
                   }),
-                ).pipe(
-                  map(() => ({
-                    quizId: quiz.id.toString(),
-                  })),
                 );
               }),
             );

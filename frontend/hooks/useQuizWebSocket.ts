@@ -113,7 +113,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
 
     const requestData = {
       bankId: parseInt(bankId),
-      userId: "c6d17967-46c9-4135-a2ed-b9374503a355", // Hardcoded as requested
+      userId: "4249f84a-b320-4214-a388-aa74d77a733b", // Hardcoded as requested
     };
 
     console.log("Sending generateQuiz request:", requestData);

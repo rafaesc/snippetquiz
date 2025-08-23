@@ -73,8 +73,19 @@ export interface QuizGenerationProgressCamelCase {
   completed?: boolean;
 }
 
-export interface QuizGenerationService {
+export type GenerateTopicsRequest = {
+  content: string;
+  pageTitle: string;
+  existingTopics: string[];
+}
+
+export interface GenerateTopicsResponse {
+  topics?: string[];
+}
+
+export interface AiGenerationService {
   generateQuiz(data: GenerateQuizRequest): Observable<QuizGenerationProgressCamelCase>;
+  generateTopics(data: GenerateTopicsRequest): Observable<GenerateTopicsResponse>;
 }
 
 export function mapQuizGenerationProgress(
