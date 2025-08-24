@@ -54,6 +54,7 @@ export interface GenerationStatusCamelCase {
 export interface GenerationResultCamelCase {
   contentEntryId: number;
   pageTitle: string;
+  wordCountAnalyzed: number;
   questions: QuestionCamelCase[];
 }
 
@@ -87,37 +88,4 @@ export interface GenerateTopicsResponse {
 export interface AiGenerationService {
   generateQuiz(data: GenerateQuizRequest): Observable<QuizGenerationProgressCamelCase>;
   generateTopics(data: GenerateTopicsRequest): Observable<GenerateTopicsResponse>;
-}
-
-export function mapQuizGenerationProgress(
-  progress: QuizGenerationProgressCamelCase
-): QuizGenerationProgress {
-  const result: QuizGenerationProgress = {};
-  
-  if (progress.status) {
-    result.status = {
-      content_entry_id: progress.status.contentEntryId,
-      page_title: progress.status.pageTitle,
-      word_count_analyzed: progress.status.wordCountAnalyzed,
-      status: progress.status.status,
-    };
-  }
-  
-  if (progress.result) {
-    result.result = {
-      content_entry_id: progress.result.contentEntryId,
-      page_title: progress.result.pageTitle,
-      questions: progress.result.questions.map(q => ({
-        question: q.question,
-        type: q.type,
-        options: q.options.map(opt => ({
-          option_text: opt.optionText,
-          option_explanation: opt.optionExplanation,
-          is_correct: opt.isCorrect,
-        })),
-      })),
-    };
-  }
-  
-  return result;
 }

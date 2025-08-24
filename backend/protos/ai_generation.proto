@@ -63,7 +63,8 @@ message GenerationStatus {
 message GenerationResult {
     int64 content_entry_id = 1;
     string page_title = 2;
-    repeated Question questions = 4;
+    optional int32 word_count_analyzed = 4;
+    repeated Question questions = 5;
 }
 
 // Quiz Generation Service
