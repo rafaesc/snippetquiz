@@ -4,6 +4,8 @@ import {
   WebSocketServer,
   MessageBody,
   ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket as ServerSocket } from 'socket.io';
 import { envs } from '../config/envs';
@@ -28,7 +30,9 @@ import { WsRateLimitGuard } from '../guards/ws-rate-limit.guard';
   },
   transports: ['websocket'],
 })
-export class WebsocketGateway implements OnModuleInit {
+export class WebsocketGateway
+  implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   io: Server;
 
@@ -46,6 +50,21 @@ export class WebsocketGateway implements OnModuleInit {
       this.coreClient.getService<CoreQuizGenerationService>(
         'CoreQuizGenerationService',
       );
+  }
+
+  handleConnection(client: ServerSocket) {
+    const timeout = setTimeout(
+      () => {
+        client.disconnect(true);
+      },
+      10 * 60 * 1000, //10min
+    );
+
+    (client as any).data.timeout = timeout;
+  }
+
+  handleDisconnect(client: any) {
+    clearTimeout((client as any).data.timeout);
   }
 
   @UseGuards(WsJwtAuthGuard, WsRateLimitGuard)
@@ -98,8 +117,7 @@ export class WebsocketGateway implements OnModuleInit {
 
       if (error.message.includes('already locked')) {
         client.emit('quizError', {
-          message:
-            'Quiz generation is already in progress for this user',
+          message: 'Quiz generation is already in progress for this user',
           error: 'Resource locked',
         });
       } else {
