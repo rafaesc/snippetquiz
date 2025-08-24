@@ -23,12 +23,6 @@ model User {
   passwordUpdatedAt DateTime? @map("password_updated_at")
   verified          Boolean  @default(false)
 
-  // Relations
-  contentBanks              ContentBank[]
-  topics                    Topic[]
-  quizzes                   Quiz[]
-  quizGenerationInstructions QuizGenerationInstruction[]
-
   @@index([email])
   @@map("users")
 }
@@ -41,7 +35,6 @@ model ContentBank {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relations
-  user         User                  @relation(fields: [userId], references: [id])
   quizzes      Quiz[]
   contentEntries ContentEntryBank[]
 
@@ -55,7 +48,6 @@ model Topic {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   contentEntries ContentEntryTopic[]
 
   @@unique([userId, topic])
@@ -118,7 +110,6 @@ model Quiz {
 
   // Relations
   contentBank       ContentBank?           @relation(fields: [bankId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  user              User?                  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quizTopics        QuizTopic[]
   quizQuestions     QuizQuestion[]
   quizResponses     QuizQuestionResponse[]
@@ -156,11 +147,10 @@ model QuestionOption {
 model QuizGenerationInstruction {
   id          BigInt   @id @default(autoincrement())
   instruction String   @db.Text
-  userId      String?  @map("user_id") @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relations
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("quiz_generation_instructions")
 }

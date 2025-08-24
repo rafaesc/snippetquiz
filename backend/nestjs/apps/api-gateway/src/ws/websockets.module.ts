@@ -4,6 +4,7 @@ import { WebsocketGateway } from './websocket.gateway';
 import { CORE_SERVICE } from '../config/services';
 import { join } from 'path';
 import { envs } from '../config/envs';
+import { RedisModule } from '../../../commons/services/redis.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { envs } from '../config/envs';
         },
       },
     ]),
+    RedisModule,
   ],
-    providers: [WebsocketGateway],
+  providers: [WebsocketGateway],
 })
 export class WebsocketModule {}
