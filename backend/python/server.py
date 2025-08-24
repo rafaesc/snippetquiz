@@ -47,9 +47,14 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
                     result=ai_generation_pb2.GenerationResult(
                         content_entry_id=content_entry.id,
                         page_title=content_entry.page_title,
+                        word_count_analyzed=content_entry.word_count_analyzed,
                         questions=mock_questions,
                     )
                 )
+                yield result_message
+                time.sleep(1)
+                yield result_message
+                time.sleep(1)
                 yield result_message
 
                 # Small delay before next content entry

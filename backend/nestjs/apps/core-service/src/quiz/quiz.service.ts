@@ -493,16 +493,6 @@ export class QuizService extends PrismaClient {
           );
         }
 
-        if (contentEntry.questionsGenerated) {
-          this.logger.error(
-            `[createQuestion] Content entry already has questions generated for contentEntryId: ${contentEntryId}, userId: ${userId}`,
-          );
-          return of({
-            message: 'Content entry already has questions generated',
-            questionId: 0,
-          });
-        }
-
         if (!options || options.length === 0) {
           this.logger.error(
             `[createQuestion] No options provided for question`,

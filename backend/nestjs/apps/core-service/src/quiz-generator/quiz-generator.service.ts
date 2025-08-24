@@ -63,9 +63,7 @@ export class QuizGeneratorService extends PrismaClient {
         );
       }
 
-      this.logger.log(
-        `Content bank ${bankId} validated for user ${userId}`,
-      );
+      this.logger.log(`Content bank ${bankId} validated for user ${userId}`);
 
       const contentEntries = await this.contentEntry.findMany({
         where: {
@@ -137,6 +135,8 @@ export class QuizGeneratorService extends PrismaClient {
     let processedContentEntries = 0;
     let totalContentEntries = 0;
     let entriesSkipped = 0;
+    let totalQuestionsGenerated = 0;
+    const processedContentEntryIds = new Set<string>();
 
     return from(
       this.getContentEntriesByBankId(bankId, userId).then(
@@ -163,8 +163,12 @@ export class QuizGeneratorService extends PrismaClient {
         },
       ),
       tap((progress) => {
-        if (progress.result) {
-          processedContentEntries++;
+        if (progress.status) {
+          const contentEntryId = progress.status.contentEntryId.toString();
+          if (!processedContentEntryIds.has(contentEntryId)) {
+            processedContentEntryIds.add(contentEntryId);
+            processedContentEntries++;
+          }
         }
       }),
       concatMap(
@@ -174,6 +178,7 @@ export class QuizGeneratorService extends PrismaClient {
           if (progress.result) {
             const contentEntryId = progress.result.contentEntryId;
             const questions = progress.result.questions;
+            totalQuestionsGenerated += questions.length;
 
             this.logger.log(
               `Processing ${questions.length} questions for content entry ${contentEntryId}`,
@@ -209,11 +214,24 @@ export class QuizGeneratorService extends PrismaClient {
                   contentEntryId,
                 }),
               ),
-              switchMap(() => {
+              map(() => {
                 this.logger.log(
                   `Content entry ${contentEntryId} updated. Progress: ${processedContentEntries}/${totalContentEntries}`,
                 );
-                return EMPTY;
+                return {
+                  progress: {
+                    bank_id: bankId.toString(),
+                    total_content_entries: totalContentEntries,
+                    current_content_entry_index: processedContentEntries,
+                    questions_generated_so_far: totalQuestionsGenerated,
+                    total_content_entries_skipped: entriesSkipped,
+                    content_entry: {
+                      id: progress.result?.contentEntryId?.toString(),
+                      name: progress.result?.pageTitle,
+                      word_count_analyzed: progress?.result?.wordCountAnalyzed,
+                    },
+                  },
+                };
               }),
             );
           }
