@@ -18,7 +18,6 @@ export class RedisService {
     const ttl = this.parseExpirationTime(expiresIn) * 1000; // Convert to milliseconds
 
     await this.cacheManager.set(key, userId.toString(), ttl);
-    this.logger.log(`Stored refresh token for user ${userId}`);
   }
 
   async validateRefreshToken(token: string): Promise<string | null> {
@@ -41,7 +40,6 @@ export class RedisService {
     const ttl = this.parseExpirationTime(expiresIn) * 1000; // Convert to milliseconds
 
     await this.cacheManager.set(key, userId, ttl);
-    this.logger.log(`Stored one-time code for user ${userId}`);
   }
 
   async validateAndConsumeOneTimeCode(code: string): Promise<string | null> {
@@ -51,13 +49,146 @@ export class RedisService {
     if (userId) {
       // Delete the code after use (one-time use)
       await this.cacheManager.del(key);
-      this.logger.log(`Consumed one-time code: ${code}`);
     }
 
     return userId || null;
   }
 
-  private parseExpirationTime(expiresIn: string): number {
+  async acquireLock(key: string, expiresIn: string = '5m'): Promise<boolean> {
+    const lockKey = `lock:${key}`;
+    const lockValue = 'locked';
+
+    const result = await this.cacheManager.get(lockKey);
+
+    if (result === lockValue) {
+      return false;
+    }
+
+    try {
+      const ttl = this.parseExpirationTime(expiresIn) * 1000;
+      await this.cacheManager.set(lockKey, lockValue, ttl);
+
+      await this.cacheManager.get(lockKey);
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Error acquiring lock for key: "${key}"`, error);
+      return false;
+    }
+  }
+
+  async releaseLock(key: string): Promise<void> {
+    const lockKey = `lock:${key}`;
+
+    try {
+      const result = await this.cacheManager.del(lockKey);
+
+      if (!result) {
+        this.logger.warn(
+          `Lock for key: "${key}" was not found or already released`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Error releasing lock for key: "${key}"`, error);
+      throw error; // Re-throw to ensure calling code is aware of the failure
+    }
+  }
+
+  async withLock<T>(
+    key: string,
+    callback: () => Promise<T>,
+    expiresIn: string = '20m',
+  ): Promise<T> {
+    const startTime = Date.now();
+    const acquired = await this.acquireLock(key, expiresIn);
+
+    if (!acquired) {
+      this.logger.error(
+        `Resource "${key}" is already locked - operation aborted`,
+      );
+      throw new Error(`Resource "${key}" is already locked`);
+    }
+
+    try {
+      const result = await callback();
+      return result;
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+      this.logger.error(
+        `Error during withLock operation for key: "${key}" after ${executionTime}ms`,
+        error,
+      );
+      await this.releaseLock(key);
+      throw error;
+    }
+  }
+
+  async incrementRateLimit(key: string, windowTime: string = '5m'): Promise<number> {
+    try {
+      const rateLimitKey = `rate_limit:${key}`;
+      
+      // Get current count
+      const currentCount = await this.cacheManager.get<string>(rateLimitKey);
+      const count = currentCount ? parseInt(currentCount, 10) : 0;
+      
+      const newCount = count + 1;
+      
+      // Set the new count with TTL
+      const ttl = this.parseExpirationTime(windowTime) * 1000; // Convert to milliseconds
+      await this.cacheManager.set(rateLimitKey, newCount.toString(), ttl);
+      
+      return newCount;
+    } catch (error) {
+      this.logger.error(`Error incrementing rate limit for key: "${key}"`, error);
+      throw error;
+    }
+  }
+
+
+  async getRateLimitCount(key: string): Promise<number> {
+    try {
+      const rateLimitKey = `rate_limit:${key}`;
+      const count = await this.cacheManager.get<string>(rateLimitKey);
+      return count ? parseInt(count, 10) : 0;
+    } catch (error) {
+      this.logger.error(`Error getting rate limit count for key: "${key}"`, error);
+      return 0; // Fail open - return 0 if Redis is down
+    }
+  }
+
+
+  async checkRateLimit(
+    key: string,
+    maxRequests: number,
+    windowTime: string,
+  ): Promise<{ exceeded: boolean; count: number; resetTime?: number }> {
+    try {
+      const count = await this.incrementRateLimit(key, windowTime);
+      const exceeded = count > maxRequests;
+      
+      return {
+        exceeded,
+        count,
+        resetTime: exceeded ? Date.now() + (this.parseExpirationTime(windowTime) * 1000) : undefined,
+      };
+    } catch (error) {
+      this.logger.error(`Error checking rate limit for key: "${key}"`, error);
+      // Fail open - allow request if Redis is down
+      return { exceeded: false, count: 0 };
+    }
+  }
+
+  async resetRateLimit(key: string): Promise<void> {
+    try {
+      const rateLimitKey = `rate_limit:${key}`;
+      await this.cacheManager.del(rateLimitKey);
+    } catch (error) {
+      this.logger.error(`Error resetting rate limit for key: "${key}"`, error);
+      throw error;
+    }
+  }
+
+  public parseExpirationTime(expiresIn: string): number {
     const unit = expiresIn.slice(-1);
     const value = parseInt(expiresIn.slice(0, -1));
 

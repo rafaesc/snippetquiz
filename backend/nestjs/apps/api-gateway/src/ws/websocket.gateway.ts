@@ -16,6 +16,8 @@ import {
   CoreQuizGenerationService,
 } from './websocket.dto';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
+import { RedisService } from '../../../commons/services/redis.service';
+import { WsRateLimitGuard } from '../guards/ws-rate-limit.guard';
 
 @WebSocketGateway({
   namespace: '/api/ws',
@@ -34,7 +36,10 @@ export class WebsocketGateway implements OnModuleInit {
 
   private coreQuizGenerationService: CoreQuizGenerationService;
 
-  constructor(@Inject(CORE_SERVICE) private readonly coreClient: ClientGrpc) {}
+  constructor(
+    @Inject(CORE_SERVICE) private readonly coreClient: ClientGrpc,
+    private readonly redisService: RedisService,
+  ) {}
 
   onModuleInit() {
     this.coreQuizGenerationService =
@@ -43,9 +48,9 @@ export class WebsocketGateway implements OnModuleInit {
       );
   }
 
-  @UseGuards(WsJwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard, WsRateLimitGuard)
   @SubscribeMessage('generateQuiz')
-  handleGenerateQuiz(
+  async handleGenerateQuiz(
     @MessageBody() rawData: string,
     @ConnectedSocket() client: ServerSocket,
   ) {
@@ -61,34 +66,48 @@ export class WebsocketGateway implements OnModuleInit {
         `Generate quiz request received for bank ID: ${JSON.stringify(request)}`,
       );
 
-      const quizStream =
-        this.coreQuizGenerationService.generateQuizByBank(request);
+      // Use Redis lock to prevent concurrent quiz generation for the same user
+      const lockKey = `quiz-generation:${userId}`;
 
-      quizStream.subscribe({
-        next: (progress: QuizGenerationProgress) => {
-          client.emit('quizProgress', progress);
-        },
-        error: (error) => {
-          client.emit('quizError', {
-            message: 'Failed to generate quiz',
-            error: error.message,
-          });
-        },
-        complete: () => {
-          client.emit('quizComplete', {
-            message: 'Quiz generation completed successfully',
-          });
-          client.disconnect();
-        },
+      await this.redisService.withLock(lockKey, async () => {
+        const quizStream =
+          this.coreQuizGenerationService.generateQuizByBank(request);
+
+        quizStream.subscribe({
+          next: (progress: QuizGenerationProgress) => {
+            client.emit('quizProgress', progress);
+          },
+          error: (error) => {
+            client.emit('quizError', {
+              message: 'Failed to generate quiz',
+              error: error.message,
+            });
+            this.redisService.releaseLock(lockKey);
+          },
+          complete: () => {
+            client.emit('quizComplete', {
+              message: 'Quiz generation completed successfully',
+            });
+            this.redisService.releaseLock(lockKey);
+            client.disconnect();
+          },
+        });
       });
     } catch (error) {
-      this.logger.error(
-        `Error generating quiz for bank ID `,
-      );
-      client.emit('quizError', {
-        message: 'Failed to generate quiz',
-        error: error.message,
-      });
+      this.logger.error(`Error generating quiz for bank ID: ${error.message}`);
+
+      if (error.message.includes('already locked')) {
+        client.emit('quizError', {
+          message:
+            'Quiz generation is already in progress for this user',
+          error: 'Resource locked',
+        });
+      } else {
+        client.emit('quizError', {
+          message: 'Failed to generate quiz',
+          error: error.message,
+        });
+      }
       client.disconnect();
     }
   }

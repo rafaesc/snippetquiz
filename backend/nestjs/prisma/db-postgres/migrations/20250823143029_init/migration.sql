@@ -105,7 +105,7 @@ CREATE TABLE "public"."question_options" (
 CREATE TABLE "public"."quiz_generation_instructions" (
     "id" BIGSERIAL NOT NULL,
     "instruction" TEXT NOT NULL,
-    "user_id" UUID,
+    "user_id" UUID NOT NULL,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "quiz_generation_instructions_pkey" PRIMARY KEY ("id")
@@ -188,6 +188,9 @@ CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "public"."topics"("user_id", "
 CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "public"."youtube_channels"("channel_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "quiz_generation_instructions_user_id_key" ON "public"."quiz_generation_instructions"("user_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "public"."content_entries_bank"("content_entry_id", "content_bank_id");
 
 -- CreateIndex
@@ -197,28 +200,16 @@ CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "pub
 CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "public"."quiz_topics"("quiz_id", "topic_name");
 
 -- AddForeignKey
-ALTER TABLE "public"."content_banks" ADD CONSTRAINT "content_banks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."topics" ADD CONSTRAINT "topics_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."content_entries" ADD CONSTRAINT "content_entries_youtube_channel_id_fkey" FOREIGN KEY ("youtube_channel_id") REFERENCES "public"."youtube_channels"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."quizzes" ADD CONSTRAINT "quizzes_bank_id_fkey" FOREIGN KEY ("bank_id") REFERENCES "public"."content_banks"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quizzes" ADD CONSTRAINT "quizzes_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."question_options" ADD CONSTRAINT "question_options_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."quiz_generation_instructions" ADD CONSTRAINT "quiz_generation_instructions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;

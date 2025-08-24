@@ -23,6 +23,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -53,6 +62,8 @@ export default function GenerateQuiz() {
     isGenerating,
     progressPercentage,
     isComplete,
+    error,
+    clearError,
   } = useQuizWebSocket();
 
   const entriesPerPage = 10;
@@ -168,6 +179,40 @@ export default function GenerateQuiz() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
+      {/* Error Dialog */}
+      <AlertDialog open={!!error} onOpenChange={() => clearError()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              {error?.retryAfter ? "Rate Limit Exceeded" : "Quiz Generation Error"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-medium">{error?.message}</p>
+              {error?.retryAfter && (
+                <div className="mt-3 p-3 bg-muted rounded-md space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Rate Limit Details:</p>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Retry after:</span> {error.retryAfter} seconds</p>
+                    {error.limit && (
+                      <p><span className="font-medium">Request limit:</span> {error.limit} requests per window</p>
+                    )}
+                    {error.resetTime && (
+                      <p><span className="font-medium">Limit resets at:</span> {new Date(error.resetTime).toLocaleTimeString()}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={clearError}>
+              {error?.retryAfter ? "Understood" : "OK"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Generate Quiz</h1>

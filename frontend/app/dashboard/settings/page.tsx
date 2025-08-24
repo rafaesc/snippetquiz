@@ -180,7 +180,7 @@ export default function Settings() {
           <Button
             className="w-fit rounded-full"
             onClick={handleSaveInstructions}
-            disabled={saveInstructionsMutation.isPending || !globalInstructions.trim() || isLoadingInstructions}
+            disabled={saveInstructionsMutation.isPending || isLoadingInstructions}
           >
             {saveInstructionsMutation.isPending ? "Saving..." : "Use for all future quizzes"}
           </Button>

@@ -12,7 +12,8 @@ message ContentEntry {
 
 // Request message for generating quiz questions
 message GenerateQuizRequest {
-    repeated ContentEntry content_entries = 1;
+    string instructions = 1;
+    repeated ContentEntry content_entries = 2;
 }
 
 // Request message for generating topics

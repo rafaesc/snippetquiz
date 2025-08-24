@@ -9,6 +9,7 @@ export interface ContentEntry {
 }
 
 export interface GenerateQuizRequest {
+  instructions: string;
   contentEntries: ContentEntry[];
 }
 

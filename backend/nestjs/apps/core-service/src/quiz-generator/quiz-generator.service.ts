@@ -108,8 +108,15 @@ export class QuizGeneratorService extends PrismaClient {
         });
       }
 
+      const instruction = await this.quizGenerationInstruction.findFirst({
+        where: {
+          userId,
+        },
+      });
+
       return {
         request: {
+          instructions: instruction?.instruction || '',
           contentEntries: mappedEntries,
         },
         entriesSkipped,
