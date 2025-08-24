@@ -29,14 +29,13 @@ export class ContentEntryService extends PrismaClient {
   private aiGenerationService: AiGenerationService;
   private readonly logger = new Logger(ContentEntryService.name);
 
-  constructor(
-    @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
-  ) {
+  constructor(@Inject(AI_GENERATION_SERVICE) private client: ClientGrpc) {
     super();
-    
+
     try {
-      this.aiGenerationService =
-        this.client.getService<AiGenerationService>('AiGenerationService');
+      this.aiGenerationService = this.client.getService<AiGenerationService>(
+        'AiGenerationService',
+      );
     } catch (error) {
       throw error;
     }
@@ -219,17 +218,17 @@ export class ContentEntryService extends PrismaClient {
         },
       });
 
-      this.generateTopicsForContentEntry(newEntry.id.toString(), userId).catch(
-        (error) => {
-          console.error(
-            `Failed to generate topics for content entry ${newEntry.id}:`,
-            error,
-          );
-        },
-      );
-
       resultEntry = newEntry;
     }
+
+    this.generateTopicsForContentEntry(resultEntry.id.toString(), userId).catch(
+      (error) => {
+        console.error(
+          `Failed to generate topics for content entry ${resultEntry.id}:`,
+          error,
+        );
+      },
+    );
 
     return {
       id: resultEntry.id.toString(),
@@ -452,7 +451,6 @@ export class ContentEntryService extends PrismaClient {
 
     return { message: 'Content entry deleted successfully' };
   }
-
 
   async generateTopicsForContentEntry(
     contentEntryId: string,

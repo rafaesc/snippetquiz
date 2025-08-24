@@ -11,18 +11,24 @@ load_dotenv()
 
 class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
     def GenerateQuiz(self, request, context):
-        """Generate quiz questions for content entries with streaming progress"""
+        """Generate quiz questions for content entries with streaming progress using AI"""
         print(
             f"Received quiz generation request with {len(request.content_entries)} content entries"
         )
-
+    
         try:
+            # Import the OpenRouter client
+            from openrouter_client import OpenRouterClient
+            
+            # Initialize the client
+            client = OpenRouterClient()
+            
             for i, content_entry in enumerate(request.content_entries):
                 # Check if client cancelled the request
                 if not context.is_active():
                     print(f"Client disconnected, stopping at content entry {i}")
                     break
-
+    
                 # Send status message indicating we're processing this content entry
                 status_message = ai_generation_pb2.QuizGenerationProgress(
                     status=ai_generation_pb2.GenerationStatus(
@@ -33,40 +39,95 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
                     )
                 )
                 yield status_message
-
+    
                 print(f"Processing content entry {i+1}: {content_entry.page_title}")
-
-                # Simulate processing time
-                time.sleep(1)
-
-                # Generate mock questions for this content entry
-                mock_questions = self._generate_mock_questions(content_entry)
-
-                # Send result message with generated questions
-                result_message = ai_generation_pb2.QuizGenerationProgress(
-                    result=ai_generation_pb2.GenerationResult(
-                        content_entry_id=content_entry.id,
-                        page_title=content_entry.page_title,
-                        word_count_analyzed=content_entry.word_count_analyzed,
-                        questions=mock_questions,
-                    )
-                )
-                yield result_message
-                time.sleep(1)
-                yield result_message
-                time.sleep(1)
-                yield result_message
-
+    
+                # Split content into chunks of 2500 characters
+                content = content_entry.content or ""
+                chunk_size = 2500
+                chunks = [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
+                
+                # Initialize summaries list for this content entry
+                summaries = []
+                
+                # Default instructions (can be made configurable later)
+                instructions = request.instructions
+                
+                print(f"Split content into {len(chunks)} chunks for processing")
+                
+                # Process each chunk
+                for chunk_idx, chunk in enumerate(chunks):
+                    if not context.is_active():
+                        print(f"Client disconnected, stopping at chunk {chunk_idx}")
+                        break
+                    
+                    print(f"Processing chunk {chunk_idx + 1}/{len(chunks)}")
+                    
+                    # Generate questions and summary for this chunk
+                    try:
+                        result = client.generate_quiz_questions(
+                            instructions=instructions,
+                            summaries=summaries,
+                            page_title=content_entry.page_title,
+                            content=chunk
+                        )
+                        
+                        # Convert AI response to protobuf questions
+                        chunk_questions = []
+                        for q_data in result.get('questions', []):
+                            # Create mock options from AI response
+                            options = []
+                            for opt_data in q_data.get('options', []):
+                                option = ai_generation_pb2.QuestionOption(
+                                    option_text=opt_data.get('text', ''),
+                                    option_explanation=opt_data.get('explanation', ''),
+                                    is_correct=opt_data.get('correct', False),
+                                )
+                                options.append(option)
+                            
+                            # Create the question
+                            question = ai_generation_pb2.Question(
+                                question=q_data.get('question', ''),
+                                type="multiple_choice",
+                                options=options,
+                            )
+                            chunk_questions.append(question)
+                        
+                        # Add summary to summaries list for next chunks
+                        if result.get('summary'):
+                            summaries.append(result['summary'])
+                        
+                        print(f"Generated {len(chunk_questions)} questions from chunk {chunk_idx + 1}")
+                        
+                        # Send result message for this chunk
+                        result_message = ai_generation_pb2.QuizGenerationProgress(
+                            result=ai_generation_pb2.GenerationResult(
+                                content_entry_id=content_entry.id,
+                                page_title=content_entry.page_title,
+                                word_count_analyzed=content_entry.word_count_analyzed,
+                                questions=chunk_questions,
+                            )
+                        )
+                        yield result_message
+                        
+                    except Exception as e:
+                        print(f"Error processing chunk {chunk_idx + 1}: {e}")
+                        continue
+                        
+                    # Small delay between chunks
+                    time.sleep(0.5)
+    
                 # Small delay before next content entry
                 if i < len(request.content_entries) - 1:
                     time.sleep(0.5)
+                    
             print("Finished generating quiz questions for all content entries")
-
+    
             completed_message = ai_generation_pb2.QuizGenerationProgress(
                 completed=True
             )
             yield completed_message
-
+    
         except Exception as e:
             print(f"Error during quiz generation: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
@@ -80,12 +141,17 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
         
         try:
             # Simulate processing time
-            time.sleep(1)
-            
-            # Generate mock topics based on the content and page title
-            generated_topics = self._generate_mock_topics(request)
-            
-            # Create response
+            from openrouter_client import OpenRouterClient
+
+            client = OpenRouterClient()
+
+            # Generate topics using AI
+            generated_topics = client.generate_topics(
+                content=request.content,
+                page_title=request.page_title,
+                existing_topics=list(request.existing_topics)
+            )
+
             response = ai_generation_pb2.GenerateTopicsResponse(
                 topics=generated_topics
             )
@@ -98,69 +164,6 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"Topic generation error: {str(e)}")
             return ai_generation_pb2.GenerateTopicsResponse(topics=[])
-
-    def _generate_mock_topics(self, request):
-        """Generate mock topics based on content, page title, and existing topics"""
-        # Extract some keywords from page title for topic generation
-        page_words = request.page_title.lower().split()
-        
-        # Base topics that could be generated from any content
-        base_topics = [
-            "Introduction",
-            "Overview", 
-            "Key Concepts",
-            "Best Practices",
-            "Implementation",
-            "Examples",
-            "Advanced Topics",
-            "Troubleshooting",
-            "Summary",
-            "Next Steps"
-        ]
-        
-        # Generate topics based on page title keywords
-        page_specific_topics = []
-        for word in page_words:
-            if len(word) > 3:  # Only use meaningful words
-                page_specific_topics.extend([
-                    f"{word.capitalize()} Fundamentals",
-                    f"{word.capitalize()} Applications",
-                    f"Understanding {word.capitalize()}"
-                ])
-        
-        # Combine all potential topics
-        all_potential_topics = base_topics + page_specific_topics
-        
-        # Filter out topics that are too similar to existing ones
-        existing_topics_lower = [topic.lower() for topic in request.existing_topics]
-        new_topics = []
-        
-        for topic in all_potential_topics:
-            # Check if this topic is similar to existing ones
-            is_similar = False
-            for existing in existing_topics_lower:
-                if (topic.lower() in existing or existing in topic.lower() or 
-                    any(word in existing.split() for word in topic.lower().split() if len(word) > 3)):
-                    is_similar = True
-                    break
-            
-            if not is_similar and topic not in new_topics:
-                new_topics.append(topic)
-                
-            # Limit to 5-8 new topics
-            if len(new_topics) >= 6:
-                break
-        
-        # If we don't have enough new topics, add some generic ones
-        if len(new_topics) < 3:
-            fallback_topics = ["Core Principles", "Practical Guide", "Deep Dive"]
-            for topic in fallback_topics:
-                if topic not in new_topics:
-                    new_topics.append(topic)
-                if len(new_topics) >= 5:
-                    break
-        
-        return new_topics[:6]  # Return at most 6 topics
 
     def _generate_mock_questions(self, content_entry):
         """Generate mock questions based on content entry"""
