@@ -5,8 +5,8 @@ import os
 from dotenv import load_dotenv
 import ai_generation_pb2
 import ai_generation_pb2_grpc
+from groq_client import GroqClient
 
-# Load environment variables from .env file
 load_dotenv()
 
 class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
@@ -17,11 +17,7 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
         )
     
         try:
-            # Import the OpenRouter client
-            from openrouter_client import OpenRouterClient
-            
-            # Initialize the client
-            client = OpenRouterClient()
+            client = GroqClient()
             
             for i, content_entry in enumerate(request.content_entries):
                 # Check if client cancelled the request
@@ -139,13 +135,9 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
         print(f"Content length: {len(request.content)} characters")
         print(f"Existing topics: {list(request.existing_topics)}")
         
-        try:
-            # Simulate processing time
-            from openrouter_client import OpenRouterClient
+        try:            
+            client = GroqClient()
 
-            client = OpenRouterClient()
-
-            # Generate topics using AI
             generated_topics = client.generate_topics(
                 content=request.content,
                 page_title=request.page_title,
@@ -164,48 +156,6 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"Topic generation error: {str(e)}")
             return ai_generation_pb2.GenerateTopicsResponse(topics=[])
-
-    def _generate_mock_questions(self, content_entry):
-        """Generate mock questions based on content entry"""
-        questions = []
-
-        # Generate 2-3 mock questions per content entry
-        for i in range(2):
-            # Create mock options
-            options = [
-                ai_generation_pb2.QuestionOption(
-                    option_text=f"Option A for {content_entry.page_title} Q{i+1}",
-                    option_explanation=f"This is the correct answer because it relates to the main concept in {content_entry.page_title}",
-                    is_correct=True,
-                ),
-                ai_generation_pb2.QuestionOption(
-                    option_text=f"Option B for {content_entry.page_title} Q{i+1}",
-                    option_explanation=f"This is incorrect because it doesn't align with the content from {content_entry.page_title}",
-                    is_correct=False,
-                ),
-                ai_generation_pb2.QuestionOption(
-                    option_text=f"Option C for {content_entry.page_title} Q{i+1}",
-                    option_explanation=f"This is incorrect as it contradicts the information in {content_entry.page_title}",
-                    is_correct=False,
-                ),
-                ai_generation_pb2.QuestionOption(
-                    option_text=f"Option D for {content_entry.page_title} Q{i+1}",
-                    option_explanation=f"This is incorrect and not supported by the content in {content_entry.page_title}",
-                    is_correct=False,
-                ),
-            ]
-
-            # Create the question
-            question = ai_generation_pb2.Question(
-                question=f"What is the main concept discussed in {content_entry.page_title}? (Question {i+1})",
-                type="multiple_choice",
-                options=options,
-            )
-
-            questions.append(question)
-
-        return questions
-
 
 def serve():
     # Get port from environment variable, default to 50051

@@ -171,69 +171,26 @@ export class QuizGeneratorService extends PrismaClient {
         },
       ),
       tap((progress) => {
-        this.logger.debug(`[TAP] Progress received:`, {
-          hasStatus: !!progress.status,
-          hasResult: !!progress.result,
-          hasCompleted: !!progress.completed,
-          progressKeys: Object.keys(progress || {})
-        });
-        
         if (progress.status) {
-          this.logger.debug(`[TAP] Processing status:`, {
-            contentEntryId: progress.status.contentEntryId,
-            statusKeys: Object.keys(progress.status || {})
-          });
           const contentEntryId = progress.status.contentEntryId.toString();
           if (!processedContentEntryIds.has(contentEntryId)) {
             processedContentEntryIds.add(contentEntryId);
             processedContentEntries++;
-            this.logger.debug(`[TAP] Added new content entry ${contentEntryId}, total processed: ${processedContentEntries}`);
           }
         }
         if (progress.result) {
-          this.logger.debug(`[TAP] Processing result:`, {
-            resultKeys: Object.keys(progress.result || {}),
-            hasQuestions: !!progress.result.questions,
-            questionsType: typeof progress.result.questions,
-            questionsLength: progress.result.questions?.length
-          });
           currentChunkIndex++;
-          this.logger.debug(`[TAP] Incremented chunk index to: ${currentChunkIndex}`);
         }
       }),
       concatMap(
         (
           progress: QuizGenerationProgressCamelCase,
         ): Observable<CoreQuizGenerationStatus> => {
-          this.logger.debug(`[CONCATMAP] Processing progress:`, {
-            hasResult: !!progress.result,
-            hasCompleted: !!progress.completed,
-            hasStatus: !!progress.status
-          });
-          
           if (progress.result) {
-            this.logger.debug(`[CONCATMAP] Progress result details:`, {
-              resultKeys: Object.keys(progress.result || {}),
-              contentEntryId: progress.result.contentEntryId,
-              hasQuestions: !!progress.result.questions,
-              questionsType: typeof progress.result.questions,
-              questionsIsArray: Array.isArray(progress.result.questions)
-            });
-            
             const contentEntryId = progress.result.contentEntryId;
             const questions = progress.result.questions;
-            
-            // Critical logging before accessing .length
-            this.logger.debug(`[CONCATMAP] About to access questions.length:`, {
-              questions,
-              questionsType: typeof questions,
-              questionsIsArray: Array.isArray(questions),
-              questionsIsNull: questions === null,
-              questionsIsUndefined: questions === undefined
-            });
-            
-            if (!questions) {
-              this.logger.error(`[CONCATMAP] Questions is null/undefined for content entry ${contentEntryId}`);
+
+            if (!questions || questions.length === 0) {
               return of({
                 progress: {
                   bank_id: bankId.toString(),
@@ -244,109 +201,32 @@ export class QuizGeneratorService extends PrismaClient {
                   current_chunk_index: currentChunkIndex,
                   total_chunks: totalChunks,
                   content_entry: {
-                    id: progress.result?.contentEntryId?.toString(),
+                      id: progress.result?.contentEntryId?.toString(),
                     name: progress.result?.pageTitle,
                     word_count_analyzed: progress?.result?.wordCountAnalyzed,
                   },
                 },
               });
             }
-            
-            if (!Array.isArray(questions)) {
-              this.logger.error(`[CONCATMAP] Questions is not an array for content entry ${contentEntryId}:`, {
-                questionsType: typeof questions,
-                questions
-              });
-              return of({
-                progress: {
-                  bank_id: bankId.toString(),
-                  total_content_entries: totalContentEntries,
-                  current_content_entry_index: processedContentEntries,
-                  questions_generated_so_far: totalQuestionsGenerated,
-                  total_content_entries_skipped: entriesSkipped,
-                  current_chunk_index: currentChunkIndex,
-                  total_chunks: totalChunks,
-                  content_entry: {
-                    id: progress.result?.contentEntryId?.toString(),
-                    name: progress.result?.pageTitle,
-                    word_count_analyzed: progress?.result?.wordCountAnalyzed,
-                  },
-                },
-              });
-            }
-            
+
             totalQuestionsGenerated += questions.length;
+
             this.logger.log(
               `Processing ${questions.length} questions for content entry ${contentEntryId}`,
             );
-            
-            // Log each question before processing
-            questions.forEach((question, index) => {
-              this.logger.debug(`[CONCATMAP] Question ${index}:`, {
-                hasQuestion: !!question,
-                questionKeys: Object.keys(question || {}),
-                hasOptions: !!question?.options,
-                optionsType: typeof question?.options,
-                optionsIsArray: Array.isArray(question?.options),
-                optionsLength: question?.options?.length
-              });
-            });
 
             // Create all questions for this content entry sequentially
-            const questionCreationObservables = questions.map((question, questionIndex) => {
-              this.logger.debug(`[QUESTION_MAP] Processing question ${questionIndex}:`, {
-                question,
-                hasOptions: !!question?.options,
-                optionsType: typeof question?.options,
-                optionsIsArray: Array.isArray(question?.options)
-              });
-              
-              if (!question) {
-                this.logger.error(`[QUESTION_MAP] Question ${questionIndex} is null/undefined`);
-                return of(null); // Return observable that completes
-              }
-              
-              if (!question.options) {
-                this.logger.error(`[QUESTION_MAP] Question ${questionIndex} has no options:`, question);
-                return of(null);
-              }
-              
-              if (!Array.isArray(question.options)) {
-                this.logger.error(`[QUESTION_MAP] Question ${questionIndex} options is not an array:`, {
-                  optionsType: typeof question.options,
-                  options: question.options
-                });
-                return of(null);
-              }
-              
-              return this.quizService
+            const questionCreationObservables = questions.map((question) =>
+              this.quizService
                 .createQuestion({
                   userId,
                   contentEntryId,
                   question: question.question,
-                  options: question.options.map((option, optionIndex) => {
-                    this.logger.debug(`[OPTION_MAP] Processing option ${optionIndex}:`, {
-                      option,
-                      hasOptionText: !!option?.optionText,
-                      hasOptionExplanation: !!option?.optionExplanation,
-                      hasIsCorrect: option?.isCorrect !== undefined
-                    });
-                    
-                    if (!option) {
-                      this.logger.error(`[OPTION_MAP] Option ${optionIndex} is null/undefined`);
-                      return {
-                        optionText: '',
-                        optionExplanation: '',
-                        isCorrect: false,
-                      };
-                    }
-                    
-                    return {
-                      optionText: option.optionText || '',
-                      optionExplanation: option.optionExplanation || '',
-                      isCorrect: option.isCorrect || false,
-                    };
-                  }),
+                  options: question.options.map((option) => ({
+                    optionText: option.optionText,
+                    optionExplanation: option.optionExplanation,
+                    isCorrect: option.isCorrect,
+                  })),
                 })
                 .pipe(
                   tap((result) => {
@@ -354,13 +234,11 @@ export class QuizGeneratorService extends PrismaClient {
                       `Created question ${result.questionId} for content entry ${contentEntryId}`,
                     );
                   }),
-                );
-            }).filter(obs => obs !== null); // Filter out null observables
-
-            this.logger.debug(`[CONCATMAP] Created ${questionCreationObservables.length} question observables`);
+                ),
+            );
 
             // Execute all question creations in parallel, then update content entry
-            return forkJoin(questionCreationObservables.length > 0 ? questionCreationObservables : [of(null)]).pipe(
+            return forkJoin(questionCreationObservables).pipe(
               switchMap(() =>
                 this.contentEntryService.updateContentEntry({
                   userId,
@@ -425,7 +303,6 @@ export class QuizGeneratorService extends PrismaClient {
               );
           }
 
-          this.logger.debug(`[CONCATMAP] Falling back to getQuestionsGenerated`);
           return this.quizService
             .getQuestionsGenerated({
               userId,

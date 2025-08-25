@@ -80,7 +80,7 @@ Content to analyze:
 {content}
 
 Instructions:
-1. Create 2-3 multiple-choice questions based on the content and custom instructions
+1. Create 2-5 multiple-choice questions based on the content and custom instructions
 2. Each question should have 4 options (A, B, C, D)
 3. Only one option should be correct
 4. Questions should test understanding, not just memorization
