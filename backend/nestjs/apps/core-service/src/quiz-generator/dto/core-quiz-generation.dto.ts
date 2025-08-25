@@ -11,6 +11,8 @@ interface CoreQuizGenerationProgress {
   current_content_entry_index: number;
   questions_generated_so_far: number;
   content_entry: ContentEntryDto;
+  total_chunks: number;
+  current_chunk_index: number;
 }
 
 export interface GenerateQuizByBankRequest {

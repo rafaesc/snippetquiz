@@ -28,6 +28,8 @@ message CoreQuizGenerationProgress {
     int32 current_content_entry_index = 4;
     int32 questions_generated_so_far = 5;
     ContentEntry content_entry = 6;
+    int32 total_chunks = 7;
+    int32 current_chunk_index = 8;
 }
 
 // Status message indicating which content entry is being processed

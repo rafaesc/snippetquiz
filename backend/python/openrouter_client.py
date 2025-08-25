@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import re
 from typing import List, Optional
 from dotenv import load_dotenv
 
@@ -155,6 +156,26 @@ class OpenRouterClient:
         # Limit to 6 topics maximum
         return topics[:6]
     
+    def _clean_json_response(self, response: str) -> str:
+        """
+        Clean the AI response to ensure valid JSON format
+        Handles common issues like trailing commas, extra whitespace, etc.
+        """
+        if not response:
+            return response
+            
+        # Remove any markdown code block markers
+        response = re.sub(r'^```json\s*', '', response, flags=re.MULTILINE)
+        response = re.sub(r'^```\s*$', '', response, flags=re.MULTILINE)
+        
+        # Remove trailing commas before closing brackets/braces
+        response = re.sub(r',\s*([}\]])', r'\1', response)
+        
+        # Remove any leading/trailing whitespace
+        response = response.strip()
+        
+        return response
+    
     def generate_quiz_questions(self, instructions: str, summaries: List[str], page_title: str, content: str) -> dict:
         """
         Generate quiz questions and summary based on content chunk
@@ -188,9 +209,10 @@ class OpenRouterClient:
         response = self.generate_completion(messages, max_tokens=1500)
         
         if response:
-            # Parse the JSON response
+            # Clean and parse the JSON response
             try:
-                result = json.loads(response)
+                cleaned_response = self._clean_json_response(response)
+                result = json.loads(cleaned_response)
                 return {
                     'questions': result.get('questions', []),
                     'summary': result.get('summary', '')
@@ -198,6 +220,7 @@ class OpenRouterClient:
             except json.JSONDecodeError as e:
                 print(f"Failed to parse JSON response: {e}")
                 print(f"Raw response: {response}")
+                print(f"Cleaned response: {cleaned_response if 'cleaned_response' in locals() else 'N/A'}")
                 return {'questions': [], 'summary': ''}
         else:
             print("Failed to generate quiz questions, returning empty result")

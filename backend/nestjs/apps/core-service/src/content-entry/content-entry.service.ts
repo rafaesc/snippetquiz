@@ -598,4 +598,59 @@ export class ContentEntryService extends PrismaClient {
       }),
     );
   }
+
+  async calculateTotalChunksForBank(
+    bankId: number,
+    userId: string,
+  ): Promise<number> {
+    // Get configurable chunk size from environment variable, default to 2500
+    const chunkSize = parseInt(process.env.CONTENT_CHUNK_SIZE || '2500', 10);
+  
+    // Verify that the bank belongs to the user
+    const contentBank = await this.contentBank.findFirst({
+      where: {
+        id: BigInt(bankId),
+        userId,
+      },
+    });
+  
+    if (!contentBank) {
+      throw new NotFoundException(
+        'Content bank not found or does not belong to user',
+      );
+    }
+  
+    // Get all content entries for the specified bank
+    const contentEntries = await this.contentEntry.findMany({
+      where: {
+        contentBanks: {
+          some: {
+            contentBankId: BigInt(bankId),
+          },
+        },
+      },
+      select: {
+        id: true,
+        content: true,
+      },
+    });
+  
+    let totalChunks = 0;
+  
+    // Calculate chunks for each content entry
+    for (const entry of contentEntries) {
+      if (entry.content) {
+        // Split content into chunks of specified size
+        const content = entry.content;
+        const chunks = Math.ceil(content.length / chunkSize);
+        totalChunks += chunks;
+      }
+    }
+  
+    this.logger.log(
+      `Calculated ${totalChunks} total chunks for bank ${bankId} with chunk size ${chunkSize}`,
+    );
+  
+    return totalChunks;
+  }
 }
