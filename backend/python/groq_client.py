@@ -1,25 +1,26 @@
-import requests
 import json
 import os
 import re
 from typing import List, Optional
 from dotenv import load_dotenv
+from groq import Groq
 
 # Load environment variables
 load_dotenv()
 
-class OpenRouterClient:
+class GroqClient:
     def __init__(self):
-        self.api_key = os.getenv('OPENROUTER_API_KEY')
-        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
-        self.model = "openai/gpt-3.5-turbo"  # Using a more reliable model
+        self.api_key = os.getenv('GROQ_API_KEY')
+        self.model = "qwen/qwen3-32b"
         
         if not self.api_key:
-            raise ValueError("OPENROUTER_API_KEY environment variable is required")
+            raise ValueError("GROQ_API_KEY environment variable is required")
+        
+        self.client = Groq(api_key=self.api_key)
     
-    def generate_completion(self, messages: List[dict], max_tokens: int = 1000) -> Optional[str]:
+    def generate_completion(self, messages: List[dict], max_tokens: int = 4096, stream: bool = False) -> Optional[str]:
         """
-        Generate completion using OpenRouter AI API
+        Generate completion using Groq AI API
         
         Args:
             messages: List of message dictionaries with 'role' and 'content'
@@ -29,42 +30,34 @@ class OpenRouterClient:
             Generated text content or None if error
         """
         try:
-            headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            }
-            
-            data = {
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": 0.7,
-            }
-            
-            response = requests.post(
-                url=self.base_url,
-                headers=headers,
-                data=json.dumps(data),
-                timeout=30
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.6,
+                max_completion_tokens=max_tokens,
+                top_p=0.95,
+                reasoning_effort="default",
+                stream=stream,
+                stop=None
             )
             
-            response.raise_for_status()
-            result = response.json()
-            
-            if 'choices' in result and len(result['choices']) > 0:
-                return result['choices'][0]['message']['content'].strip()
+            if stream:
+                # Handle streaming response
+                content = ""
+                for chunk in completion:
+                    if chunk.choices[0].delta.content:
+                        content += chunk.choices[0].delta.content
+                return content.strip()
             else:
-                print(f"Unexpected response format: {result}")
-                return None
-                
-        except requests.exceptions.RequestException as e:
-            print(f"Request error: {e}")
-            return None
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
-            return None
+                # Handle non-streaming response
+                if completion.choices and len(completion.choices) > 0:
+                    return self.extract_block_between_braces(completion.choices[0].message.content.strip())
+                else:
+                    print(f"Unexpected response format: {completion}")
+                    return None
+                    
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"Groq API error: {e}")
             return None
     
     def generate_topics(self, content: str, page_title: str, existing_topics: List[str]) -> List[str]:
@@ -156,6 +149,36 @@ class OpenRouterClient:
         # Limit to 6 topics maximum
         return topics[:6]
     
+    def extract_block_between_braces(self, s: str) -> str | None:
+        """
+        Extract the first complete JSON block between braces from a string
+        
+        Args:
+            s: Input string that may contain JSON block
+            
+        Returns:
+            The JSON block string or None if not found
+        """
+        open_braces = 0
+        start_index = -1
+        end_index = -1
+
+        for i, ch in enumerate(s):
+            if ch == "{":
+                if open_braces == 0:
+                    start_index = i
+                open_braces += 1
+            elif ch == "}":
+                open_braces -= 1
+                if open_braces == 0:
+                    end_index = i
+                    break
+
+        if start_index != -1 and end_index != -1:
+            return s[start_index:end_index + 1]
+
+        return None
+
     def _clean_json_response(self, response: str) -> str:
         """
         Clean the AI response to ensure valid JSON format
@@ -164,6 +187,11 @@ class OpenRouterClient:
         if not response:
             return response
             
+        # First try to extract JSON block between braces
+        json_block = self.extract_block_between_braces(response)
+        if json_block:
+            response = json_block
+        
         # Remove any markdown code block markers
         response = re.sub(r'^```json\s*', '', response, flags=re.MULTILINE)
         response = re.sub(r'^```\s*$', '', response, flags=re.MULTILINE)
@@ -206,7 +234,13 @@ class OpenRouterClient:
             }
         ]
         
+        # First attempt
         response = self.generate_completion(messages, max_tokens=1500)
+        
+        # Retry mechanism - single retry attempt if first attempt fails
+        if not response:
+            print("First attempt failed, retrying once...")
+            response = self.generate_completion(messages, max_tokens=1500)
         
         if response:
             # Clean and parse the JSON response
@@ -220,8 +254,21 @@ class OpenRouterClient:
             except json.JSONDecodeError as e:
                 print(f"Failed to parse JSON response: {e}")
                 print(f"Raw response: {response}")
-                print(f"Cleaned response: {cleaned_response if 'cleaned_response' in locals() else 'N/A'}")
+                # Retry with a fresh request if JSON parsing fails
+                print("JSON parsing failed, retrying request once...")
+                retry_response = self.generate_completion(messages, max_tokens=1500)
+                if retry_response:
+                    try:
+                        cleaned_retry_response = self._clean_json_response(retry_response)
+                        retry_result = json.loads(cleaned_retry_response)
+                        return {
+                            'questions': retry_result.get('questions', []),
+                            'summary': retry_result.get('summary', '')
+                        }
+                    except json.JSONDecodeError as retry_e:
+                        print(f"Retry also failed to parse JSON: {retry_e}")
+                        print(f"Retry response: {retry_response}")
                 return {'questions': [], 'summary': ''}
         else:
-            print("Failed to generate quiz questions, returning empty result")
+            print("Failed to generate quiz questions after retry, returning empty result")
             return {'questions': [], 'summary': ''}
