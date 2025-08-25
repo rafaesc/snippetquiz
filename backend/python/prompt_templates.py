@@ -28,14 +28,14 @@ class PromptTemplates:
 Page Title: {page_title}
 
 Content to analyze:
-{content[:2000]}{'...' if len(content) > 2000 else ''}
+{content[:2500]}{'...' if len(content) > 2500 else ''}
 
 Existing topics that you can reuse if you need it:
 {existing_topics_str}
 
 Instructions:
 1. Generate 1-6 topics that are relevant to the content
-2. Topics should be specific and meaningful, not generic
+2. Topics should be generic and meaningful
 3. First identify reusable topics from existing topics before creating new ones.
 4. Topics should be concise (2-5 words each)
 5. Focus on key concepts, themes, or subjects discussed in the content

@@ -16,6 +16,8 @@ export interface QuizGenerationProgress {
   totalContentEntriesSkipped: number;
   currentContentEntryIndex: number;
   questionsGeneratedSoFar: number;
+  totalChunks: number;
+  currentChunkIndex: number;
   contentEntry: {
     id: string;
     name: string;
@@ -158,8 +160,8 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
   // Calculate progress percentage based on current progress
   const progressPercentage = progress?.progress
     ? Math.round(
-        (progress.progress.currentContentEntryIndex /
-          progress.progress.totalContentEntries) *
+        (progress.progress.currentChunkIndex /
+          progress.progress.totalChunks) *
           100
       )
     : 0;
