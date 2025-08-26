@@ -27,7 +27,7 @@ FROM base AS builder
 WORKDIR /usr/src/app/nestjs
 
 # Copy installed dependencies from previous stage
-COPY --from=deps /usr/src/app/nestjs/node_modules .
+COPY --from=deps /usr/src/app/nestjs/node_modules ./node_modules
 
 # Copy full application source code and config
 COPY ./nestjs .
