@@ -7,6 +7,6 @@ export class UpdateInstructionDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(5000)
+  @MaxLength(100)
   instruction: string;
 }
