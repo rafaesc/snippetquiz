@@ -3,7 +3,7 @@ import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 export class CreateInstructionDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(5000)
+  @MaxLength(100)
   instruction: string;
 
   @IsString()

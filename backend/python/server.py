@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import ai_generation_pb2
 import ai_generation_pb2_grpc
 from groq_client import GroqClient
+from openrouter_client import OpenRouterClient
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
         )
     
         try:
-            client = GroqClient()
+            client = OpenRouterClient()
             
             for i, content_entry in enumerate(request.content_entries):
                 # Check if client cancelled the request
@@ -91,6 +92,7 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
                         
                         # Add summary to summaries list for next chunks
                         if result.get('summary'):
+                            summaries = []
                             summaries.append(result['summary'])
                         
                         print(f"Generated {len(chunk_questions)} questions from chunk {chunk_idx + 1}")
@@ -136,7 +138,7 @@ class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
         print(f"Existing topics: {list(request.existing_topics)}")
         
         try:            
-            client = GroqClient()
+            client = OpenRouterClient()
 
             generated_topics = client.generate_topics(
                 content=request.content,

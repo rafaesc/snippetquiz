@@ -35,7 +35,7 @@ Existing topics that you can reuse if you need it:
 
 Instructions:
 1. Generate 1-6 topics that are relevant to the content
-2. Topics should be generic and meaningful
+2. Topics should be generic
 3. First identify reusable topics from existing topics before creating new ones.
 4. Topics should be concise (2-5 words each)
 5. Focus on key concepts, themes, or subjects discussed in the content
@@ -80,13 +80,14 @@ Content to analyze:
 {content}
 
 Instructions:
-1. Create 2-5 multiple-choice questions based on the content and custom instructions
+1. Create 2-3 multiple-choice questions based on the content and custom instructions
 2. Each question should have 4 options (A, B, C, D)
 3. Only one option should be correct
-4. Questions should test understanding, not just memorization
-5. Provide clear explanations for why each option is correct or incorrect
-6. Generate a concise summary (1-2 sentences) of the key points in this content chunk
-7. Consider the previous summaries for context but focus on new information in this chunk
+4. Options should be without ambiguous options
+5. Questions should test understanding, not just memorization
+6. Provide clear explanations for why each option is correct or incorrect
+7. Generate a concise summary (1-2 sentences) of the key points in this content chunk
+8. Consider the previous summaries for context but focus on new information in this chunk
 
 Format your response as JSON with this exact structure:
 {{
