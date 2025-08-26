@@ -25,15 +25,15 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: ./backend/apps/api-gateway/Dockerfile
+          file: ./backend/nestjs/apps/api-gateway/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-api-gateway:latest
 
       - name: Build and push Auth Service
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/apps/auth-service/Dockerfile
+          context: ./backend/nestjs
+          file: ./backend/nestjs/apps/auth-service/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
 
@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: ./backend/apps/core-service/Dockerfile
+          file: ./backend/nestjs/apps/core-service/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
 

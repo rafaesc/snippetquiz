@@ -9,11 +9,11 @@ FROM node:21-alpine3.19 AS base
 FROM base AS deps
 
 # Set working directory
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/nestjs
 
 # Copy package manifest files
-COPY package.json ./
-COPY package-lock.json ./
+COPY /nestjs/package.json .
+COPY /nestjs/package-lock.json .
 
 # Install all dependencies (including devDependencies, needed for build)
 RUN npm ci
@@ -24,13 +24,13 @@ RUN npm ci
 FROM base AS builder
 
 # Set working directory
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/nestjs
 
 # Copy installed dependencies from previous stage
-COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=deps /usr/src/app/nestjs/node_modules .
 
 # Copy full application source code and config
-COPY . .
+COPY ./nestjs .
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build
@@ -46,6 +46,9 @@ ENV NODE_ENV=production
 # Set working directory
 WORKDIR /usr/src/app
 
+# Copy proto files
+COPY ./protos ./protos
+
 # Install dumb-init to handle container signals properly (e.g., SIGTERM)
 RUN apk add --no-cache dumb-init
 
@@ -54,10 +57,12 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S backend -u 1001
 
 # Copy compiled application from build stage
-COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/nestjs/dist ./nestjs/dist
 
 # Copy package manifest files for installing production dependencies
-COPY package*.json ./
+WORKDIR /usr/src/app/nestjs
+
+COPY /nestjs/package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
