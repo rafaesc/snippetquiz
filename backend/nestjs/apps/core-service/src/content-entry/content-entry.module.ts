@@ -3,11 +3,13 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ContentEntryService } from './content-entry.service';
 import { ContentEntryController } from './content-entry.controller';
 import { AI_GENERATION_SERVICE } from '../config/services';
+import { PrismaModule } from '../../../commons/services';
 import { join } from 'path';
 import { envs } from '../config/envs';
 
 @Module({
   imports: [
+    PrismaModule,
     ClientsModule.register([
       {
         name: AI_GENERATION_SERVICE,

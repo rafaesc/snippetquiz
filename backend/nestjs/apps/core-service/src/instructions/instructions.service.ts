@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma/postgres';
+import { PrismaService } from '../../../commons/services';
 import { UpdateInstructionDto } from './dto/update-instruction.dto';
 import { InstructionResponseDto } from './dto/instruction-response.dto';
 
 @Injectable()
-export class InstructionsService extends PrismaClient {
-  constructor() {
-    super();
-  }
+export class InstructionsService {
+  constructor(private readonly prisma: PrismaService) {}
 
   async findByUserId(userId: string): Promise<InstructionResponseDto> {
-    const instruction = await this.quizGenerationInstruction.findFirst({
+    const instruction = await this.prisma.quizGenerationInstruction.findFirst({
       where: {
         userId,
       },
@@ -28,7 +26,7 @@ export class InstructionsService extends PrismaClient {
     const { userId, instruction } = updateDto;
 
     // Check if user already has an instruction
-    const existingInstruction = await this.quizGenerationInstruction.findFirst({
+    const existingInstruction = await this.prisma.quizGenerationInstruction.findFirst({
       where: {
         userId,
       },
@@ -37,7 +35,7 @@ export class InstructionsService extends PrismaClient {
     let result;
     if (existingInstruction) {
       // Update existing instruction
-      result = await this.quizGenerationInstruction.update({
+      result = await this.prisma.quizGenerationInstruction.update({
         where: {
           id: existingInstruction.id,
         },
@@ -48,7 +46,7 @@ export class InstructionsService extends PrismaClient {
       });
     } else {
       // Create new instruction
-      result = await this.quizGenerationInstruction.create({
+      result = await this.prisma.quizGenerationInstruction.create({
         data: {
           instruction: instruction.trim(),
           userId,

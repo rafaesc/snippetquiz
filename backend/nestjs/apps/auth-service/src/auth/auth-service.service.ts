@@ -1,13 +1,11 @@
 import {
   Injectable,
-  OnModuleInit,
   UnauthorizedException,
   ConflictException,
   NotFoundException,
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma/postgres';
 import { JwtService } from '@nestjs/jwt';
 import * as nodemailer from 'nodemailer';
 import {
@@ -19,7 +17,7 @@ import {
   AuthResponseDto,
   TokensDto,
 } from 'apps/commons';
-import { RedisService } from 'apps/commons/services';
+import { RedisService, PrismaService } from 'apps/commons/services';
 import { UsersService } from '../users/users.service';
 import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';
@@ -29,24 +27,18 @@ import {
 } from '../utils/email-templates';
 
 @Injectable()
-export class AuthServiceService implements OnModuleInit {
+export class AuthServiceService {
   private readonly logger = new Logger(AuthServiceService.name);
   private transporter: nodemailer.Transporter;
-  private prisma: PrismaClient;
 
   constructor(
     private jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
+    private readonly prisma: PrismaService,
   ) {
-    this.prisma = new PrismaClient();
     this.setupEmailTransporter();
-  }
-
-  async onModuleInit() {
-    await this.prisma.$connect();
-    this.logger.log('Connected to PostgreSQL database');
   }
 
   private setupEmailTransporter() {

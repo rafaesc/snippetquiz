@@ -1,12 +1,8 @@
 FROM node:20-alpine
 
-WORKDIR /usr/src/backend
-
-COPY ./nestjs ./nestjs
-
 WORKDIR /usr/src/backend/nestjs
 
-COPY package*.json ./
+COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/db-postgres/schema.prisma

@@ -5,7 +5,8 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient, ContentEntry } from 'generated/prisma/postgres';
+import { PrismaService } from '../../../commons/services';
+import { ContentEntry } from 'generated/prisma/postgres';
 import {
   CreateContentEntryDto,
   ContentType,
@@ -25,13 +26,14 @@ import { AI_GENERATION_SERVICE } from '../config/services';
 import { AiGenerationService } from '../quiz-generator/dto/quiz-generator.dto';
 
 @Injectable()
-export class ContentEntryService extends PrismaClient {
+export class ContentEntryService {
   private aiGenerationService: AiGenerationService;
   private readonly logger = new Logger(ContentEntryService.name);
 
-  constructor(@Inject(AI_GENERATION_SERVICE) private client: ClientGrpc) {
-    super();
-
+  constructor(
+    @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
+    private prisma: PrismaService,
+  ) {
     try {
       this.aiGenerationService = this.client.getService<AiGenerationService>(
         'AiGenerationService',
@@ -59,7 +61,7 @@ export class ContentEntryService extends PrismaClient {
     } = createContentEntryDto;
 
     // Verify that the bank belongs to the user
-    const contentBank = await this.contentBank.findFirst({
+    const contentBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(bankId),
         userId,
@@ -94,7 +96,7 @@ export class ContentEntryService extends PrismaClient {
     let youtubeChannelDbId: bigint | null = null;
     if (type === ContentType.VIDEO_TRANSCRIPT && youtubeChannelId) {
       // Check if YouTube channel already exists
-      let existingChannel = await this.youTubeChannel.findFirst({
+      let existingChannel = await this.prisma.youTubeChannel.findFirst({
         where: {
           channelId: youtubeChannelId,
         },
@@ -104,7 +106,7 @@ export class ContentEntryService extends PrismaClient {
         youtubeChannelDbId = existingChannel.id;
       } else if (youtubeChannelName) {
         // Create new YouTube channel
-        const newChannel = await this.youTubeChannel.create({
+        const newChannel = await this.prisma.youTubeChannel.create({
           data: {
             channelId: youtubeChannelId,
             channelName: youtubeChannelName,
@@ -120,7 +122,7 @@ export class ContentEntryService extends PrismaClient {
     // Check for existing entry with same sourceUrl and type 'full_html'
     let existingEntry: any = null;
     if (type === ContentType.FULL_HTML && sourceUrl) {
-      existingEntry = await this.contentEntry.findFirst({
+      existingEntry = await this.prisma.contentEntry.findFirst({
         where: {
           sourceUrl,
           contentType: ContentType.FULL_HTML,
@@ -148,7 +150,7 @@ export class ContentEntryService extends PrismaClient {
         }
 
         // Update existing entry
-        resultEntry = await this.contentEntry.update({
+        resultEntry = await this.prisma.contentEntry.update({
           where: { id: existingEntry.id },
           data: updateData,
         });
@@ -157,7 +159,7 @@ export class ContentEntryService extends PrismaClient {
 
     // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
     if (type === ContentType.VIDEO_TRANSCRIPT && sourceUrl) {
-      existingEntry = await this.contentEntry.findFirst({
+      existingEntry = await this.prisma.contentEntry.findFirst({
         where: {
           sourceUrl,
           contentType: ContentType.VIDEO_TRANSCRIPT,
@@ -206,12 +208,12 @@ export class ContentEntryService extends PrismaClient {
           createData.youtubeChannelId = youtubeChannelDbId;
       }
 
-      const newEntry = await this.contentEntry.create({
+      const newEntry = await this.prisma.contentEntry.create({
         data: createData,
       });
 
       // Create relationship with content bank
-      await this.contentEntryBank.create({
+      await this.prisma.contentEntryBank.create({
         data: {
           contentEntryId: newEntry.id,
           contentBankId: BigInt(bankId),
@@ -249,7 +251,7 @@ export class ContentEntryService extends PrismaClient {
     const skip = (page - 1) * limit;
 
     // Verify bank belongs to user
-    const contentBank = await this.contentBank.findFirst({
+    const contentBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(bankId),
         userId,
@@ -277,7 +279,7 @@ export class ContentEntryService extends PrismaClient {
     };
 
     const [contentEntries, total] = await Promise.all([
-      this.contentEntry.findMany({
+      this.prisma.contentEntry.findMany({
         where,
         include: {
           topics: {
@@ -292,7 +294,7 @@ export class ContentEntryService extends PrismaClient {
         skip,
         take: limit,
       }),
-      this.contentEntry.count({ where }),
+      this.prisma.contentEntry.count({ where }),
     ]);
 
     return {
@@ -319,7 +321,7 @@ export class ContentEntryService extends PrismaClient {
   }
 
   async findOne(id: string, userId: string): Promise<ContentEntryResponseDto> {
-    const contentEntry = await this.contentEntry.findFirst({
+    const contentEntry = await this.prisma.contentEntry.findFirst({
       where: {
         id: BigInt(id),
         contentBanks: {
@@ -357,7 +359,7 @@ export class ContentEntryService extends PrismaClient {
     const { targetBankId, userId } = cloneDto;
 
     // Verify source entry belongs to user
-    const sourceEntry = await this.contentEntry.findFirst({
+    const sourceEntry = await this.prisma.contentEntry.findFirst({
       where: {
         id: BigInt(id),
         contentBanks: {
@@ -377,7 +379,7 @@ export class ContentEntryService extends PrismaClient {
     }
 
     // Verify target bank belongs to user
-    const targetBank = await this.contentBank.findFirst({
+    const targetBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(targetBankId),
         userId,
@@ -391,7 +393,7 @@ export class ContentEntryService extends PrismaClient {
     }
 
     // Check if entry already exists in target bank
-    const existingRelation = await this.contentEntryBank.findFirst({
+    const existingRelation = await this.prisma.contentEntryBank.findFirst({
       where: {
         contentEntryId: BigInt(id),
         contentBankId: BigInt(targetBankId),
@@ -405,7 +407,7 @@ export class ContentEntryService extends PrismaClient {
     }
 
     // Create relationship
-    await this.contentEntryBank.create({
+    await this.prisma.contentEntryBank.create({
       data: {
         contentEntryId: BigInt(id),
         contentBankId: BigInt(targetBankId),
@@ -426,7 +428,7 @@ export class ContentEntryService extends PrismaClient {
 
   async remove(id: string, userId: string): Promise<{ message: string }> {
     // Verify entry belongs to user
-    const existingEntry = await this.contentEntry.findFirst({
+    const existingEntry = await this.prisma.contentEntry.findFirst({
       where: {
         id: BigInt(id),
         contentBanks: {
@@ -445,7 +447,7 @@ export class ContentEntryService extends PrismaClient {
       );
     }
 
-    await this.contentEntry.delete({
+    await this.prisma.contentEntry.delete({
       where: { id: BigInt(id) },
     });
 
@@ -457,7 +459,7 @@ export class ContentEntryService extends PrismaClient {
     userId: string,
   ): Promise<{ message: string; topicsCreated: number }> {
     try {
-      const contentEntry = await this.contentEntry.findFirst({
+      const contentEntry = await this.prisma.contentEntry.findFirst({
         where: {
           id: BigInt(contentEntryId),
           contentBanks: {
@@ -476,7 +478,7 @@ export class ContentEntryService extends PrismaClient {
         );
       }
 
-      const existingTopics = await this.topic.findMany({
+      const existingTopics = await this.prisma.topic.findMany({
         where: {
           userId,
         },
@@ -509,7 +511,7 @@ export class ContentEntryService extends PrismaClient {
 
       for (const topicName of generatedTopics) {
         try {
-          const topic = await this.topic.upsert({
+          const topic = await this.prisma.topic.upsert({
             where: {
               userId_topic: {
                 userId,
@@ -523,7 +525,7 @@ export class ContentEntryService extends PrismaClient {
             },
           });
 
-          await this.contentEntryTopic.upsert({
+          await this.prisma.contentEntryTopic.upsert({
             where: {
               contentEntryId_topicId: {
                 contentEntryId: contentEntry.id,
@@ -564,7 +566,7 @@ export class ContentEntryService extends PrismaClient {
     const { userId, contentEntryId } = params;
 
     return from(
-      this.contentEntry.findFirst({
+      this.prisma.contentEntry.findFirst({
         where: {
           id: BigInt(contentEntryId),
           contentBanks: {
@@ -588,7 +590,7 @@ export class ContentEntryService extends PrismaClient {
         }
 
         return from(
-          this.contentEntry.update({
+          this.prisma.contentEntry.update({
             where: { id: BigInt(contentEntryId) },
             data: {
               questionsGenerated: true,
@@ -607,7 +609,7 @@ export class ContentEntryService extends PrismaClient {
     const chunkSize = parseInt(process.env.CONTENT_CHUNK_SIZE || '2500', 10);
   
     // Verify that the bank belongs to the user
-    const contentBank = await this.contentBank.findFirst({
+    const contentBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(bankId),
         userId,
@@ -621,7 +623,7 @@ export class ContentEntryService extends PrismaClient {
     }
   
     // Get all content entries for the specified bank
-    const contentEntries = await this.contentEntry.findMany({
+    const contentEntries = await this.prisma.contentEntry.findMany({
       where: {
         contentBanks: {
           some: {

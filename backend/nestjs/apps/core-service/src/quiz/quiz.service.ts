@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma/postgres';
+import { PrismaService } from '../../../commons/services';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 import {
@@ -14,12 +14,10 @@ import { Observable, from, switchMap, map, throwError, of } from 'rxjs';
 import { UpdateQuizResponseDto } from './dto/update-quiz.dto';
 
 @Injectable()
-export class QuizService extends PrismaClient {
+export class QuizService {
   private readonly logger = new Logger(QuizService.name);
 
-  constructor() {
-    super();
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(
     findAllDto: FindAllQuizzesDto,
@@ -28,12 +26,12 @@ export class QuizService extends PrismaClient {
     const skip = (page - 1) * limit;
 
     // Get total count
-    const total = await this.quiz.count({
+    const total = await this.prisma.quiz.count({
       where: { userId },
     });
 
     // Get quizzes with pagination
-    const quizzes = await this.quiz.findMany({
+    const quizzes = await this.prisma.quiz.findMany({
       where: { userId },
       select: {
         id: true,
@@ -75,7 +73,7 @@ export class QuizService extends PrismaClient {
   }
 
   async findOne(id: number, userId: string): Promise<FindOneQuizResponse> {
-    const quiz = await this.quiz.findFirst({
+    const quiz = await this.prisma.quiz.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -149,7 +147,7 @@ export class QuizService extends PrismaClient {
     const skip = (page - 1) * limit;
 
     // Verify quiz ownership
-    const quiz = await this.quiz.findFirst({
+    const quiz = await this.prisma.quiz.findFirst({
       where: {
         id: BigInt(quizId),
         userId,
@@ -163,12 +161,12 @@ export class QuizService extends PrismaClient {
     }
 
     // Get total count of responses
-    const total = await this.quizQuestionResponse.count({
+    const total = await this.prisma.quizQuestionResponse.count({
       where: { quizId: BigInt(quizId) },
     });
 
     // Get quiz responses with pagination
-    const responses = await this.quizQuestionResponse.findMany({
+    const responses = await this.prisma.quizQuestionResponse.findMany({
       where: { quizId: BigInt(quizId) },
       select: {
         isCorrect: true,
@@ -215,7 +213,7 @@ export class QuizService extends PrismaClient {
     id: number,
     userId: string,
   ): Promise<QuizSummaryResponseDto> {
-    const quiz = await this.quiz.findFirst({
+    const quiz = await this.prisma.quiz.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -237,7 +235,7 @@ export class QuizService extends PrismaClient {
     }
 
     // Get total correct answers count
-    const totalCorrectAnswers = await this.quizQuestionResponse.count({
+    const totalCorrectAnswers = await this.prisma.quizQuestionResponse.count({
       where: {
         quizId: BigInt(id),
         isCorrect: true,
@@ -253,7 +251,7 @@ export class QuizService extends PrismaClient {
 
   async remove(id: number, userId: string): Promise<{ message: string }> {
     // Check if the quiz exists and belongs to the user
-    const quiz = await this.quiz.findFirst({
+    const quiz = await this.prisma.quiz.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -267,13 +265,12 @@ export class QuizService extends PrismaClient {
     }
 
     // Delete the quiz (cascade delete will handle related records)
-    await this.quiz.delete({
+    await this.prisma.quiz.delete({
       where: { id: BigInt(id) },
     });
 
     return { message: 'Quiz deleted successfully' };
   }
-
 
   createQuiz(params: {
     userId: string;
@@ -282,7 +279,7 @@ export class QuizService extends PrismaClient {
     const { userId, bankId } = params;
 
     return from(
-      this.contentBank.findFirst({
+      this.prisma.contentBank.findFirst({
         where: {
           id: BigInt(bankId),
           userId,
@@ -323,7 +320,7 @@ export class QuizService extends PrismaClient {
         }
 
         return from(
-          this.quiz.create({
+          this.prisma.quiz.create({
             data: {
               userId,
               bankId: BigInt(bankId),
@@ -354,7 +351,7 @@ export class QuizService extends PrismaClient {
 
             if (allQuestions.length === 0) {
               return from(
-                this.quiz.update({
+                this.prisma.quiz.update({
                   where: { id: quiz.id },
                   data: {
                     contentEntriesCount: contentBank.contentEntries.length,
@@ -376,7 +373,7 @@ export class QuizService extends PrismaClient {
                   question.contentEntryId,
                 );
 
-                const quizQuestion = await this.quizQuestion.create({
+                const quizQuestion = await this.prisma.quizQuestion.create({
                   data: {
                     question: question.question,
                     type: question.type,
@@ -390,7 +387,7 @@ export class QuizService extends PrismaClient {
                 // Create quiz question options
                 await Promise.all(
                   question.options.map(async (option, optionIndex) => {
-                    return this.quizQuestionOption.create({
+                    return this.prisma.quizQuestionOption.create({
                       data: {
                         quizQuestionId: quizQuestion.id,
                         optionText: option.optionText,
@@ -410,7 +407,7 @@ export class QuizService extends PrismaClient {
                 // Create quiz topics using upsert
                 const uniqueTopics = [...new Set(allTopics)];
                 const createQuizTopics = uniqueTopics.map(async (topicName) => {
-                  return this.quizTopic.upsert({
+                  return this.prisma.quizTopic.upsert({
                     where: {
                       quizId_topicName: {
                         quizId: quiz.id,
@@ -430,7 +427,7 @@ export class QuizService extends PrismaClient {
                   switchMap(() => {
                     // Update quiz with counts
                     return from(
-                      this.quiz.update({
+                      this.prisma.quiz.update({
                         where: { id: quiz.id },
                         data: {
                           contentEntriesCount: contentBank.contentEntries.length,
@@ -471,7 +468,7 @@ export class QuizService extends PrismaClient {
     const { userId, contentEntryId, question, options } = params;
 
     return from(
-      this.contentEntry.findFirst({
+      this.prisma.contentEntry.findFirst({
         select: {
           questionsGenerated: true,
         },
@@ -505,7 +502,7 @@ export class QuizService extends PrismaClient {
 
         // Create the question with hardcoded type
         return from(
-          this.question.create({
+          this.prisma.question.create({
             data: {
               question,
               type: 'multiple_choice', // Hardcoded as requested
@@ -516,7 +513,7 @@ export class QuizService extends PrismaClient {
           switchMap((createdQuestion) => {
             // Create question options
             const createOptions = options.map((option, index) => {
-              return this.questionOption.create({
+              return this.prisma.questionOption.create({
                 data: {
                   questionId: createdQuestion.id,
                   optionText: option.optionText,
@@ -549,7 +546,7 @@ export class QuizService extends PrismaClient {
     const { userId, contentBankId } = params;
 
     return from(
-      this.contentBank.findFirst({
+      this.prisma.contentBank.findFirst({
         where: {
           id: BigInt(contentBankId),
           userId,
@@ -597,7 +594,7 @@ export class QuizService extends PrismaClient {
     const { userId, quizId, questionOptionId } = params;
 
     // Validate if the quiz belongs to the user
-    const quiz = await this.quiz.findFirst({
+    const quiz = await this.prisma.quiz.findFirst({
       where: {
         id: BigInt(quizId),
         userId,
@@ -676,7 +673,7 @@ export class QuizService extends PrismaClient {
     }
 
     // Create a new QuizQuestionResponse
-    await this.quizQuestionResponse.create({
+    await this.prisma.quizQuestionResponse.create({
       data: {
         quizId: BigInt(quizId),
         quizQuestionId: currentQuestion.id,
@@ -692,7 +689,7 @@ export class QuizService extends PrismaClient {
     const isCompleted = updatedQuestionsCompleted >= quiz.questionsCount;
     const completedAt = isCompleted ? new Date() : null;
 
-    await this.quiz.update({
+    await this.prisma.quiz.update({
       where: {
         id: BigInt(quizId),
       },

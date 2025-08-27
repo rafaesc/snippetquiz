@@ -3,6 +3,7 @@ import { QuizGeneratorService } from './quiz-generator.service';
 import { QuizGeneratorController } from './quiz-generator.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AI_GENERATION_SERVICE } from '../config/services';
+import { PrismaModule } from '../../../commons/services';
 
 import { join } from 'path';
 import { QuizModule } from '../quiz/quiz.module';
@@ -13,6 +14,7 @@ import { envs } from '../config/envs';
 
 @Module({
   imports: [
+    PrismaModule,
     ClientsModule.register([
       {
         name: AI_GENERATION_SERVICE,

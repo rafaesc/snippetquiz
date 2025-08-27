@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma/postgres';
+import { PrismaService } from '../../../commons/services';
 import * as bcrypt from 'bcryptjs';
 
 export interface UserData {
@@ -19,13 +19,11 @@ export interface CreateUser {
 }
 
 @Injectable()
-export class UsersService extends PrismaClient {
+export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   private readonly saltRounds = 12;
 
-  constructor() {
-    super();
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   // Password hashing method
   private async hashPassword(password: string): Promise<string> {
@@ -42,14 +40,14 @@ export class UsersService extends PrismaClient {
 
   // Find user by email
   async findByEmail(email: string) {
-    return this.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { email },
     });
   }
 
   // Find user by email with password (for authentication)
   async findUserByEmail(email: string) {
-    return this.user.findUnique({
+    return this.prisma.user.findUnique({
       where: {
         email,
         password: {
@@ -70,7 +68,7 @@ export class UsersService extends PrismaClient {
       throw new Error('Password is required');
     }
 
-    return this.user.create({
+    return this.prisma.user.create({
       data: {
         name: userData.name,
         email: userData.email,
@@ -107,7 +105,7 @@ export class UsersService extends PrismaClient {
       }
     });
 
-    return this.user.update({
+    return this.prisma.user.update({
       where: { id },
       data: updateData,
       select: {
@@ -124,7 +122,7 @@ export class UsersService extends PrismaClient {
 
   // Delete user
   async deleteUser(id: string): Promise<{ count: number }> {
-    await this.user.delete({
+    await this.prisma.user.delete({
       where: { id },
     });
     return { count: 1 };
@@ -132,7 +130,7 @@ export class UsersService extends PrismaClient {
 
   // Verify user
   async verifyUser(id: string) {
-    return this.user.update({
+    return this.prisma.user.update({
       where: { id },
       data: { verified: true },
       select: {
@@ -150,7 +148,7 @@ export class UsersService extends PrismaClient {
   async updatePassword(id: string, newPassword: string) {
     const hashedPassword = await this.hashPassword(newPassword);
 
-    return this.user.update({
+    return this.prisma.user.update({
       where: { id },
       data: {
         password: hashedPassword,
@@ -172,7 +170,7 @@ export class UsersService extends PrismaClient {
     id: string,
     data: Partial<Pick<UserData, 'name' | 'email'>>,
   ) {
-    return this.user.update({
+    return this.prisma.user.update({
       where: { id },
       data,
       select: {
@@ -188,7 +186,7 @@ export class UsersService extends PrismaClient {
 
   // Find user by ID
   async findById(id: string) {
-    return this.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -204,7 +202,7 @@ export class UsersService extends PrismaClient {
 
   // Find user by ID with password (for authentication purposes)
   async findByIdWithPassword(id: string) {
-    return this.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { id },
     });
   }

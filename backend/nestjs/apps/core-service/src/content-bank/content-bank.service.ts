@@ -3,7 +3,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { PrismaClient } from 'generated/prisma/postgres';
+import { PrismaService } from '../../../commons/services';
 import { CreateContentBankDto } from './dto/create-content-bank.dto';
 import { UpdateContentBankDto } from './dto/update-content-bank.dto';
 import { DuplicateContentBankDto } from './dto/duplicate-content-bank.dto';
@@ -14,10 +14,8 @@ import {
 } from './dto/content-bank-response.dto';
 
 @Injectable()
-export class ContentBankService extends PrismaClient {
-  constructor() {
-    super();
-  }
+export class ContentBankService {
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
     createContentBankDto: CreateContentBankDto,
@@ -25,7 +23,7 @@ export class ContentBankService extends PrismaClient {
     const { name, userId } = createContentBankDto;
 
     // Check if user already has a content bank with this name
-    const existingBank = await this.contentBank.findFirst({
+    const existingBank = await this.prisma.contentBank.findFirst({
       where: {
         userId,
         name: name.trim(),
@@ -38,7 +36,7 @@ export class ContentBankService extends PrismaClient {
       );
     }
 
-    const contentBank = await this.contentBank.create({
+    const contentBank = await this.prisma.contentBank.create({
       data: {
         userId,
         name: name.trim(),
@@ -72,7 +70,7 @@ export class ContentBankService extends PrismaClient {
     };
 
     const [contentBanks, total] = await Promise.all([
-      this.contentBank.findMany({
+      this.prisma.contentBank.findMany({
         where,
         include: {
           _count: {
@@ -87,7 +85,7 @@ export class ContentBankService extends PrismaClient {
         skip,
         take: limit,
       }),
-      this.contentBank.count({ where }),
+      this.prisma.contentBank.count({ where }),
     ]);
 
     return {
@@ -108,7 +106,7 @@ export class ContentBankService extends PrismaClient {
   }
 
   async findOne(id: string, userId: string): Promise<ContentBankResponseDto> {
-    const contentBank = await this.contentBank.findFirst({
+    const contentBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -145,7 +143,7 @@ export class ContentBankService extends PrismaClient {
     const { name, userId } = updateContentBankDto;
 
     // Check if the content bank exists and belongs to the user
-    const existingBank = await this.contentBank.findFirst({
+    const existingBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -160,7 +158,7 @@ export class ContentBankService extends PrismaClient {
 
     // Check if user already has another content bank with this name
     if (name) {
-      const duplicateBank = await this.contentBank.findFirst({
+      const duplicateBank = await this.prisma.contentBank.findFirst({
         where: {
           userId,
           name: name.trim(),
@@ -177,7 +175,7 @@ export class ContentBankService extends PrismaClient {
       }
     }
 
-    const updatedBank = await this.contentBank.update({
+    const updatedBank = await this.prisma.contentBank.update({
       where: {
         id: BigInt(id),
       },
@@ -197,7 +195,7 @@ export class ContentBankService extends PrismaClient {
 
   async remove(id: string, userId: string): Promise<{ message: string }> {
     // Check if the content bank exists and belongs to the user
-    const contentBank = await this.contentBank.findFirst({
+    const contentBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -210,7 +208,7 @@ export class ContentBankService extends PrismaClient {
       );
     }
 
-    await this.contentBank.delete({
+    await this.prisma.contentBank.delete({
       where: {
         id: BigInt(id),
       },
@@ -225,7 +223,7 @@ export class ContentBankService extends PrismaClient {
     duplicateDto: DuplicateContentBankDto,
   ): Promise<ContentBankResponseDto> {
     // Check if the original content bank exists and belongs to the user
-    const originalBank = await this.contentBank.findFirst({
+    const originalBank = await this.prisma.contentBank.findFirst({
       where: {
         id: BigInt(id),
         userId,
@@ -242,7 +240,7 @@ export class ContentBankService extends PrismaClient {
     const newName = duplicateDto.name?.trim() || `Copy of ${originalBank.name}`;
 
     // Check if user already has a content bank with this name
-    const existingBank = await this.contentBank.findFirst({
+    const existingBank = await this.prisma.contentBank.findFirst({
       where: {
         userId,
         name: newName,
@@ -256,7 +254,7 @@ export class ContentBankService extends PrismaClient {
     }
 
     // Use Prisma transaction to ensure data consistency
-    const duplicatedBank = await this.$transaction(async (prisma) => {
+    const duplicatedBank = await this.prisma.$transaction(async (prisma) => {
       // Create the new content bank
       const newBank = await prisma.contentBank.create({
         data: {

@@ -11,7 +11,7 @@ import {
   of,
   concatMap,
 } from 'rxjs';
-import { PrismaClient } from 'generated/prisma/postgres';
+import { PrismaService } from '../../../commons/services';
 import { AI_GENERATION_SERVICE } from '../config/services';
 import {
   GenerateQuizRequest,
@@ -23,7 +23,7 @@ import { QuizService } from '../quiz/quiz.service';
 import { ContentEntryService } from '../content-entry/content-entry.service';
 
 @Injectable()
-export class QuizGeneratorService extends PrismaClient {
+export class QuizGeneratorService {
   private readonly logger = new Logger(QuizGeneratorService.name);
   private aiGenerationService: AiGenerationService;
 
@@ -31,9 +31,8 @@ export class QuizGeneratorService extends PrismaClient {
     @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
     private quizService: QuizService,
     private contentEntryService: ContentEntryService,
-  ) {
-    super();
-  }
+    private prisma: PrismaService,
+  ) {}
 
   onModuleInit() {
     try {
@@ -50,7 +49,7 @@ export class QuizGeneratorService extends PrismaClient {
     userId: string,
   ): Promise<{ request: GenerateQuizRequest; entriesSkipped: number }> {
     try {
-      const contentBank = await this.contentBank.findFirst({
+      const contentBank = await this.prisma.contentBank.findFirst({
         where: {
           id: BigInt(bankId),
           userId: userId,
@@ -65,7 +64,7 @@ export class QuizGeneratorService extends PrismaClient {
 
       this.logger.log(`Content bank ${bankId} validated for user ${userId}`);
 
-      const contentEntries = await this.contentEntry.findMany({
+      const contentEntries = await this.prisma.contentEntry.findMany({
         where: {
           contentBanks: {
             some: {
@@ -106,7 +105,7 @@ export class QuizGeneratorService extends PrismaClient {
         });
       }
 
-      const instruction = await this.quizGenerationInstruction.findFirst({
+      const instruction = await this.prisma.quizGenerationInstruction.findFirst({
         where: {
           userId,
         },
