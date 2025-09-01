@@ -5,6 +5,7 @@
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/python:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
     }
@@ -43,5 +44,5 @@
     }
   },
   "updateContentCommand": "bash .devcontainer/setup.sh",
-  "forwardPorts": [3000, 4173, 8080, 5000]
+  "forwardPorts": [3000, 4173, 8080, 5000, 9292]
 }

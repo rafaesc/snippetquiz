@@ -35,18 +35,6 @@ cd "$WORKSPACE_ROOT/frontend"
 npm install
 check_success "Frontend npm install"
 
-# Install extension dependencies
-echo "📦 Installing extension dependencies..."
-cd "$WORKSPACE_ROOT/extension"
-npm install
-check_success "Extension npm install"
-
-# Install landing page dependencies
-echo "📦 Installing landing page dependencies..."
-cd "$WORKSPACE_ROOT/landing"
-npm install
-check_success "Landing npm install"
-
 # Return to workspace root
 cd "$WORKSPACE_ROOT"
 
@@ -55,5 +43,5 @@ echo "📝 Available commands:"
 echo "  - Frontend: cd frontend && npm run dev"
 echo "  - Backend: cd backend/nestjs && npm run start:dev"
 echo "  - Python Backend: cd backend/python && python server.py"
-echo "  - Extension: cd extension && npm run dev"
-echo "  - Landing: cd landing && npm run dev"
+echo "  - Extension: cd extension && npm i && npm run dev"
+echo "  - Landing: cd landing && npm i && npm run dev"
