@@ -58,6 +58,7 @@
     "ioredis": "^5.7.0",
     "joi": "^18.0.0",
     "jsdom": "^26.1.0",
+    "kafkajs": "^2.2.4",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
