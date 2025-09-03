@@ -40,6 +40,54 @@ services:
       db:
         condition: service_healthy
 
+  broker:
+    image: apache/kafka:4.0.0
+    ports: 
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1 
+      KAFKA_PROCESS_ROLES: broker,controller 
+      KAFKA_LISTENERS: PLAINTEXT://:9092,DOCKER://:29092,CONTROLLER://:9093 
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,DOCKER://broker:29092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER 
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,DOCKER:PLAINTEXT,PLAINTEXT:PLAINTEXT 
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093 
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1 
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1 
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 
+      KAFKA_NUM_PARTITIONS: 1
+
+  python-ai-service:
+    build:
+      context: ./backend
+      dockerfile: python/Dockerfile.dev
+    container_name: snippetquiz-python
+    ports:
+      - "50051:50051"
+    environment:
+      AI_GENERATION_SERVICE_PORT: 50051
+      AI_GENERATION_SERVICE_HOST: "0.0.0.0"
+      KAFKA_BROKERS: "broker:29092"
+    depends_on:
+      - broker
+    volumes:
+      - ./backend/python:/usr/src/app
+      - ./backend/protos:/usr/src/backend/protos
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafdrop
+    restart: unless-stopped
+    ports:
+      - '9000:9000'
+    environment:
+      KAFKA_BROKERCONNECT: 'broker:29092'
+      JVM_OPTS: '-Xms32M -Xmx64M'
+      SERVER_SERVLET_CONTEXTPATH: '/'
+    depends_on:
+      - broker
+
 networks:
   default: 
     name: snippetquiz
