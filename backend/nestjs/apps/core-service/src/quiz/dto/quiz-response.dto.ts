@@ -5,6 +5,7 @@ export class QuizTopicDto {
 export class QuizResponseDto {
   id: string;
   created_at: Date;
+  status?: string | null;
   questions_count: number;
   questions_completed: number;
   content_entries_count: number;
@@ -27,6 +28,7 @@ export class QuizQuestion {
 export class FindOneQuizResponse {
   id: string;
   created_at: Date;
+  status?: string | null;
   questions_completed: number;
   content_entries_count: number;
   total_questions: number;

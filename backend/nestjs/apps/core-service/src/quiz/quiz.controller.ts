@@ -1,13 +1,33 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { QuizService } from './quiz.service';
+import { QuizService, QuizStatus } from './quiz.service';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
+import { tap } from 'rxjs';
 
 @Controller()
 export class QuizController {
   constructor(private readonly quizService: QuizService) {}
+
+  @GrpcMethod('QuizService', 'CreateQuiz')
+  createQuiz(data: { bank_id: number; user_id: string }) {
+    return this.quizService.createQuiz({
+      userId: data.user_id,
+      bankId: data.bank_id,
+      status: QuizStatus.IN_PROGRESS,
+    }).pipe(
+      tap((result) => {
+        if (result.quizId) {
+          this.quizService.emitCreateQuizEvent(
+            result.quizId,
+            data.bank_id,
+            data.user_id,
+          );
+        }
+      }),
+    );
+  }
 
   @GrpcMethod('QuizService', 'FindAllQuizzes')
   findAll(data: { page?: number; limit?: number; user_id: string }) {
@@ -25,7 +45,12 @@ export class QuizController {
   }
 
   @GrpcMethod('QuizService', 'FindQuizResponses')
-  findQuizResponses(data: { page?: number; limit?: number; quiz_id: string; user_id: string }) {
+  findQuizResponses(data: {
+    page?: number;
+    limit?: number;
+    quiz_id: string;
+    user_id: string;
+  }) {
     const findResponsesDto: FindQuizResponsesDto = {
       page: data.page,
       limit: data.limit,
@@ -46,7 +71,11 @@ export class QuizController {
   }
 
   @GrpcMethod('QuizService', 'UpdateQuiz')
-  updateQuiz(data: { quiz_id: number; user_id: string; question_option_id: number }) {
+  updateQuiz(data: {
+    quiz_id: number;
+    user_id: string;
+    question_option_id: number;
+  }) {
     return this.quizService.updateQuiz({
       userId: data.user_id,
       quizId: data.quiz_id,

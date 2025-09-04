@@ -11,6 +11,7 @@ import { QuizService } from '../quiz/quiz.service';
 import { ContentEntryModule } from '../content-entry/content-entry.module';
 import { ContentEntryService } from '../content-entry/content-entry.service';
 import { envs } from '../config/envs';
+import { KAFKA_SERVICE } from '../config/services';
 
 @Module({
   imports: [
@@ -21,11 +22,17 @@ import { envs } from '../config/envs';
         transport: Transport.GRPC,
         options: {
           package: 'ai_generation',
-          protoPath: join(
-            __dirname,
-            '../../../../protos/ai_generation.proto',
-          ),
+          protoPath: join(__dirname, '../../../../protos/ai_generation.proto'),
           url: `${envs.aiGenerationServiceHost}:${envs.aiGenerationServicePort}`,
+        },
+      },
+      {
+        name: KAFKA_SERVICE,
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            brokers: [`${envs.kafkaHost}:${envs.kafkaPort}`],
+          },
         },
       },
     ]),

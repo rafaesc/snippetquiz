@@ -1,4 +1,10 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { type ClientGrpc } from '@nestjs/microservices';
 import {
   Observable,
@@ -7,7 +13,6 @@ import {
   switchMap,
   tap,
   forkJoin,
-  EMPTY,
   of,
   concatMap,
 } from 'rxjs';
@@ -19,112 +24,119 @@ import {
   AiGenerationService,
 } from './dto/quiz-generator.dto';
 import { CoreQuizGenerationStatus } from './dto/core-quiz-generation.dto';
-import { QuizService } from '../quiz/quiz.service';
+import { QuizService, QuizStatus } from '../quiz/quiz.service';
 import { ContentEntryService } from '../content-entry/content-entry.service';
+import { Kafka, Consumer } from 'kafkajs';
+import { envs } from '../config/envs';
+import { QuizGenerationEventPayload } from '../quiz/dto/quiz-generation-event-dto';
 
 @Injectable()
-export class QuizGeneratorService {
+export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(QuizGeneratorService.name);
+  private kafka: Kafka;
+  private consumer: Consumer;
   private aiGenerationService: AiGenerationService;
 
   constructor(
     @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
     private quizService: QuizService,
     private contentEntryService: ContentEntryService,
-    private prisma: PrismaService,
-  ) {}
+  ) {
+    this.logger.log(`Kafka broker: ${envs.kafkaHost}:${envs.kafkaPort}`);
+    this.kafka = new Kafka({
+      clientId: 'core-service',
+      brokers: [`${envs.kafkaHost}:${envs.kafkaPort}`],
+    });
+    this.consumer = this.kafka.consumer({
+      groupId: envs.kafkaEmitQuizConsumerGroup,
+    });
+  }
 
-  onModuleInit() {
+  async onModuleInit() {
     try {
       this.aiGenerationService = this.client.getService<AiGenerationService>(
         'AiGenerationService',
+      );
+      await this.consumer.connect();
+      this.logger.log(
+        `QuizGeneratorService consumer connected to ${envs.kafkaHost}:${envs.kafkaPort} with group ${envs.kafkaEmitQuizConsumerGroup}`,
       );
     } catch (error) {
       throw error;
     }
   }
 
-  async getContentEntriesByBankId(
-    bankId: number,
+  async onModuleDestroy() {
+    await this.consumer.disconnect();
+  }
+
+  consumeAsObservable(
+    topic: string,
     userId: string,
-  ): Promise<{ request: GenerateQuizRequest; entriesSkipped: number }> {
-    try {
-      const contentBank = await this.prisma.contentBank.findFirst({
-        where: {
-          id: BigInt(bankId),
-          userId: userId,
-        },
-      });
+  ): Observable<CoreQuizGenerationStatus> {
+    return new Observable((observer) => {
+      (async () => {
+        try {
+          await this.consumer.subscribe({ topic, fromBeginning: false });
+          this.logger.log(`📥 Subscrito al tópico: ${topic}`);
 
-      if (!contentBank) {
-        throw new Error(
-          `Content bank not found or access denied for user ${userId}`,
-        );
-      }
+          await this.consumer.run({
+            eachMessage: async ({ topic, partition, message }) => {
+              try {
+                const key = message.key?.toString();
+                const rawValue = message.value?.toString();
+                if (!rawValue) return;
 
-      this.logger.log(`Content bank ${bankId} validated for user ${userId}`);
+                const event: QuizGenerationEventPayload = JSON.parse(rawValue);
 
-      const contentEntries = await this.prisma.contentEntry.findMany({
-        where: {
-          contentBanks: {
-            some: {
-              contentBankId: BigInt(bankId),
+                if (event.userId !== userId) return;
+
+                if (event.currentChunkIndex + 1 === event.totalChunks) {
+                  observer.next({
+                    completed: {
+                      quiz_id: event.quizId,
+                    },
+                  });
+                  observer.complete();
+                } else {
+                  observer.next({
+                    progress: {
+                      bank_id: event.bankId,
+                      total_content_entries: event.totalContentEntries,
+                      total_content_entries_skipped:
+                        event.totalContentEntriesSkipped,
+                      current_content_entry_index:
+                        event.currentContentEntryIndex,
+                      questions_generated_so_far: event.questionsGeneratedSoFar,
+                      content_entry: {
+                        id: event.contentEntry.id.toString(),
+                        name: event.contentEntry.pageTitle,
+                        word_count_analyzed:
+                          event.contentEntry.wordCountAnalyzed,
+                      },
+                      total_chunks: event.totalChunks,
+                      current_chunk_index: event.currentChunkIndex,
+                    },
+                  });
+                }
+              } catch (err) {
+                this.logger.error(
+                  `Error processing message: ${err.message}`,
+                  err.stack,
+                );
+              }
             },
-          },
-        },
-        select: {
-          id: true,
-          pageTitle: true,
-          content: true,
-          wordCount: true,
-          questionsGenerated: true,
-        },
-      });
-
-      this.logger.log(
-        `Found ${contentEntries.length} content entries for bankId: ${bankId}`,
-      );
-
-      if (contentEntries.length === 0) {
-        this.logger.warn(`No content entries found for bankId: ${bankId}`);
-      }
-
-      const mappedEntries: GenerateQuizRequest['contentEntries'] = [];
-      let entriesSkipped = 0;
-
-      for (const entry of contentEntries) {
-        if (entry.questionsGenerated) {
-          entriesSkipped++;
-          //continue;
+          });
+        } catch (err) {
+          observer.error(err);
         }
-        mappedEntries.push({
-          id: Number(entry.id),
-          pageTitle: entry.pageTitle || '',
-          content: entry.content || '',
-          wordCountAnalyzed: entry.wordCount || 0,
-        });
-      }
+      })();
 
-      const instruction = await this.prisma.quizGenerationInstruction.findFirst({
-        where: {
-          userId,
-        },
-      });
-
-      return {
-        request: {
-          instructions: instruction?.instruction || '',
-          contentEntries: mappedEntries,
-        },
-        entriesSkipped,
+      return async () => {
+        await this.consumer.stop();
+        this.logger.log(`Consumer ${topic} stopped`);
       };
-    } catch (error) {
-      this.logger.error(
-        `Failed to fetch content entries for bankId: ${bankId}`,
-        error,
-      );
-      throw error;
-    }
+    });
   }
 
   generateQuizStream(
@@ -145,16 +157,18 @@ export class QuizGeneratorService {
       switchMap((totalChunksInfo) => {
         totalChunks = totalChunksInfo;
         return from(
-          this.getContentEntriesByBankId(bankId, userId).then(
-            (response: {
-              request: GenerateQuizRequest;
-              entriesSkipped: number;
-            }) => {
-              totalContentEntries = response.request.contentEntries.length;
-              entriesSkipped = response.entriesSkipped;
-              return response.request;
-            },
-          ),
+          this.quizService
+            .getContentEntriesByBankId(bankId, userId)
+            .then(
+              (response: {
+                request: GenerateQuizRequest;
+                entriesSkipped: number;
+              }) => {
+                totalContentEntries = response.request.contentEntries.length;
+                entriesSkipped = response.entriesSkipped;
+                return response.request;
+              },
+            ),
         );
       }),
       switchMap(
@@ -200,7 +214,7 @@ export class QuizGeneratorService {
                   current_chunk_index: currentChunkIndex,
                   total_chunks: totalChunks,
                   content_entry: {
-                      id: progress.result?.contentEntryId?.toString(),
+                    id: progress.result?.contentEntryId?.toString(),
                     name: progress.result?.pageTitle,
                     word_count_analyzed: progress?.result?.wordCountAnalyzed,
                   },
@@ -277,6 +291,7 @@ export class QuizGeneratorService {
               .createQuiz({
                 userId,
                 bankId,
+                status: QuizStatus.READY,
               })
               .pipe(
                 tap({

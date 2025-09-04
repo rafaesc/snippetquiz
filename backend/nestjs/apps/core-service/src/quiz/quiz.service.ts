@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../commons/services';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
@@ -12,12 +12,39 @@ import {
 } from './dto/quiz-response.dto';
 import { Observable, from, switchMap, map, throwError, of } from 'rxjs';
 import { UpdateQuizResponseDto } from './dto/update-quiz.dto';
+import { ClientKafka } from '@nestjs/microservices';
+import { KAFKA_SERVICE } from '../config/services';
+import { GenerateQuizRequest } from '../quiz-generator/dto/quiz-generator.dto';
+import { CreateQuizGenerationEventPayload } from './dto/create-quiz-generation-event.dto';
+
+export enum QuizStatus {
+  READY = 'READY',
+  READY_WITH_ERROR = 'READY_WITH_ERROR',
+  IN_PROGRESS = 'IN_PROGRESS',
+}
+
+function getFinalStatus(quiz: {
+  status: string | null;
+  questionUpdatedAt: Date | null;
+}) {
+  let finalStatus = quiz.status;
+  if (quiz.status === QuizStatus.IN_PROGRESS && quiz.questionUpdatedAt) {
+    const oneHourHalfAgo = new Date(Date.now() - 30 * 60 * 1000);
+    if (quiz.questionUpdatedAt < oneHourHalfAgo) {
+      finalStatus = QuizStatus.READY_WITH_ERROR;
+    }
+  }
+  return finalStatus;
+}
 
 @Injectable()
 export class QuizService {
   private readonly logger = new Logger(QuizService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(KAFKA_SERVICE) private kafkaClient: ClientKafka,
+  ) {}
 
   async findAll(
     findAllDto: FindAllQuizzesDto,
@@ -39,6 +66,8 @@ export class QuizService {
         createdAt: true,
         questionsCount: true,
         questionsCompleted: true,
+        status: true,
+        questionUpdatedAt: true,
         contentEntriesCount: true,
         quizTopics: {
           select: {
@@ -51,15 +80,18 @@ export class QuizService {
       take: limit,
     });
 
-    const formattedQuizzes: QuizResponseDto[] = quizzes.map((quiz) => ({
-      id: quiz.id.toString(),
-      name: quiz.bankName,
-      created_at: quiz.createdAt,
-      questions_count: quiz.questionsCount,
-      questions_completed: quiz.questionsCompleted,
-      content_entries_count: quiz.contentEntriesCount,
-      topics: quiz.quizTopics.map((topic) => topic.topicName),
-    }));
+    const formattedQuizzes: QuizResponseDto[] = quizzes.map((quiz) => {
+      return {
+        id: quiz.id.toString(),
+        name: quiz.bankName,
+        created_at: quiz.createdAt,
+        questions_count: quiz.questionsCount,
+        questions_completed: quiz.questionsCompleted,
+        status: getFinalStatus(quiz),
+        content_entries_count: quiz.contentEntriesCount,
+        topics: quiz.quizTopics.map((topic) => topic.topicName),
+      };
+    });
 
     return {
       quizzes: formattedQuizzes,
@@ -83,6 +115,7 @@ export class QuizService {
         createdAt: true,
         questionsCompleted: true,
         contentEntriesCount: true,
+        status: true,
         questionsCount: true,
         quizTopics: {
           select: {
@@ -124,6 +157,7 @@ export class QuizService {
       content_entries_count: quiz.contentEntriesCount,
       topics: quiz.quizTopics.map((topic) => topic.topicName),
       total_questions: quiz.questionsCount,
+      status: quiz.status,
       question: currentQuestion
         ? {
             id: currentQuestion.id.toString(),
@@ -219,6 +253,7 @@ export class QuizService {
         userId,
       },
       select: {
+        status: true,
         questionsCount: true,
         quizTopics: {
           select: {
@@ -273,10 +308,12 @@ export class QuizService {
   }
 
   createQuiz(params: {
+    quizId?: string;
     userId: string;
     bankId: number;
+    status: QuizStatus;
   }): Observable<{ quizId: string }> {
-    const { userId, bankId } = params;
+    const { userId, bankId, status } = params;
 
     return from(
       this.prisma.contentBank.findFirst({
@@ -320,25 +357,61 @@ export class QuizService {
         }
 
         return from(
-          this.prisma.quiz.create({
-            data: {
-              userId,
-              bankId: BigInt(bankId),
-              bankName: contentBank.name,
-              contentEntriesCount: 0,
-              questionsCount: 0,
-              questionsCompleted: 0,
-            },
-          }),
+          (async () => {
+            if (params.quizId) {
+              await this.prisma.quiz.update({
+                where: {
+                  id: BigInt(params.quizId),
+                  userId,
+                },
+                data: {
+                  status,
+                  questionUpdatedAt: new Date(),
+                },
+                select: {
+                  id: true,
+                },
+              });
+
+              return await this.prisma.quiz.findFirst({
+                where: {
+                  id: BigInt(params.quizId),
+                  userId,
+                },
+                select: {
+                  id: true,
+                },
+              });
+            }
+            return await this.prisma.quiz.create({
+              data: {
+                userId,
+                bankId: BigInt(bankId),
+                bankName: contentBank.name,
+                contentEntriesCount: 0,
+                questionsCount: 0,
+                questionsCompleted: 0,
+                status,
+              },
+            });
+          })(),
         ).pipe(
           switchMap((quiz) => {
+            if (!quiz) {
+              return throwError(
+                () =>
+                  new NotFoundException(
+                    'Quiz not found or you do not have permission to access it',
+                  ),
+              );
+            }
             // Collect all questions from all content entries
             const allQuestions = contentBank.contentEntries.flatMap(
               (entry) => entry.contentEntry.questions,
             );
             // Collect all questions from all content entries
-            const allTopics = contentBank.contentEntries.flatMap(
-              (entry) => entry.contentEntry.topics.map((topic) => topic.topic.topic),
+            const allTopics = contentBank.contentEntries.flatMap((entry) =>
+              entry.contentEntry.topics.map((topic) => topic.topic.topic),
             );
 
             // Create a Map for quick lookup of content entries by ID
@@ -366,41 +439,37 @@ export class QuizService {
             }
 
             // Create quiz questions and options
-            const createQuizQuestions = allQuestions.map(
-              async (question) => {
-                // Get the content entry for this question
-                const contentEntry = contentEntryMap.get(
-                  question.contentEntryId,
-                );
+            const createQuizQuestions = allQuestions.map(async (question) => {
+              // Get the content entry for this question
+              const contentEntry = contentEntryMap.get(question.contentEntryId);
 
-                const quizQuestion = await this.prisma.quizQuestion.create({
-                  data: {
-                    question: question.question,
-                    type: question.type,
-                    contentEntryType: contentEntry?.contentType || 'text',
-                    contentEntrySourceUrl: contentEntry?.sourceUrl || null,
-                    contentEntryId: question.contentEntryId,
-                    quizId: quiz.id,
-                  },
-                });
+              const quizQuestion = await this.prisma.quizQuestion.create({
+                data: {
+                  question: question.question,
+                  type: question.type,
+                  contentEntryType: contentEntry?.contentType || 'text',
+                  contentEntrySourceUrl: contentEntry?.sourceUrl || null,
+                  contentEntryId: question.contentEntryId,
+                  quizId: quiz.id,
+                },
+              });
 
-                // Create quiz question options
-                await Promise.all(
-                  question.options.map(async (option, optionIndex) => {
-                    return this.prisma.quizQuestionOption.create({
-                      data: {
-                        quizQuestionId: quizQuestion.id,
-                        optionText: option.optionText,
-                        optionExplanation: option.optionExplanation,
-                        isCorrect: option.isCorrect,
-                      },
-                    });
-                  }),
-                );
+              // Create quiz question options
+              await Promise.all(
+                question.options.map(async (option, optionIndex) => {
+                  return this.prisma.quizQuestionOption.create({
+                    data: {
+                      quizQuestionId: quizQuestion.id,
+                      optionText: option.optionText,
+                      optionExplanation: option.optionExplanation,
+                      isCorrect: option.isCorrect,
+                    },
+                  });
+                }),
+              );
 
-                return quizQuestion;
-              },
-            );
+              return quizQuestion;
+            });
 
             return from(Promise.all(createQuizQuestions)).pipe(
               switchMap((createdQuestions) => {
@@ -423,6 +492,9 @@ export class QuizService {
                 });
 
                 // Execute topic creation in parallel with quiz update
+                this.logger.log(
+                  `[createQuiz] Creating ${createdQuestions.length} questions for quiz ${quiz.id}`,
+                );
                 return from(Promise.all(createQuizTopics)).pipe(
                   switchMap(() => {
                     // Update quiz with counts
@@ -430,7 +502,8 @@ export class QuizService {
                       this.prisma.quiz.update({
                         where: { id: quiz.id },
                         data: {
-                          contentEntriesCount: contentBank.contentEntries.length,
+                          contentEntriesCount:
+                            contentBank.contentEntries.length,
                           questionsCount: createdQuestions.length,
                         },
                       }),
@@ -695,6 +768,7 @@ export class QuizService {
       },
       data: {
         questionsCompleted: updatedQuestionsCompleted,
+        status: isCompleted ? QuizStatus.READY : QuizStatus.IN_PROGRESS,
         completedAt,
       },
     });
@@ -704,5 +778,171 @@ export class QuizService {
       success: true,
       completed: isCompleted,
     };
+  }
+
+  // Add the migrated method
+  async getContentEntriesByBankId(
+    bankId: number,
+    userId: string,
+  ): Promise<{ request: GenerateQuizRequest; entriesSkipped: number }> {
+    try {
+      const contentBank = await this.prisma.contentBank.findFirst({
+        where: {
+          id: BigInt(bankId),
+          userId: userId,
+        },
+      });
+
+      if (!contentBank) {
+        throw new Error(
+          `Content bank not found or access denied for user ${userId}`,
+        );
+      }
+
+      this.logger.log(`Content bank ${bankId} validated for user ${userId}`);
+
+      const contentEntries = await this.prisma.contentEntry.findMany({
+        where: {
+          contentBanks: {
+            some: {
+              contentBankId: BigInt(bankId),
+            },
+          },
+        },
+        select: {
+          id: true,
+          pageTitle: true,
+          content: true,
+          wordCount: true,
+          questionsGenerated: true,
+        },
+      });
+
+      this.logger.log(
+        `Found ${contentEntries.length} content entries for bankId: ${bankId}`,
+      );
+
+      if (contentEntries.length === 0) {
+        this.logger.warn(`No content entries found for bankId: ${bankId}`);
+      }
+
+      const mappedEntries: GenerateQuizRequest['contentEntries'] = [];
+      let entriesSkipped = 0;
+
+      for (const entry of contentEntries) {
+        if (entry.questionsGenerated) {
+          entriesSkipped++;
+          //continue;
+        }
+        mappedEntries.push({
+          id: Number(entry.id),
+          pageTitle: entry.pageTitle || '',
+          content: entry.content || '',
+          wordCountAnalyzed: entry.wordCount || 0,
+        });
+      }
+
+      const instruction = await this.prisma.quizGenerationInstruction.findFirst(
+        {
+          where: {
+            userId,
+          },
+        },
+      );
+
+      return {
+        request: {
+          instructions: instruction?.instruction || '',
+          contentEntries: mappedEntries,
+        },
+        entriesSkipped,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch content entries for bankId: ${bankId}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async emitCreateQuizEvent(
+    quizId: string,
+    bankId: number,
+    userId: string,
+  ): Promise<{ message: string; entriesSkipped: number }> {
+    try {
+      const { request: quizRequest, entriesSkipped } =
+        await this.getContentEntriesByBankId(bankId, userId);
+
+      const payload: CreateQuizGenerationEventPayload = {
+        instructions: quizRequest.instructions,
+        contentEntries: quizRequest.contentEntries,
+        entriesSkipped,
+        userId: userId,
+        quizId: quizId,
+        bankId: bankId,
+      };
+
+      this.kafkaClient.emit('create-quiz', {
+        key: `user-${userId}`,
+        value: payload,
+      });
+
+      this.logger.log(
+        `Emitted create-quiz events for ${quizRequest.contentEntries.length} content entries from bank ${bankId}`,
+      );
+
+      return {
+        message: `Successfully emitted ${quizRequest.contentEntries.length} create-quiz events`,
+        entriesSkipped,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit create-quiz events for bankId: ${bankId}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update the questionUpdatedAt timestamp for a quiz
+   */
+  async updateQuizDate(
+    quizId: number,
+  ): Promise<{ message: string; success: boolean }> {
+    try {
+      const updatedQuiz = await this.prisma.quiz.update({
+        where: {
+          id: BigInt(quizId),
+        },
+        data: {
+          questionUpdatedAt: new Date(),
+        },
+        select: {
+          id: true,
+          questionUpdatedAt: true,
+        },
+      });
+
+      this.logger.log(
+        `Quiz ${quizId} questionUpdatedAt updated to ${updatedQuiz.questionUpdatedAt}`,
+      );
+
+      return {
+        message: 'Quiz date updated successfully',
+        success: true,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to update quiz date for quizId: ${quizId}`,
+        error,
+      );
+      return {
+        message: 'Failed to update quiz date',
+        success: false,
+      };
+    }
   }
 }
