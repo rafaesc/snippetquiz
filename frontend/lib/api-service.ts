@@ -15,6 +15,9 @@ import   {
   QuizSummaryResponse,
   FindOneQuizResponse,
   UpdateQuizResponse,
+  ValidateQuizInProgressResponse,
+  CreateQuizRequest,
+  CreateQuizResponse,
 } from './types';
 
 const API_BASE_URL = process.env.API_URL || 'http://localhost:5000';
@@ -474,6 +477,34 @@ export const apiService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to update quiz');
+    }
+
+    return response.json();
+  },
+
+  validateQuizInProgress: async (): Promise<ValidateQuizInProgressResponse> => {
+    const response = await makeAuthenticatedRequest('/api/quiz/validate');
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to validate quiz in progress');
+    }
+
+    return response.json();
+  },
+
+  createQuiz: async (data: CreateQuizRequest): Promise<CreateQuizResponse> => {
+    const response = await makeAuthenticatedRequest('/api/quiz', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create quiz');
     }
 
     return response.json();

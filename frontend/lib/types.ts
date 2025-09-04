@@ -161,3 +161,23 @@ export interface UpdateQuizResponse {
   success: boolean;
   completed?: boolean;
 }
+
+
+export interface QuizInProgressDetails {
+  quizId: string;
+  bankId: string;
+  name: string;
+}
+
+export interface ValidateQuizInProgressResponse {
+  inProgress: boolean;
+  details?: QuizInProgressDetails;
+}
+
+export interface CreateQuizRequest {
+  bankId: number;
+}
+
+export interface CreateQuizResponse {
+  quizId: string;
+}

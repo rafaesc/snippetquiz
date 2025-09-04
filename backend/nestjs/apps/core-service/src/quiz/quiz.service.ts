@@ -315,7 +315,7 @@ export class QuizService {
     userId: string;
     bankId: number;
     status: QuizStatus;
-  }): Observable<{ quizId: string }> {
+  }): Observable<{ quiz_id: string }> {
     const { userId, bankId, status } = params;
 
     return from(
@@ -436,7 +436,7 @@ export class QuizService {
                 }),
               ).pipe(
                 map(() => ({
-                  quizId: quiz.id.toString(),
+                  quiz_id: quiz.id.toString(),
                 })),
               );
             }
@@ -512,7 +512,7 @@ export class QuizService {
                       }),
                     ).pipe(
                       map(() => ({
-                        quizId: quiz.id.toString(),
+                        quiz_id: quiz.id.toString(),
                       })),
                     );
                   }),
