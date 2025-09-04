@@ -13,13 +13,12 @@ export class QuizController {
   createQuiz(data: {
     bank_id: number;
     user_id: string;
-  }): Observable<{ quizId: string }> {
+  }): Observable<{ quiz_id: string }> {
     return this.quizService.checkQuizInProgress({ user_id: data.user_id }).pipe(
       switchMap((checkResult) => {
         if (checkResult.in_progress) {
           return throwError(() => new Error('Quiz already in progress'));
         } else {
-          // No quiz in progress, create a new one
           return this.quizService
             .createQuiz({
               userId: data.user_id,
@@ -28,9 +27,9 @@ export class QuizController {
             })
             .pipe(
               tap((result) => {
-                if (result.quizId) {
+                if (result.quiz_id) {
                   this.quizService.emitCreateQuizEvent(
-                    result.quizId,
+                    result.quiz_id,
                     data.bank_id,
                     data.user_id,
                   );

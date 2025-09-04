@@ -54,6 +54,8 @@ export default function GenerateQuiz() {
   const { setCurrentQuizId } = useQuiz();
   const [selectedBankId, setSelectedBankId] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
+  const [createQuizError, setCreateQuizError] = useState<string | null>(null);
 
   // WebSocket hook for quiz generation
   const {
@@ -110,10 +112,31 @@ export default function GenerateQuiz() {
     }
   };
 
-  const handleGenerateQuiz = () => {
+  const handleGenerateQuiz = async () => {
     if (!selectedBank || !entriesData || entriesData.pagination.total === 0)
       return;
-    generateQuiz(selectedBankId);
+
+    try {
+      setIsCreatingQuiz(true);
+      setCreateQuizError(null);
+
+      // Step 1: Create the quiz using the new API endpoint
+      const createdQuiz = await apiService.createQuiz({
+        bankId: parseInt(selectedBankId),
+      });
+
+      // Step 2: If quiz creation is successful, start WebSocket generation
+      if (createdQuiz.quizId) {
+        setCurrentQuizId(Number(createdQuiz.quizId));
+        generateQuiz(selectedBankId);
+      }
+    } catch (error: any) {
+      setCreateQuizError(
+        error.message || "Failed to create quiz. Please try again."
+      );
+    } finally {
+      setIsCreatingQuiz(false);
+    }
   };
 
   // Navigate to quiz when generation is complete
@@ -132,6 +155,11 @@ export default function GenerateQuiz() {
     setSelectedBankId(bankId);
     queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     setCurrentPage(1);
+  };
+
+  // Clear create quiz error
+  const clearCreateQuizError = () => {
+    setCreateQuizError(null);
   };
 
   // Loading state
@@ -163,15 +191,22 @@ export default function GenerateQuiz() {
     );
   }
 
-  // Show centered loader when generating
-  if (isGenerating || isComplete) {
+  // Show centered loader when creating quiz or generating
+  if (isCreatingQuiz || isGenerating || isComplete) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <QuizGenerationLoader
-            progress={progress?.progress || null}
-            progressPercentage={progressPercentage}
-          />
+          {isCreatingQuiz ? (
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Creating quiz...</p>
+            </div>
+          ) : (
+            <QuizGenerationLoader
+              progress={progress?.progress || null}
+              progressPercentage={progressPercentage}
+            />
+          )}
         </div>
       </div>
     );
@@ -179,7 +214,27 @@ export default function GenerateQuiz() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Error Dialog */}
+      {/* Quiz Creation Error Dialog */}
+      <AlertDialog open={!!createQuizError} onOpenChange={clearCreateQuizError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Quiz Creation Error
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {createQuizError}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={clearCreateQuizError}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* WebSocket Error Dialog */}
       <AlertDialog open={!!error} onOpenChange={() => clearError()}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -445,12 +500,13 @@ export default function GenerateQuiz() {
             !selectedBank ||
             !entriesData ||
             entriesData.pagination.total === 0 ||
-            entriesLoading
+            entriesLoading ||
+            isCreatingQuiz
           }
           className="px-8"
         >
           <Sparkles className="h-5 w-5 mr-2" />
-          Generate Quiz
+          {isCreatingQuiz ? "Creating Quiz..." : "Generate Quiz"}
         </Button>
 
         {!selectedBank && (

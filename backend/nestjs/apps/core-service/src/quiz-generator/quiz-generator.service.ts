@@ -76,7 +76,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
     return new Observable((observer) => {
       (async () => {
         try {
-          await this.consumer.subscribe({ topic, fromBeginning: false });
+          await this.consumer.subscribe({ topic, fromBeginning: true });
 
           await this.consumer.run({
             eachMessage: async ({ message }) => {
@@ -295,7 +295,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
                 tap({
                   next: (result) => {
                     this.logger.log(
-                      `Quiz created successfully Quiz ID: ${result.quizId}`,
+                      `Quiz created successfully Quiz ID: ${result.quiz_id}`,
                     );
                   },
                   error: (error) => {
@@ -308,7 +308,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
                 map((result) => {
                   return {
                     completed: {
-                      quiz_id: result.quizId,
+                      quiz_id: result.quiz_id,
                     },
                   };
                 }),
