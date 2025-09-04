@@ -1,9 +1,11 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
   Delete,
   Param,
+  Body,
   Query,
   UseGuards,
   Request,
@@ -17,10 +19,6 @@ import { type ClientGrpc } from '@nestjs/microservices';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CORE_SERVICE } from '../config/services';
-import { 
-  FindAllQuizzesDto, 
-  FindQuizResponsesDto 
-} from './dto/quiz.dto';
 
 interface CreateQuizRequest {
   bankId: number;
@@ -32,6 +30,7 @@ interface QuizService {
   FindOneQuiz(data: any): Promise<any>;
   FindQuizResponses(data: any): Promise<any>;
   FindQuizSummary(data: any): Promise<any>;
+  CreateQuiz(data: any): Promise<any>;
   RemoveQuiz(data: any): Promise<any>;
   UpdateQuiz(data: any): Promise<any>;
 }
@@ -67,6 +66,34 @@ export class QuizController implements OnModuleInit {
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
+      }
+      throw new HttpException(
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async create(
+    @Body() createQuizRequest: CreateQuizRequest,
+    @Request() req: any,
+  ) {
+    try {
+      const userId = req.user.id;
+      const { bankId } = createQuizRequest;
+
+      return await this.quizService.CreateQuiz({
+        bankId,
+        userId,
+      });
+    } catch (error) {
+      if (error.message?.includes('not found')) {
+        throw new HttpException(
+          'Content bank not found or you do not have permission to access it',
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
         error.message || 'Internal server error',

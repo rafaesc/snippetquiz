@@ -22,6 +22,9 @@ export class QuizGeneratorController {
   ): Observable<CoreQuizGenerationStatus> {
     this.logger.log(`generateQuiz called with bank_id=${request.bank_id}`);
 
-    return this.quizGeneratorService.generateQuizStream(request.bank_id, request.user_id);
+    return this.quizGeneratorService.consumeAsObservable(
+      'quiz-generation',
+      request.user_id,
+    );
   }
 }

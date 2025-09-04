@@ -24,14 +24,18 @@ import { Observable, from, switchMap, throwError } from 'rxjs';
 import { type ClientGrpc } from '@nestjs/microservices';
 import { AI_GENERATION_SERVICE } from '../config/services';
 import { AiGenerationService } from '../quiz-generator/dto/quiz-generator.dto';
+import { KAFKA_SERVICE } from '../config/services';
+import { ClientKafka } from '@nestjs/microservices';
+import { ContentEntryEventPayload } from './dto/content-entry-event.dto';
 
 @Injectable()
 export class ContentEntryService {
-  private aiGenerationService: AiGenerationService;
+  private aiGenerationService: AiGenerationService; 
   private readonly logger = new Logger(ContentEntryService.name);
 
   constructor(
     @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
+    @Inject(KAFKA_SERVICE) private kafkaClient: ClientKafka,
     private prisma: PrismaService,
   ) {
     try {
@@ -489,65 +493,23 @@ export class ContentEntryService {
 
       const existingTopicNames = existingTopics.map((t) => t.topic);
 
-      const generateTopicsRequest = {
+      const generateTopicsRequest: ContentEntryEventPayload = {
+        userId: userId,
+        contentId: contentEntry.id.toString(),
+        action: 'GENERATE',
         content: contentEntry.content || '',
         pageTitle: contentEntry.pageTitle || '',
-        existingTopics: existingTopicNames,
+        existingTopics: existingTopicNames.join(','),
       };
 
-      const topicsResponse = await new Promise<{ topics?: string[] }>(
-        (resolve, reject) => {
-          this.aiGenerationService
-            .generateTopics(generateTopicsRequest)
-            .subscribe({
-              next: (response) => resolve(response),
-              error: (error) => reject(error),
-            });
-        },
-      );
-
-      const generatedTopics = topicsResponse.topics || [];
-      let topicsCreated = 0;
-
-      for (const topicName of generatedTopics) {
-        try {
-          const topic = await this.prisma.topic.upsert({
-            where: {
-              userId_topic: {
-                userId,
-                topic: topicName,
-              },
-            },
-            update: {},
-            create: {
-              userId,
-              topic: topicName,
-            },
-          });
-
-          await this.prisma.contentEntryTopic.upsert({
-            where: {
-              contentEntryId_topicId: {
-                contentEntryId: contentEntry.id,
-                topicId: topic.id,
-              },
-            },
-            update: {},
-            create: {
-              contentEntryId: contentEntry.id,
-              topicId: topic.id,
-            },
-          });
-
-          topicsCreated++;
-        } catch (error) {
-          this.logger.error(`Error creating topic "${topicName}":`, error);
-        }
-      }
+      this.kafkaClient.emit('content-entry-events', {
+        key: `content-entry-${contentEntry.id}`,
+        value: generateTopicsRequest,
+      });
 
       return {
-        message: `Successfully generated and linked ${topicsCreated} topics to content entry`,
-        topicsCreated,
+        message: `Successfully generated and linked  topics to content entry`,
+        topicsCreated: 1,
       };
     } catch (error) {
       this.logger.error('Error generating topics for content entry:', error);

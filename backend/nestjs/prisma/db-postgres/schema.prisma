@@ -101,11 +101,13 @@ model Quiz {
   id                    BigInt    @id @default(autoincrement())
   bankId                BigInt?   @map("bank_id")
   bankName              String?   @map("bank_name")
+  status                String?   @db.VarChar(255)
   createdAt             DateTime  @default(now()) @map("created_at")
   contentEntriesCount   Int       @default(0) @map("content_entries_count")
   questionsCount        Int       @default(0) @map("questions_count")
   questionsCompleted    Int       @default(0) @map("questions_completed")
   completedAt           DateTime? @map("completed_at")
+  questionUpdatedAt     DateTime? @default(now()) @map("question_updated_at")
   userId                String?   @map("user_id") @db.Uuid
 
   // Relations

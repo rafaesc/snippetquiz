@@ -34,7 +34,7 @@ Existing topics that you can reuse if you need it:
 {existing_topics_str}
 
 Instructions:
-1. Generate 1-6 topics that are relevant to the content
+1. Generate 1-3 topics that are relevant to the content
 2. Topics should be generic
 3. First identify reusable topics from existing topics before creating new ones.
 4. Topics should be concise (2-5 words each)

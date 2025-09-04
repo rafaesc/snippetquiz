@@ -12,11 +12,12 @@ message FindAllQuizzesRequest {
 message QuizItem {
   string id = 1;
   string name = 2;
-  string created_at = 3;
-  int32 questions_count = 4;
-  int32 questions_completed = 5;
-  int32 content_entries_count = 6;
-  repeated string topics = 7;
+  string status = 3;
+  string created_at = 4;
+  int32 questions_count = 5;
+  int32 questions_completed = 6;
+  int32 content_entries_count = 7;
+  repeated string topics = 8;
 }
 
 message PaginationInfo {
@@ -91,6 +92,15 @@ message FindQuizSummaryResponse {
   repeated string topics = 3;
 }
 
+message CreateQuizRequest {
+  int64 bank_id = 1;
+  string user_id = 2;
+}
+
+message CreateQuizResponse {
+  string quiz_id = 1;
+}
+
 message RemoveQuizRequest {
   int64 id = 1;
   string user_id = 2;
@@ -118,6 +128,7 @@ service QuizService {
   rpc FindOneQuiz(FindOneQuizRequest) returns (FindOneQuizResponse);
   rpc FindQuizResponses(FindQuizResponsesRequest) returns (FindQuizResponsesResponse);
   rpc FindQuizSummary(FindQuizSummaryRequest) returns (FindQuizSummaryResponse);
+  rpc CreateQuiz(CreateQuizRequest) returns (CreateQuizResponse);
   rpc RemoveQuiz(RemoveQuizRequest) returns (RemoveQuizResponse);
   rpc UpdateQuiz(UpdateQuizRequest) returns (UpdateQuizResponse);
 }

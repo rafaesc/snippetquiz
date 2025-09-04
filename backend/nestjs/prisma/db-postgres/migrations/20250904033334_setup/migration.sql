@@ -69,11 +69,13 @@ CREATE TABLE "public"."quizzes" (
     "id" BIGSERIAL NOT NULL,
     "bank_id" BIGINT,
     "bank_name" TEXT,
+    "status" VARCHAR(255),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "content_entries_count" INTEGER NOT NULL DEFAULT 0,
     "questions_count" INTEGER NOT NULL DEFAULT 0,
     "questions_completed" INTEGER NOT NULL DEFAULT 0,
     "completed_at" TIMESTAMP(3),
+    "question_updated_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "user_id" UUID,
 
     CONSTRAINT "quizzes_pkey" PRIMARY KEY ("id")

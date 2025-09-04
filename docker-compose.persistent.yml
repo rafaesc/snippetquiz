@@ -29,8 +29,8 @@ services:
     image: node:lts-alpine3.17
     working_dir: /usr/src/app
     volumes:
-      - ./backend/prisma:/usr/src/app/prisma
-      - ./backend/generated:/usr/src/app/generated
+      - ./backend/nestjs/prisma:/usr/src/app/prisma
+      - ./backend/nestjs/generated:/usr/src/app/generated
     command: npx prisma studio --port 5555 --browser none --schema prisma/db-postgres/schema.prisma 
     ports:
       - "5555:5555"
@@ -68,7 +68,8 @@ services:
     environment:
       AI_GENERATION_SERVICE_PORT: 50051
       AI_GENERATION_SERVICE_HOST: "0.0.0.0"
-      KAFKA_BROKERS: "broker:29092"
+      KAFKA_HOST: "broker"
+      KAFKA_PORT: "29092"
     depends_on:
       - broker
     volumes:

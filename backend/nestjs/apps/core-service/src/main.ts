@@ -10,7 +10,11 @@ import { join } from 'path';
 async function bootstrap() {
   const logger = new Logger('core-service-bootstrap');
 
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(CoreServiceModule, {
+  // Create a hybrid application (HTTP + microservices)
+  const app = await NestFactory.create(CoreServiceModule);
+
+  // Add gRPC microservice
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
       package: [
@@ -38,6 +42,20 @@ async function bootstrap() {
     },
   });
 
+  // Add Kafka microservice
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: 'core-service',
+        brokers: [`${envs.kafkaHost}:${envs.kafkaPort}`],
+      },
+      consumer: {
+        groupId: envs.kafkaCoreConsumerGroup,
+      },
+    },
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -48,7 +66,10 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllRpcExceptionsFilter());
 
-  await app.listen();
+  // Start all microservices
+  await app.startAllMicroservices();
+  
   logger.log(`Core microservice running on gRPC port ${envs.coreServicePort}`);
+  logger.log(`Kafka consumer connected to ${envs.kafkaHost}:${envs.kafkaPort} with group ${envs.kafkaCoreConsumerGroup}`);
 }
 bootstrap();
