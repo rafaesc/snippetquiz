@@ -122,6 +122,21 @@ message UpdateQuizResponse {
   bool completed = 3;
 }
 
+message CheckQuizInProgressRequest {
+  string user_id = 1;
+}
+
+message QuizInProgressDetails {
+  string quiz_id = 1;
+  optional string bank_id = 2;
+  optional string name = 3;
+}
+
+message CheckQuizInProgressResponse {
+  bool in_progress = 1;
+  optional QuizInProgressDetails details = 2;
+}
+
 // Quiz service definition
 service QuizService {
   rpc FindAllQuizzes(FindAllQuizzesRequest) returns (FindAllQuizzesResponse);
@@ -131,4 +146,5 @@ service QuizService {
   rpc CreateQuiz(CreateQuizRequest) returns (CreateQuizResponse);
   rpc RemoveQuiz(RemoveQuizRequest) returns (RemoveQuizResponse);
   rpc UpdateQuiz(UpdateQuizRequest) returns (UpdateQuizResponse);
+  rpc CheckQuizInProgress(CheckQuizInProgressRequest) returns (CheckQuizInProgressResponse);
 }

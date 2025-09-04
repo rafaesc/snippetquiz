@@ -9,6 +9,9 @@ import {
   PaginatedQuizResponsesDto,
   QuizResponseDto,
   QuizResponseItemDto,
+  CheckQuizInProgressRequestDto,
+  CheckQuizInProgressResponseDto,
+  QuizInProgressDetailsDto,
 } from './dto/quiz-response.dto';
 import { Observable, from, switchMap, map, throwError, of } from 'rxjs';
 import { UpdateQuizResponseDto } from './dto/update-quiz.dto';
@@ -944,5 +947,61 @@ export class QuizService {
         success: false,
       };
     }
+  }
+
+  checkQuizInProgress(
+    request: CheckQuizInProgressRequestDto,
+  ): Observable<CheckQuizInProgressResponseDto> {
+    const { user_id } = request;
+
+    return from(
+      this.prisma.quiz.findMany({
+        where: {
+          userId: user_id,
+          status: QuizStatus.IN_PROGRESS,
+        },
+        select: {
+          id: true,
+          bankId: true,
+          bankName: true,
+          status: true,
+          questionUpdatedAt: true,
+        },
+      })
+    ).pipe(
+      switchMap(async (inProgressQuizzes) => {
+        if (inProgressQuizzes.length === 0) {
+          return {
+            in_progress: false,
+          };
+        }
+
+        let inProgressQuiz: QuizInProgressDetailsDto | null = null;
+
+        for (const quiz of inProgressQuizzes) {
+          const finalStatus = getFinalStatus(quiz);
+
+          if (finalStatus === QuizStatus.IN_PROGRESS) {
+            inProgressQuiz = {
+              quiz_id: quiz.id.toString(),
+              bank_id: quiz.bankId?.toString(),
+              name: quiz.bankName,
+            };
+          }
+
+          if (finalStatus === QuizStatus.READY_WITH_ERROR) {
+            await this.prisma.quiz.update({
+              where: { id: quiz.id },
+              data: { status: QuizStatus.READY_WITH_ERROR },
+            });
+          }
+        }
+
+        return {
+          in_progress: inProgressQuiz !== null,
+          details: inProgressQuiz,
+        };
+      })
+    );
   }
 }

@@ -33,6 +33,7 @@ interface QuizService {
   CreateQuiz(data: any): Promise<any>;
   RemoveQuiz(data: any): Promise<any>;
   UpdateQuiz(data: any): Promise<any>;
+  CheckQuizInProgress(data: any): Promise<any>;
 }
 
 @Controller('quiz')
@@ -67,6 +68,20 @@ export class QuizController implements OnModuleInit {
       if (error instanceof HttpException) {
         throw error;
       }
+      throw new HttpException(
+        error.message || 'Internal server error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('validate')
+  async validateQuizInProgress(@Request() req: any) {
+    try {
+      const userId = req.user.id;
+
+      return await this.quizService.CheckQuizInProgress({ userId });
+    } catch (error) {
       throw new HttpException(
         error.message || 'Internal server error',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,

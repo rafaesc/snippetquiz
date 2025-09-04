@@ -69,3 +69,18 @@ export class PaginatedQuizResponsesDto {
     total: number;
   };
 }
+
+export class CheckQuizInProgressRequestDto {
+  user_id: string;
+}
+
+export class QuizInProgressDetailsDto {
+  quiz_id: string;
+  bank_id?: string;
+  name?: string | null;
+}
+
+export class CheckQuizInProgressResponseDto {
+  in_progress: boolean;
+  details?: QuizInProgressDetailsDto | null;
+}

@@ -3,27 +3,40 @@ import { GrpcMethod } from '@nestjs/microservices';
 import { QuizService, QuizStatus } from './quiz.service';
 import { FindAllQuizzesDto } from './dto/find-all-quizzes.dto';
 import { FindQuizResponsesDto } from './dto/find-quiz-responses.dto';
-import { UpdateQuizDto } from './dto/update-quiz.dto';
-import { tap } from 'rxjs';
+import { tap, switchMap, Observable, throwError } from 'rxjs';
 
 @Controller()
 export class QuizController {
   constructor(private readonly quizService: QuizService) {}
 
   @GrpcMethod('QuizService', 'CreateQuiz')
-  createQuiz(data: { bank_id: number; user_id: string }) {
-    return this.quizService.createQuiz({
-      userId: data.user_id,
-      bankId: data.bank_id,
-      status: QuizStatus.IN_PROGRESS,
-    }).pipe(
-      tap((result) => {
-        if (result.quizId) {
-          this.quizService.emitCreateQuizEvent(
-            result.quizId,
-            data.bank_id,
-            data.user_id,
-          );
+  createQuiz(data: {
+    bank_id: number;
+    user_id: string;
+  }): Observable<{ quizId: string }> {
+    return this.quizService.checkQuizInProgress({ user_id: data.user_id }).pipe(
+      switchMap((checkResult) => {
+        if (checkResult.in_progress) {
+          return throwError(() => new Error('Quiz already in progress'));
+        } else {
+          // No quiz in progress, create a new one
+          return this.quizService
+            .createQuiz({
+              userId: data.user_id,
+              bankId: data.bank_id,
+              status: QuizStatus.IN_PROGRESS,
+            })
+            .pipe(
+              tap((result) => {
+                if (result.quizId) {
+                  this.quizService.emitCreateQuizEvent(
+                    result.quizId,
+                    data.bank_id,
+                    data.user_id,
+                  );
+                }
+              }),
+            );
         }
       }),
     );
@@ -81,5 +94,10 @@ export class QuizController {
       quizId: data.quiz_id,
       questionOptionId: data.question_option_id,
     });
+  }
+
+  @GrpcMethod('QuizService', 'CheckQuizInProgress')
+  checkQuizInProgress(data: { user_id: string }) {
+    return this.quizService.checkQuizInProgress({ user_id: data.user_id });
   }
 }

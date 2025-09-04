@@ -16,7 +16,6 @@ import {
   of,
   concatMap,
 } from 'rxjs';
-import { PrismaService } from '../../../commons/services';
 import { AI_GENERATION_SERVICE } from '../config/services';
 import {
   GenerateQuizRequest,
@@ -78,10 +77,9 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
       (async () => {
         try {
           await this.consumer.subscribe({ topic, fromBeginning: false });
-          this.logger.log(`📥 Subscrito al tópico: ${topic}`);
 
           await this.consumer.run({
-            eachMessage: async ({ topic, partition, message }) => {
+            eachMessage: async ({ message }) => {
               try {
                 const key = message.key?.toString();
                 const rawValue = message.value?.toString();
