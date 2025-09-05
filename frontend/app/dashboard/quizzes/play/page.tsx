@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuiz } from "@/contexts/QuizContext";
 import { apiService } from "@/lib/api-service";
+import { useQuizWebSocket } from "@/hooks/useQuizWebSocket";
+import { HorizontalQuizGenerationLoader } from "@/components/HorizontalQuizGenerationLoader";
 
 export default function QuizPlayerPage() {
   const { currentQuizId } = useQuiz();
@@ -19,6 +21,17 @@ export default function QuizPlayerPage() {
   // Add state to maintain previous question during transition
   const [displayQuestion, setDisplayQuestion] = useState<any>(null);
 
+  // WebSocket hook for quiz generation
+  const { 
+    generateQuiz, 
+    progress: wsProgress, 
+    isGenerating, 
+    progressPercentage, 
+    isComplete, 
+    error: wsError, 
+    clearError, 
+  } = useQuizWebSocket();
+
   const {
     data: quiz,
     isLoading,
@@ -28,7 +41,34 @@ export default function QuizPlayerPage() {
     queryKey: ["quiz", currentQuizId],
     queryFn: () => apiService.getQuiz(currentQuizId!),
     enabled: !!currentQuizId,
+    staleTime: 0,
   });
+
+  useEffect(() => {
+    if (quiz?.status === "IN_PROGRESS" && !isGenerating && !isComplete) {
+      generateQuiz();
+    }
+  }, [quiz?.status, isGenerating, isComplete, generateQuiz]);
+
+  // Handle WebSocket completion - refetch quiz data
+  useEffect(() => {
+    if (isComplete) {
+      refetch();
+    }
+  }, [isComplete, refetch]);
+
+  // Handle wsProgress updates - refetch when new questions are generated
+  useEffect(() => {
+    if (wsProgress && quiz) {
+      const shouldRefetch = 
+        quiz.totalQuestions === 0 || 
+        (quiz.questionsCompleted === quiz.totalQuestions && quiz.status === 'IN_PROGRESS');
+      
+      if (shouldRefetch) {
+        refetch();
+      }
+    }
+  }, [wsProgress, quiz, refetch]);
 
   // Update display question when quiz data changes and not transitioning
   useEffect(() => {
@@ -118,6 +158,12 @@ export default function QuizPlayerPage() {
     );
   }
 
+  // Check if we need to show waiting message
+  const shouldShowWaitingMessage = quiz && (
+    quiz.totalQuestions === 0 || 
+    (quiz.questionsCompleted === quiz.totalQuestions && quiz.status === 'IN_PROGRESS')
+  );
+
   // Use displayQuestion for rendering to maintain question during transition
   const currentQuestion = displayQuestion || quiz?.question;
 
@@ -167,10 +213,18 @@ export default function QuizPlayerPage() {
   return (
     <>
       <div className="bg-background">
+        {isGenerating && (
+          <HorizontalQuizGenerationLoader 
+            progress={wsProgress?.progress || null} 
+            progressPercentage={progressPercentage} 
+          />
+        )}
+        
         <div className="flex h-16 items-center justify-between px-4 md:px-6">
           <Button
             variant="ghost"
             onClick={() => router.push("/dashboard/quizzes")}
+            className="text-foreground"
           >
             Exit Quiz
           </Button>
@@ -179,77 +233,101 @@ export default function QuizPlayerPage() {
 
       <div className="flex items-center justify-center py-8 px-4">
         <div className="w-full max-w-2xl space-y-6">
-          <div className="text-center space-y-3">
-            <h2 className="text-sm font-medium text-muted-foreground">
-              Question {quiz.questionsCompleted + 1} of {quiz?.totalQuestions}
-            </h2>
-            <Progress value={progress} className="h-2" />
-          </div>
-
-          <Card
-            className={`transition-all duration-500 ease-in-out ${
-              isTransitioning
-                ? "opacity-0 scale-95 translate-y-4"
-                : "opacity-100 scale-100 translate-y-0"
-            }`}
-          >
-            <CardContent className="p-4 md:p-6">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl md:text-2xl font-semibold leading-relaxed">
-                    {currentQuestion.question}
-                  </h3>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    {currentQuestion.contentEntrySourceUrl && (
-                      <a
-                        href={currentQuestion.contentEntrySourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        View Source
-                      </a>
+          {/* Show waiting message when no questions available or all completed but still generating */}
+          {shouldShowWaitingMessage ? (
+            <div className="text-center space-y-4">
+              <Card>
+                <CardContent className="p-8">
+                  <div className="space-y-4">
+                    <div className="text-xl font-semibold">
+                      Generating More Questions...
+                    </div>
+                    <p className="text-muted-foreground">
+                      Please wait while we generate more questions for your quiz. This may take a few moments.
+                    </p>
+                    {quiz && quiz.totalQuestions > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        You've completed {quiz.questionsCompleted} of {quiz.totalQuestions} questions so far.
+                      </p>
                     )}
                   </div>
-                </div>
-
-                <div className="space-y-3 w-full">
-                  {currentQuestion.options.map((option: any, index: any) => (
-                    <Button
-                      key={option.id}
-                      variant="outline"
-                      className={getOptionButtonClass(option.optionText)}
-                      onClick={() => handleAnswerSelect(option.optionText)}
-                      disabled={!!selectedAnswer || isTransitioning}
-                    >
-                      <div className="flex items-start space-x-3 w-full min-w-0">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-sm font-medium mt-0.5">
-                          {String.fromCharCode(65 + index)}
-                        </div>
-                        <span className="flex-1 break-words min-w-0 text-left leading-relaxed">
-                          {option.optionText}
-                        </span>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-
-              </div>
-            </CardContent>
-          </Card>
-
-          {selectedAnswer ? (
-            <div className="text-center animate-fade-in">
-              <p className="text-sm text-muted-foreground">
-                {quiz.questionsCompleted < quiz?.totalQuestions - 1
-                  ? "Moving to next question..."
-                  : "Completing quiz..."}
-              </p>
+                </CardContent>
+              </Card>
             </div>
           ) : (
-            <div className="text-center text-sm text-muted-foreground">
-              <p>Select an answer to continue</p>
-            </div>
+            <>
+              <div className="text-center space-y-3">
+                <h2 className="text-sm font-medium text-muted-foreground">
+                  Question {quiz.questionsCompleted + 1} of {quiz?.totalQuestions}
+                </h2>
+                <Progress value={progress} className="h-2" />
+              </div>
+
+              <Card
+                className={`transition-all duration-500 ease-in-out ${
+                  isTransitioning
+                    ? "opacity-0 scale-95 translate-y-4"
+                    : "opacity-100 scale-100 translate-y-0"
+                }`}
+              >
+                <CardContent className="p-4 md:p-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-semibold leading-relaxed">
+                        {currentQuestion?.question}
+                      </h3>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        {currentQuestion?.contentEntrySourceUrl && (
+                          <a
+                            href={currentQuestion.contentEntrySourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            View Source
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 w-full">
+                      {currentQuestion?.options.map((option: any, index: any) => (
+                        <Button
+                          key={option.id}
+                          variant="outline"
+                          className={getOptionButtonClass(option.optionText)}
+                          onClick={() => handleAnswerSelect(option.optionText)}
+                          disabled={!!selectedAnswer || isTransitioning}
+                        >
+                          <div className="flex items-start space-x-3 w-full min-w-0">
+                            <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-sm font-medium mt-0.5">
+                              {String.fromCharCode(65 + index)}
+                            </div>
+                            <span className="flex-1 break-words min-w-0 text-left leading-relaxed">
+                              {option.optionText}
+                            </span>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {selectedAnswer ? (
+                <div className="text-center animate-fade-in">
+                  <p className="text-sm text-muted-foreground">
+                    {quiz.questionsCompleted < quiz?.totalQuestions - 1
+                      ? "Moving to next question..."
+                      : "Completing quiz..."}
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center text-sm text-muted-foreground">
+                  <p>Select an answer to continue</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

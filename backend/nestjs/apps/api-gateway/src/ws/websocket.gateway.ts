@@ -67,7 +67,8 @@ export class WebsocketGateway
     clearTimeout((client as any).data.timeout);
   }
 
-  @UseGuards(WsJwtAuthGuard, WsRateLimitGuard)
+  //@UseGuards(WsJwtAuthGuard, WsRateLimitGuard)
+  @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('generateQuiz')
   async handleGenerateQuiz(
     @MessageBody() rawData: string,
@@ -75,10 +76,8 @@ export class WebsocketGateway
   ) {
     try {
       const userId = (client as any).data?.userId;
-      const data = JSON.parse(rawData);
 
       const request: GenerateQuizByBankRequest = {
-        bankId: data.bankId,
         userId,
       };
       this.logger.log(

@@ -4,7 +4,6 @@ package core_quiz_generation;
 
 // Request message for generating quiz questions by bank ID
 message GenerateQuizByBankRequest {
-    int64 bank_id = 1;
     string user_id = 2;
 }
 
@@ -23,13 +22,14 @@ message CoreQuizGenerationCompleted {
 // Unified progress message for quiz generation
 message CoreQuizGenerationProgress {
     string bank_id = 1;
-    int32 total_content_entries = 2;
-    optional int32 total_content_entries_skipped = 3;
-    int32 current_content_entry_index = 4;
-    int32 questions_generated_so_far = 5;
-    ContentEntry content_entry = 6;
-    int32 total_chunks = 7;
-    int32 current_chunk_index = 8;
+    string quiz_id = 2;
+    int32 total_content_entries = 3;
+    optional int32 total_content_entries_skipped = 4;
+    int32 current_content_entry_index = 5;
+    int32 questions_generated_so_far = 6;
+    ContentEntry content_entry = 7;
+    int32 total_chunks = 8;
+    int32 current_chunk_index = 9;
 }
 
 // Status message indicating which content entry is being processed

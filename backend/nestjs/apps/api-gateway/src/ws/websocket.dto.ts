@@ -2,7 +2,6 @@ import { Observable } from "rxjs";
 
 // gRPC service interfaces
 export interface GenerateQuizByBankRequest {
-  bankId: number;
   userId: string;
 }
 

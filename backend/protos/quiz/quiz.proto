@@ -53,11 +53,12 @@ message QuizQuestionOption {
 message FindOneQuizResponse {
   string id = 1;
   string created_at = 2;
-  int32 questions_completed = 3;
-  int32 total_questions = 4;
-  int32 content_entries_count = 5;
-  repeated string topics = 6;
-  optional QuizQuestion question = 7;
+  string status = 3;
+  int32 questions_completed = 4;
+  int32 total_questions = 5;
+  int32 content_entries_count = 6;
+  repeated string topics = 7;
+  optional QuizQuestion question = 8;
 }
 
 message FindQuizResponsesRequest {

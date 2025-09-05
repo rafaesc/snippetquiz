@@ -6,6 +6,7 @@ interface ContentEntryDto {
 
 interface CoreQuizGenerationProgress {
   bank_id: string;
+  quiz_id: string;
   total_content_entries: number;
   total_content_entries_skipped?: number;
   current_content_entry_index: number;

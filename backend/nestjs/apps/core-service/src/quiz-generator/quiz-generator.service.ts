@@ -99,6 +99,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
                 } else {
                   observer.next({
                     progress: {
+                      quiz_id: event.quizId,
                       bank_id: event.bankId,
                       total_content_entries: event.totalContentEntries,
                       total_content_entries_skipped:
@@ -204,6 +205,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
             if (!questions || questions.length === 0) {
               return of({
                 progress: {
+                  quiz_id: 'null',
                   bank_id: bankId.toString(),
                   total_content_entries: totalContentEntries,
                   current_content_entry_index: processedContentEntries,
@@ -262,6 +264,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
                 );
                 return {
                   progress: {
+                    quiz_id: 'null',
                     bank_id: bankId.toString(),
                     total_content_entries: totalContentEntries,
                     current_content_entry_index: processedContentEntries,
@@ -323,6 +326,7 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
             .pipe(
               map((questionsGenerated) => ({
                 progress: {
+                  quiz_id: 'null',
                   bank_id: bankId.toString(),
                   total_content_entries: totalContentEntries,
                   current_content_entry_index: processedContentEntries,

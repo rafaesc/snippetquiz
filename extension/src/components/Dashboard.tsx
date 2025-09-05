@@ -78,6 +78,7 @@ function Dashboard() {
             return await apiService.contentBank.getAll(bankPage, banksPerPage);
         },
         retry: false,
+        staleTime: 0,
         enabled: !!userProfile,
     });
 
@@ -89,6 +90,7 @@ function Dashboard() {
             return await apiService.contentEntry.getByBank(selectedBankId, currentPage, itemsPerPage);
         },
         retry: false,
+        staleTime: 0,
         enabled: !!selectedBankId,
     });
 
