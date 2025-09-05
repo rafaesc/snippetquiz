@@ -6,7 +6,6 @@ import { Logger } from '@nestjs/common';
 import { CoreQuizGenerationStatus } from './dto/core-quiz-generation.dto';
 
 interface GenerateQuizByBankRequest {
-  bank_id: number;
   user_id: string;
 }
 
@@ -20,7 +19,7 @@ export class QuizGeneratorController {
   generateQuiz(
     request: GenerateQuizByBankRequest,
   ): Observable<CoreQuizGenerationStatus> {
-    this.logger.log(`generateQuiz called with bank_id=${request.bank_id}`);
+    this.logger.log(`generateQuiz called with user_id=${request.user_id}`);
 
     return this.quizGeneratorService.consumeAsObservable(
       'quiz-generation',

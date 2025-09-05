@@ -56,6 +56,7 @@ export default function ContentBanks() {
   const { data: banksData, isLoading: banksLoading, error: banksError } = useQuery({
     queryKey: ['contentBanks', currentBankPage, banksPerPage, searchTerm],
     queryFn: () => apiService.getContentBanks(currentBankPage, banksPerPage, searchTerm || undefined),
+    staleTime: 0,
   });
 
   // Fetch ALL content banks for clone dialog (without pagination)
@@ -63,6 +64,7 @@ export default function ContentBanks() {
     queryKey: ['contentBanks'],
     queryFn: () => apiService.getContentBanks(1, 100), // Get all banks
     enabled: showCloneDialog,
+    staleTime: 0,
   });
 
   // Fetch content entries for selected bank
@@ -73,6 +75,7 @@ export default function ContentBanks() {
       return apiService.getContentEntries(selectedBank.id, currentPage, entriesPerPage, searchTerm || undefined);
     },
     enabled: !!selectedBank && currentView === 'bank',
+    staleTime: 0,
   });
 
   // Create content bank mutation

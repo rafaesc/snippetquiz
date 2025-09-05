@@ -12,6 +12,7 @@ export interface QuizGenerationStatus {
 
 export interface QuizGenerationProgress {
   bankId: string;
+  quizId: string;
   totalContentEntries: number;
   totalContentEntriesSkipped: number;
   currentContentEntryIndex: number;
@@ -38,7 +39,7 @@ interface QuizError {
 }
 
 interface UseQuizWebSocketReturn {
-  generateQuiz: (bankId: string) => void;
+  generateQuiz: () => void;
   progress: QuizGenerationStatus | null;
   isConnected: boolean;
   isGenerating: boolean;
@@ -77,6 +78,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
     const handleQuizComplete = () => {
       setIsGenerating(false);
       setIsComplete(true);
+      setProgress(null);
       socket.disconnect();
     };
 
@@ -89,11 +91,13 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
     socket.on("disconnect", () => {
       setIsConnected(false);
       setIsGenerating(false);
+      setProgress(null);
     });
 
     socket.on("connect_error", (error) => {
       setIsConnected(false);
       setIsGenerating(false);
+      setProgress(null);
       setError({
         message: "Connection failed",
         error: error.message || "Unable to connect to server"
@@ -132,7 +136,12 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
     };
   }, []);
 
-  const generateQuiz = (bankId: string) => {
+  const generateQuiz = () => {
+    if (isConnected) {
+      console.log("WebSocket already connected");
+      return; // Already initialized
+    }
+
     // Initialize socket connection when generateQuiz is called
     initializeSocket();
 
@@ -150,11 +159,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
     setIsComplete(false);
     setError(null); // Clear any previous errors
 
-    const requestData = {
-      bankId: parseInt(bankId)
-    };
-
-    socketRef.current.emit("generateQuiz", JSON.stringify(requestData));
+    socketRef.current.emit("generateQuiz");
   };
 
   // Calculate progress percentage based on current progress

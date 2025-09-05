@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -41,8 +41,6 @@ import {
 } from "@/components/ui/pagination";
 import { apiService } from "@/lib/api-service";
 import { ContentEntry } from "@/lib/types";
-import { QuizGenerationLoader } from "@/components/QuizGenerationLoader";
-import { useQuizWebSocket } from "@/hooks/useQuizWebSocket";
 import { useQuiz } from "@/contexts/QuizContext";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -57,17 +55,6 @@ export default function GenerateQuiz() {
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
   const [createQuizError, setCreateQuizError] = useState<string | null>(null);
 
-  // WebSocket hook for quiz generation
-  const {
-    generateQuiz,
-    progress,
-    isGenerating,
-    progressPercentage,
-    isComplete,
-    error,
-    clearError,
-  } = useQuizWebSocket();
-
   const entriesPerPage = 10;
 
   // Fetch content banks
@@ -78,6 +65,7 @@ export default function GenerateQuiz() {
   } = useQuery({
     queryKey: ["contentBanks"],
     queryFn: () => apiService.getContentBanks(1, 100), // Get all banks
+    staleTime: 0,
   });
 
   // Fetch content entries for selected bank with pagination
@@ -90,6 +78,7 @@ export default function GenerateQuiz() {
     queryFn: () =>
       apiService.getContentEntries(selectedBankId, currentPage, entriesPerPage),
     enabled: !!selectedBankId, // Only run when a bank is selected
+    staleTime: 0,
   });
 
   const banks = banksData?.contentBanks || [];
@@ -128,27 +117,17 @@ export default function GenerateQuiz() {
       // Step 2: If quiz creation is successful, start WebSocket generation
       if (createdQuiz.quizId) {
         setCurrentQuizId(Number(createdQuiz.quizId));
-        generateQuiz(selectedBankId);
+        router.push("/dashboard/quizzes/play");
+      } else {
+        setIsCreatingQuiz(false);
       }
     } catch (error: any) {
       setCreateQuizError(
         error.message || "Failed to create quiz. Please try again."
       );
-    } finally {
       setIsCreatingQuiz(false);
     }
   };
-
-  // Navigate to quiz when generation is complete
-  useEffect(() => {
-    if (isComplete) {
-      const quizId = progress?.completed?.quizId;
-      if (quizId) {
-        setCurrentQuizId(quizId);
-        router.push("/dashboard/quizzes/play");
-      }
-    }
-  }, [isComplete, router, setCurrentQuizId, progress]);
 
   // Reset pagination when bank changes
   const handleBankChange = (bankId: string) => {
@@ -191,27 +170,6 @@ export default function GenerateQuiz() {
     );
   }
 
-  // Show centered loader when creating quiz or generating
-  if (isCreatingQuiz || isGenerating || isComplete) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {isCreatingQuiz ? (
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">Creating quiz...</p>
-            </div>
-          ) : (
-            <QuizGenerationLoader
-              progress={progress?.progress || null}
-              progressPercentage={progressPercentage}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 md:p-6 space-y-6">
       {/* Quiz Creation Error Dialog */}
@@ -222,47 +180,11 @@ export default function GenerateQuiz() {
               <AlertCircle className="h-5 w-5 text-destructive" />
               Quiz Creation Error
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              {createQuizError}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{createQuizError}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={clearCreateQuizError}>
               OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* WebSocket Error Dialog */}
-      <AlertDialog open={!!error} onOpenChange={() => clearError()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              {error?.retryAfter ? "Rate Limit Exceeded" : "Quiz Generation Error"}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p className="font-medium">{error?.message}</p>
-              {error?.retryAfter && (
-                <div className="mt-3 p-3 bg-muted rounded-md space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Rate Limit Details:</p>
-                  <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Retry after:</span> {error.retryAfter} seconds</p>
-                    {error.limit && (
-                      <p><span className="font-medium">Request limit:</span> {error.limit} requests per window</p>
-                    )}
-                    {error.resetTime && (
-                      <p><span className="font-medium">Limit resets at:</span> {new Date(error.resetTime).toLocaleTimeString()}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={clearError}>
-              {error?.retryAfter ? "Understood" : "OK"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

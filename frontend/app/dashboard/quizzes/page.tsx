@@ -46,6 +46,7 @@ export default function QuizzesPage() {
   } = useQuery({
     queryKey: ["quizzes", page, limit],
     queryFn: () => apiService.getQuizzes(page, limit),
+    staleTime: 0,
   });
 
   const handleViewSummary = (quiz: Quiz) => {
