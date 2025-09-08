@@ -88,7 +88,7 @@ services:
       SERVER_SERVLET_CONTEXTPATH: '/'
     depends_on:
       - broker
-
+      
 networks:
   default: 
     name: snippetquiz

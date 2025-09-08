@@ -119,6 +119,7 @@ export class QuizService {
         questionsCompleted: true,
         contentEntriesCount: true,
         status: true,
+        questionUpdatedAt: true,
         questionsCount: true,
         quizTopics: {
           select: {
@@ -160,7 +161,7 @@ export class QuizService {
       content_entries_count: quiz.contentEntriesCount,
       topics: quiz.quizTopics.map((topic) => topic.topicName),
       total_questions: quiz.questionsCount,
-      status: quiz.status,
+      status: getFinalStatus(quiz),
       question: currentQuestion
         ? {
             id: currentQuestion.id.toString(),
@@ -677,6 +678,7 @@ export class QuizService {
       },
       select: {
         id: true,
+        status: true,
         questionsCompleted: true,
         questionsCount: true,
         quizQuestions: {
@@ -762,7 +764,7 @@ export class QuizService {
 
     // Increment Quiz.questionsCompleted
     const updatedQuestionsCompleted = quiz.questionsCompleted + 1;
-    const isCompleted = updatedQuestionsCompleted >= quiz.questionsCount;
+    const isCompleted = updatedQuestionsCompleted >= quiz.questionsCount && quiz.status === QuizStatus.READY;
     const completedAt = isCompleted ? new Date() : null;
 
     await this.prisma.quiz.update({

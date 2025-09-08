@@ -110,18 +110,18 @@ export default function QuizSummaryPage() {
   const getScoreBadge = () => {
     if (score >= 80)
       return (
-        <Badge className="bg-green-100 text-green-800 border-green-200">
+        <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
           Excellent
         </Badge>
       );
     if (score >= 60)
       return (
-        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200">
           Good
         </Badge>
       );
     return (
-      <Badge className="bg-red-100 text-red-800 border-red-200">
+      <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200">
         Needs Improvement
       </Badge>
     );
@@ -131,7 +131,7 @@ export default function QuizSummaryPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-background">
-        <div className="flex h-16 items-center px-4 md:px-6">
+        <div className="flex h-16 items-center px-4 md:px-6 text-foreground">
           <Button variant="ghost" asChild className="p-2">
             <Link href="/dashboard/quizzes">
               <ChevronLeft className="h-5 w-5" />
