@@ -26,11 +26,23 @@ if (error) {
 }
 
 export const redisEnvsVars: RedisEnvVars = value;
+let redisUrl;
+if (redisEnvsVars.REDIS_USER && redisEnvsVars.REDIS_PASSWORD) {
+  // Both username and password provided
+  redisUrl = `redis://${redisEnvsVars.REDIS_USER}:${redisEnvsVars.REDIS_PASSWORD}@${redisEnvsVars.REDIS_HOST}:${redisEnvsVars.REDIS_PORT}`;
+} else if (redisEnvsVars.REDIS_PASSWORD) {
+  // Only password provided (common for Redis)
+  redisUrl = `redis://:${redisEnvsVars.REDIS_PASSWORD}@${redisEnvsVars.REDIS_HOST}:${redisEnvsVars.REDIS_PORT}`;
+} else {
+  // No authentication
+  redisUrl = `redis://${redisEnvsVars.REDIS_HOST}:${redisEnvsVars.REDIS_PORT}`;
+}
 
 export const redisEnvs = {
   host: redisEnvsVars.REDIS_HOST,
   port: redisEnvsVars.REDIS_PORT,
   user: redisEnvsVars.REDIS_USER,
   password: redisEnvsVars.REDIS_PASSWORD,
+  redisUrl: redisUrl,
   tls: redisEnvsVars.REDIS_TLS === 'true',
 };

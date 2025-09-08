@@ -25,15 +25,10 @@ import {
 import { CoreQuizGenerationStatus } from './dto/core-quiz-generation.dto';
 import { QuizService, QuizStatus } from '../quiz/quiz.service';
 import { ContentEntryService } from '../content-entry/content-entry.service';
-import { Kafka, Consumer } from 'kafkajs';
-import { envs } from '../config/envs';
-import { QuizGenerationEventPayload } from '../quiz/dto/quiz-generation-event-dto';
 
 @Injectable()
-export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
+export class QuizGeneratorService implements OnModuleInit {
   private readonly logger = new Logger(QuizGeneratorService.name);
-  private kafka: Kafka;
-  private consumer: Consumer;
   private aiGenerationService: AiGenerationService;
 
   constructor(
@@ -41,14 +36,6 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
     private quizService: QuizService,
     private contentEntryService: ContentEntryService,
   ) {
-    this.logger.log(`Kafka broker: ${envs.kafkaHost}:${envs.kafkaPort}`);
-    this.kafka = new Kafka({
-      clientId: 'core-service',
-      brokers: [`${envs.kafkaHost}:${envs.kafkaPort}`],
-    });
-    this.consumer = this.kafka.consumer({
-      groupId: envs.kafkaEmitQuizConsumerGroup,
-    });
   }
 
   async onModuleInit() {
@@ -56,86 +43,9 @@ export class QuizGeneratorService implements OnModuleInit, OnModuleDestroy {
       this.aiGenerationService = this.client.getService<AiGenerationService>(
         'AiGenerationService',
       );
-      await this.consumer.connect();
-      this.logger.log(
-        `QuizGeneratorService consumer connected to ${envs.kafkaHost}:${envs.kafkaPort} with group ${envs.kafkaEmitQuizConsumerGroup}`,
-      );
     } catch (error) {
       throw error;
     }
-  }
-
-  async onModuleDestroy() {
-    await this.consumer.disconnect();
-  }
-
-  consumeAsObservable(
-    topic: string,
-    userId: string,
-  ): Observable<CoreQuizGenerationStatus> {
-    return new Observable((observer) => {
-      (async () => {
-        try {
-          await this.consumer.subscribe({ topic, fromBeginning: true });
-
-          await this.consumer.run({
-            eachMessage: async ({ message }) => {
-              try {
-                const key = message.key?.toString();
-                const rawValue = message.value?.toString();
-                if (!rawValue) return;
-
-                const event: QuizGenerationEventPayload = JSON.parse(rawValue);
-
-                if (event.userId !== userId) return;
-
-                if (event.currentChunkIndex + 1 === event.totalChunks) {
-                  observer.next({
-                    completed: {
-                      quiz_id: event.quizId,
-                    },
-                  });
-                  observer.complete();
-                } else {
-                  observer.next({
-                    progress: {
-                      quiz_id: event.quizId,
-                      bank_id: event.bankId,
-                      total_content_entries: event.totalContentEntries,
-                      total_content_entries_skipped:
-                        event.totalContentEntriesSkipped,
-                      current_content_entry_index:
-                        event.currentContentEntryIndex,
-                      questions_generated_so_far: event.questionsGeneratedSoFar,
-                      content_entry: {
-                        id: event.contentEntry.id.toString(),
-                        name: event.contentEntry.pageTitle,
-                        word_count_analyzed:
-                          event.contentEntry.wordCountAnalyzed,
-                      },
-                      total_chunks: event.totalChunks,
-                      current_chunk_index: event.currentChunkIndex,
-                    },
-                  });
-                }
-              } catch (err) {
-                this.logger.error(
-                  `Error processing message: ${err.message}`,
-                  err.stack,
-                );
-              }
-            },
-          });
-        } catch (err) {
-          observer.error(err);
-        }
-      })();
-
-      return async () => {
-        await this.consumer.stop();
-        this.logger.log(`Consumer ${topic} stopped`);
-      };
-    });
   }
 
   generateQuizStream(

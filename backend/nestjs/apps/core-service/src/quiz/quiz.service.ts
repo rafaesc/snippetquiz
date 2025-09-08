@@ -764,7 +764,7 @@ export class QuizService {
 
     // Increment Quiz.questionsCompleted
     const updatedQuestionsCompleted = quiz.questionsCompleted + 1;
-    const isCompleted = updatedQuestionsCompleted >= quiz.questionsCount && quiz.status === QuizStatus.READY;
+    const isCompleted = updatedQuestionsCompleted >= quiz.questionsCount  && quiz.status === QuizStatus.READY;
     const completedAt = isCompleted ? new Date() : null;
 
     await this.prisma.quiz.update({
@@ -773,7 +773,6 @@ export class QuizService {
       },
       data: {
         questionsCompleted: updatedQuestionsCompleted,
-        status: isCompleted ? QuizStatus.READY : QuizStatus.IN_PROGRESS,
         completedAt,
       },
     });
