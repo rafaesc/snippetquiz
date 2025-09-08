@@ -81,6 +81,14 @@ export const QuizList: React.FC<QuizListProps> = ({
   };
 
   const getStatusBadge = (quiz: Quiz) => {
+    if (quiz.status === "IN_PROGRESS") {
+      return (
+        <Badge variant="outline">
+          Processing
+        </Badge>
+      );
+    }
+    
     const completed = isQuizCompleted(quiz);
     return (
       <Badge variant={completed ? "default" : "secondary"}>

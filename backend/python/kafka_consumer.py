@@ -80,7 +80,7 @@ class KafkaTopicConsumer:
                     "create-quiz",  # Added create-quiz topic
                     bootstrap_servers=kafka_brokers,
                     group_id="python-consumer-group",
-                    auto_offset_reset="earliest",
+                    auto_offset_reset="latest",
                     enable_auto_commit=True,
                     value_deserializer=lambda m: json.loads(m.decode("utf-8")),
                     key_deserializer=lambda k: k.decode('utf-8') if k else None,
@@ -276,7 +276,7 @@ class KafkaTopicConsumer:
                         print(f"      📈 Total questions generated so far: {total_questions_generated}")
                         
                         # Add delay to simulate processing time and show progress
-                        time.sleep(5)  # 2 second delay between chunks
+                        time.sleep(20)  # 2 second delay between chunks
                         print(f"      ⏳ Processing delay completed for chunk {current_chunk_index}/{total_chunks}")
                 else:
                     print(f"  📄 Entry {entry_index + 1} (ID: {entry_id}): '{page_title}' - No content")

@@ -9,17 +9,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket as ServerSocket } from 'socket.io';
 import { envs } from '../config/envs';
-import { CORE_SERVICE } from '../config/services';
-import { Inject, Logger, OnModuleInit, UseGuards } from '@nestjs/common';
-import { type ClientGrpc } from '@nestjs/microservices';
+import { Logger, UseGuards } from '@nestjs/common';
 import {
   GenerateQuizByBankRequest,
-  QuizGenerationProgress,
-  CoreQuizGenerationService,
 } from './websocket.dto';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { RedisService } from '../../../commons/services/redis.service';
-import { WsRateLimitGuard } from '../guards/ws-rate-limit.guard';
 
 @WebSocketGateway({
   namespace: '/api/ws',
@@ -31,25 +26,36 @@ import { WsRateLimitGuard } from '../guards/ws-rate-limit.guard';
   transports: ['websocket'],
 })
 export class WebsocketGateway
-  implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
   io: Server;
 
+  private clients = new Map<string, ServerSocket>();
+
   private logger = new Logger(WebsocketGateway.name);
 
-  private coreQuizGenerationService: CoreQuizGenerationService;
-
   constructor(
-    @Inject(CORE_SERVICE) private readonly coreClient: ClientGrpc,
     private readonly redisService: RedisService,
-  ) {}
+  ) {
+    redisService.subscribeToPattern('quiz-generation:*', (raw, channel) => {
+      const userId = channel.split(':')[2]; // channel = quiz-generation:user-id:123
+      const socket = this.clients.get(userId);
+      this.logger.log(`Received message for user - ${userId} - ${channel}`);
 
-  onModuleInit() {
-    this.coreQuizGenerationService =
-      this.coreClient.getService<CoreQuizGenerationService>(
-        'CoreQuizGenerationService',
-      );
+      if (socket) {
+        const data = JSON.parse(raw) as { progress: any; completed: any };
+
+        if (data.completed) {
+          socket.emit('quizComplete', data);
+          setTimeout(() => {
+            socket.disconnect();
+          }, 1000);
+        } else {
+          socket.emit('quizProgress', data);
+        }
+      }
+    });
   }
 
   handleConnection(client: ServerSocket) {
@@ -61,10 +67,23 @@ export class WebsocketGateway
     );
 
     (client as any).data.timeout = timeout;
+
+    this.logger.debug(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: any) {
+    const entry = [...this.clients.entries()].find(
+      ([, s]) => s.id === client.id,
+    );
     clearTimeout((client as any).data.timeout);
+
+    const userId = (client as any).data?.userId;
+    this.logger.log(`Disconnect ${userId} `);
+
+    if (entry) {
+      const [user_id] = entry;
+      this.clients.delete(user_id);
+    }
   }
 
   //@UseGuards(WsJwtAuthGuard, WsRateLimitGuard)
@@ -84,33 +103,19 @@ export class WebsocketGateway
         `Generate quiz request received for bank ID: ${JSON.stringify(request)}`,
       );
 
-      // Use Redis lock to prevent concurrent quiz generation for the same user
-      const lockKey = `quiz-generation:${userId}`;
+      // Override old socket if exists
+      const oldSocket = this.clients.get(userId);
+      if (oldSocket) {
+        this.logger.error(
+          `Disconnecting old socket for user ${userId}: ${oldSocket.id}`,
+        );
+        oldSocket.disconnect();
+      }
 
-      await this.redisService.withLock(lockKey, async () => {
-        const quizStream =
-          this.coreQuizGenerationService.generateQuizByBank(request);
-
-        quizStream.subscribe({
-          next: (progress: QuizGenerationProgress) => {
-            client.emit('quizProgress', progress);
-          },
-          error: (error) => {
-            client.emit('quizError', {
-              message: 'Failed to generate quiz',
-              error: error.message,
-            });
-            this.redisService.releaseLock(lockKey);
-          },
-          complete: () => {
-            client.emit('quizComplete', {
-              message: 'Quiz generation completed successfully',
-            });
-            this.redisService.releaseLock(lockKey);
-            client.disconnect();
-          },
-        });
-      }, '5m');
+      this.clients.set(userId, client);
+      this.logger.debug(
+        `Client set for user ${userId}: ${client.id}  - entries ${this.clients.size}`,
+      );
     } catch (error) {
       this.logger.error(`Error generating quiz for bank ID: ${error.message}`);
 

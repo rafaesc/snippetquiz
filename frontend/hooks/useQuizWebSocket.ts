@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -56,6 +57,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<QuizError | null>(null);
+  const queryClient = useQueryClient();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -113,7 +115,9 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
       }
     });
 
-    socket.on("quizComplete", (completeData: QuizComplete) => {
+    socket.on("quizComplete", () => {
+      queryClient.invalidateQueries({ queryKey: ["quizzes"] });
+      queryClient.invalidateQueries({ queryKey: ["quiz"] });
       handleQuizComplete();
     });
 
