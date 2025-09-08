@@ -292,9 +292,9 @@ export default function ContentBanks() {
               onClick={handleBackToList}
               className="flex items-center w-fit"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Banks</span>
-              <span className="sm:hidden">Back</span>
+              <ArrowLeft className="h-4 w-4 text-foreground" /> 
+              <span className="hidden sm:inline text-foreground">Back to Banks</span>
+              <span className="sm:hidden text-foreground">Back</span>
             </Button>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">{selectedBank.name}</h1>
@@ -470,7 +470,7 @@ export default function ContentBanks() {
               />
               <div className="flex justify-end space-x-2">
                 <Button
-                  className="w-fit rounded-full"
+                  className="w-fit rounded-full text-foreground"
                   variant="outline" onClick={() => setShowCreateBankDialog(false)}>
                   Cancel
                 </Button>

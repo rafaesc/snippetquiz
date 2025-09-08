@@ -110,7 +110,7 @@ export class WebsocketGateway
             client.disconnect();
           },
         });
-      });
+      }, '5m');
     } catch (error) {
       this.logger.error(`Error generating quiz for bank ID: ${error.message}`);
 

@@ -62,6 +62,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
   }, []);
 
   const initializeSocket = useCallback(() => {
+    setIsGenerating(true);
     console.log("Initializing WebSocket connection", socketRef.current);
     if (socketRef.current && isConnected) {
       return; // Already initialized
@@ -137,7 +138,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
   }, []);
 
   const generateQuiz = () => {
-    if (isConnected) {
+    if (isConnected || error) {
       console.log("WebSocket already connected");
       return; // Already initialized
     }
@@ -155,7 +156,6 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
     }
 
     setProgress(null);
-    setIsGenerating(true);
     setIsComplete(false);
     setError(null); // Clear any previous errors
 

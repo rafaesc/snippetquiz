@@ -126,7 +126,7 @@ export default function QuizPlayerPage() {
     );
   }
 
-  if ((!quiz || !quiz.question)) {
+  if ((!quiz)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -317,7 +317,7 @@ export default function QuizPlayerPage() {
               {selectedAnswer ? (
                 <div className="text-center animate-fade-in">
                   <p className="text-sm text-muted-foreground">
-                    {quiz.questionsCompleted < quiz?.totalQuestions - 1
+                    {quiz.questionsCompleted < quiz?.totalQuestions - 1 || shouldShowWaitingMessage
                       ? "Moving to next question..."
                       : "Completing quiz..."}
                   </p>
