@@ -77,7 +77,7 @@ export const QuizList: React.FC<QuizListProps> = ({
   };
 
   const isQuizCompleted = (quiz: Quiz): boolean => {
-    return quiz.questionsCount === quiz.questionsCompleted;
+    return quiz.questionsCount === quiz.questionsCompleted && quiz.status === 'READY';
   };
 
   const getStatusBadge = (quiz: Quiz) => {

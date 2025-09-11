@@ -21,15 +21,13 @@ async function bootstrap() {
         'content_bank',
         'content_entry', 
         'quiz',
-        'instructions',
-        'core_quiz_generation'
+        'instructions'
       ],
       protoPath: [
         join(__dirname, '../../../../protos/content-bank/content-bank.proto'),
         join(__dirname, '../../../../protos/content-entry/content-entry.proto'),
         join(__dirname, '../../../../protos/quiz/quiz.proto'),
-        join(__dirname, '../../../../protos/instructions/instructions.proto'),
-        join(__dirname, '../../../../protos/core_quiz_generation.proto')
+        join(__dirname, '../../../../protos/instructions/instructions.proto')
       ],
       url: `${envs.coreServiceHost}:${envs.coreServicePort}`,
       loader: {
