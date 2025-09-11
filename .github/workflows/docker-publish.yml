@@ -45,6 +45,14 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
 
+      - name: Build and push AI Python Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/python/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-python-service:latest
+
       - name: Build and push Frontend
         uses: docker/build-push-action@v5
         with:
