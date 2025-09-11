@@ -17,7 +17,7 @@ import { Observable, from, switchMap, map, throwError, of } from 'rxjs';
 import { UpdateQuizResponseDto } from './dto/update-quiz.dto';
 import { ClientKafka } from '@nestjs/microservices';
 import { KAFKA_SERVICE } from '../config/services';
-import { GenerateQuizRequest } from '../quiz-generator/dto/quiz-generator.dto';
+import { GenerateQuizRequest } from '../content-entry/dto/quiz-generator.dto';
 import { CreateQuizGenerationEventPayload } from './dto/create-quiz-generation-event.dto';
 
 export enum QuizStatus {
@@ -836,7 +836,7 @@ export class QuizService {
       for (const entry of contentEntries) {
         if (entry.questionsGenerated) {
           entriesSkipped++;
-          //continue;
+          continue;
         }
         mappedEntries.push({
           id: Number(entry.id),

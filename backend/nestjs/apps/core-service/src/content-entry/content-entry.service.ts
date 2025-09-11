@@ -21,31 +21,18 @@ import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
 import { Observable, from, switchMap, throwError } from 'rxjs';
-import { type ClientGrpc } from '@nestjs/microservices';
-import { AI_GENERATION_SERVICE } from '../config/services';
-import { AiGenerationService } from '../quiz-generator/dto/quiz-generator.dto';
 import { KAFKA_SERVICE } from '../config/services';
 import { ClientKafka } from '@nestjs/microservices';
 import { ContentEntryEventPayload } from './dto/content-entry-event.dto';
 
 @Injectable()
 export class ContentEntryService {
-  private aiGenerationService: AiGenerationService; 
   private readonly logger = new Logger(ContentEntryService.name);
 
   constructor(
-    @Inject(AI_GENERATION_SERVICE) private client: ClientGrpc,
     @Inject(KAFKA_SERVICE) private kafkaClient: ClientKafka,
     private prisma: PrismaService,
-  ) {
-    try {
-      this.aiGenerationService = this.client.getService<AiGenerationService>(
-        'AiGenerationService',
-      );
-    } catch (error) {
-      throw error;
-    }
-  }
+  ) {}
 
   async create(
     createContentEntryDto: CreateContentEntryDto,

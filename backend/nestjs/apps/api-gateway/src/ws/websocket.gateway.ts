@@ -10,9 +10,7 @@ import {
 import { Server, Socket as ServerSocket } from 'socket.io';
 import { envs } from '../config/envs';
 import { Logger, UseGuards } from '@nestjs/common';
-import {
-  GenerateQuizByBankRequest,
-} from './websocket.dto';
+import { GenerateQuizByBankRequest } from './websocket.dto';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { RedisService } from '../../../commons/services/redis.service';
 
@@ -35,9 +33,7 @@ export class WebsocketGateway
 
   private logger = new Logger(WebsocketGateway.name);
 
-  constructor(
-    private readonly redisService: RedisService,
-  ) {
+  constructor(private readonly redisService: RedisService) {
     redisService.subscribeToPattern('quiz-generation:*', (raw, channel) => {
       const userId = channel.split(':')[2]; // channel = quiz-generation:user-id:123
       const socket = this.clients.get(userId);
@@ -109,7 +105,13 @@ export class WebsocketGateway
         this.logger.error(
           `Disconnecting old socket for user ${userId}: ${oldSocket.id}`,
         );
-        oldSocket.disconnect();
+        oldSocket.emit('quizError', {
+          message: 'Quiz generation is already in progress for this user',
+          error: 'Resource locked',
+        });
+        setTimeout(() => {
+          oldSocket.disconnect();
+        }, 1000);
       }
 
       this.clients.set(userId, client);

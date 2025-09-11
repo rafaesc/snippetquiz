@@ -13,6 +13,7 @@ from kafka_consumer import KafkaTopicConsumer
 load_dotenv()
 
 
+# Deprecated
 class AiGenerationService(ai_generation_pb2_grpc.AiGenerationServiceServicer):
     def GenerateQuiz(self, request, context):
         """Generate quiz questions for content entries with streaming progress using AI"""

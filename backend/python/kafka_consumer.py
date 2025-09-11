@@ -153,7 +153,7 @@ class KafkaTopicConsumer:
 
     def handle_create_quiz_message(self, message_data):
         """Handle incoming events from create-quiz topic"""
-        print(f"🎯 Received CREATE QUIZ event")
+        print(f"🎯 Received CREATE QUIZ event ")
         
         try:
             # Extract data from CreateQuizGenerationEventPayload structure
@@ -161,19 +161,11 @@ class KafkaTopicConsumer:
             quiz_id = message_data.get("quizId", "")
             instructions = message_data.get("instructions", "")
             content_entries = message_data.get("contentEntries", [])
-            entries_skipped = message_data.get("entriesSkipped", 0)
             total_content_entries_skipped = message_data.get("totalContentEntriesSkipped", 0)
             bank_id = message_data.get("bankId", "")
             
-            print(f"📋 Quiz ID: {quiz_id}")
-            print(f"👤 User ID: {user_id}")
-            print(f"🏦 Bank ID: {bank_id}")
-            print(f"📝 Instructions: {instructions[:100]}..." if len(instructions) > 100 else f"📝 Instructions: {instructions}")
-            print(f"📚 Content Entries Count: {len(content_entries)}")
-            print(f"⏭️ Entries Skipped: {entries_skipped}")
-            if total_content_entries_skipped:
-                print(f"📊 Total Content Entries Skipped: {total_content_entries_skipped}")
-            
+            print(f"📋 Received CREATE QUIZ event Quiz ID: {quiz_id}, User ID: {user_id}, Bank ID: {bank_id}, Content Entries Count: {len(content_entries)}")
+
             # Calculate total chunks based on content entries
             # Get configurable chunk size from environment variable, default to 2500
             chunk_size = int(os.getenv("CONTENT_CHUNK_SIZE", "2500"))
@@ -188,7 +180,7 @@ class KafkaTopicConsumer:
                     chunks = (len(content) + chunk_size - 1) // chunk_size
                     total_chunks += chunks
             
-            print(f"📊 Total chunks to process: {total_chunks} (chunk size: {chunk_size})")
+            print(f"📊 Total chunks to process: {total_chunks} (chunk size: {chunk_size}) Quiz ID: {quiz_id}, User ID: {user_id}, Bank ID: {bank_id}")
             
             # Second pass: Process each content entry and each chunk
             for entry_index, entry in enumerate(content_entries):
@@ -201,54 +193,63 @@ class KafkaTopicConsumer:
                     entry_chunks = (len(content) + chunk_size - 1) // chunk_size
                     print(f"  📄 Entry {entry_index + 1} (ID: {entry_id}): '{page_title}' - {len(content)} chars -> {entry_chunks} chunks")
                     
+                    # Initialize summaries list for this content entry (reset for each entry)
+                    summaries = []
+
                     # Process each chunk of this content entry
                     for chunk_index in range(entry_chunks):
                         start_pos = chunk_index * chunk_size
                         end_pos = min(start_pos + chunk_size, len(content))
                         chunk_content = content[start_pos:end_pos]
                         
-                        print(f"    🔹 Chunk {current_chunk_index + 1}/{total_chunks} (Entry {entry_index + 1}, Local chunk {chunk_index + 1}/{entry_chunks})")
-                        print(f"      Content: {chunk_content[:50]}..." if len(chunk_content) > 50 else f"      Content: {chunk_content}")
-                        print(f"      Size: {len(chunk_content)} chars (pos {start_pos}-{end_pos})")
+                        # Generate questions using AI instead of mock questions
+                        try:
+                            client = OpenRouterClient()
+                            result = client.generate_quiz_questions(
+                                instructions=instructions,
+                                summaries=summaries,
+                                page_title=page_title,
+                                content=chunk_content,
+                            )
+                            
+                            # Convert AI response to the expected format
+                            chunk_questions = []
+                            for q_data in result.get("questions", []):
+                                # Create options from AI response
+                                options = []
+                                for opt_data in q_data.get("options", []):
+                                    option = {
+                                        "optionText": opt_data.get("text", ""),
+                                        "optionExplanation": opt_data.get("explanation", ""),
+                                        "isCorrect": opt_data.get("correct", False),
+                                    }
+                                    options.append(option)
+                                
+                                # Create the question
+                                question = {
+                                    "question": q_data.get("question", ""),
+                                    "options": options
+                                }
+                                chunk_questions.append(question)
+                            
+                            # Add summary to summaries list for next chunks
+                            if result.get("summary"):
+                                summaries = []
+                                summaries.append(result["summary"])
+                            
+                            print(f"Generated {len(chunk_questions)} questions from chunk {chunk_index + 1}")
+                            
+                        except Exception as e:
+                            print(f"Error generating questions for chunk {chunk_index + 1}: {e}")
+                            # Fallback to empty questions list if AI generation fails
+                            chunk_questions = []
                         
-                        
-                        # Generate mock questions for this chunk
-                        mock_questions = [
-                            {
-                                "question": f"What is the main topic discussed in this section about {page_title}?",
-                                "options": [
-                                    {"optionText": "Option A", "optionExplanation": "This is option A explanation", "isCorrect": True},
-                                    {"optionText": "Option B", "optionExplanation": "This is option B explanation", "isCorrect": False},
-                                    {"optionText": "Option C", "optionExplanation": "This is option C explanation", "isCorrect": False},
-                                    {"optionText": "Option D", "optionExplanation": "This is option D explanation", "isCorrect": False}
-                                ]
-                            },
-                            {
-                                "question": f"Which concept is most relevant to the content in {page_title}?",
-                                "options": [
-                                    {"optionText": "Concept A", "optionExplanation": "This is concept A explanation", "isCorrect": False},
-                                    {"optionText": "Concept B", "optionExplanation": "This is concept B explanation", "isCorrect": True},
-                                    {"optionText": "Concept C", "optionExplanation": "This is concept C explanation", "isCorrect": False},
-                                    {"optionText": "Concept D", "optionExplanation": "This is concept D explanation", "isCorrect": False}
-                                ]
-                            },
-                            {
-                                "question": f"Based on the information provided, what can be concluded about {page_title}?",
-                                "options": [
-                                    {"optionText": "Conclusion A", "optionExplanation": "This is conclusion A explanation", "isCorrect": False},
-                                    {"optionText": "Conclusion B", "optionExplanation": "This is conclusion B explanation", "isCorrect": False},
-                                    {"optionText": "Conclusion C", "optionExplanation": "This is conclusion C explanation", "isCorrect": True},
-                                    {"optionText": "Conclusion D", "optionExplanation": "This is conclusion D explanation", "isCorrect": False}
-                                ]
-                            }
-                        ]
-
                         # Create content entry for this chunk
                         chunk_content_entry = {
                             "id": entry_id,
                             "pageTitle": page_title,
                             "wordCountAnalyzed": len(chunk_content.split()),
-                            "questions": mock_questions
+                            "questions": chunk_questions
                         }
                         
                         # Increment total questions generated by 3 for each chunk
@@ -273,15 +274,9 @@ class KafkaTopicConsumer:
                         
                         # Increment the global chunk index
                         current_chunk_index += 1
-                        print(f"      📈 Total questions generated so far: {total_questions_generated}")
-                        
-                        # Add delay to simulate processing time and show progress
-                        time.sleep(20)  # 2 second delay between chunks
-                        print(f"      ⏳ Processing delay completed for chunk {current_chunk_index}/{total_chunks}")
+                        print(f"📈 Total questions generated so far: {total_questions_generated}")
                 else:
-                    print(f"  📄 Entry {entry_index + 1} (ID: {entry_id}): '{page_title}' - No content")
-            
-            print(f"✅ CREATE QUIZ event processed successfully - Processed {current_chunk_index} chunks total")
+                    print(f"📄 Entry {entry_index + 1} (ID: {entry_id}): '{page_title}' - No content")
             print(f"🎯 Final total questions generated: {total_questions_generated}")
             
         except Exception as e:
@@ -304,10 +299,9 @@ class KafkaTopicConsumer:
             
             # Wait for the message to be sent (with timeout)
             record_metadata = future.get(timeout=10)
-            
-            print(f"✅ Successfully sent quiz generation event to Kafka topic 'quiz-generation'")
-            print(f"   Topic: {record_metadata.topic}, Partition: {record_metadata.partition}, Offset: {record_metadata.offset}")
-            print(f"   Key: {key}, Quiz ID: {payload['quizId']}, Chunk: {payload['currentChunkIndex'] + 1}/{payload['totalChunks']}")
+    
+            print(f"✅ Successfully Topic: {record_metadata.topic}, Partition: {record_metadata.partition}, Offset: {record_metadata.offset}")
+            print(f"✅ Successfully sent quiz generation, Key: {key}, Quiz ID: {payload['quizId']}, Chunk: {payload['currentChunkIndex'] + 1}/{payload['totalChunks']}")
             
         except Exception as e:
             print(f"❌ Failed to send quiz generation event to Kafka: {e}")
