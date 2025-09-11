@@ -64,6 +64,7 @@ jobs:
       COOKIE_SECRET: test_cookie_secret_for_testing_only
       FRONTEND_URL: http://localhost:3000
 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,7 +85,6 @@ jobs:
 
       - name: Install Python dependencies
         run: pip install -r backend/python/requirements.txt
-        working-directory: backend/python
 
       - name: Configure npm registry with retry
         run: |
