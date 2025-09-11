@@ -51,6 +51,27 @@ Topics:"""
         return prompt
 
     @staticmethod
+    def get_quiz_generation_system_prompt(instructions: str, summaries: List[str]) -> str:
+        """
+        Generate a system prompt that includes instructions and context summaries
+        
+        Args:
+            instructions: User-customizable instructions for question generation
+            summaries: List of summaries from previous chunks for context
+            
+        Returns:
+            Formatted system prompt string
+        """
+        system_prompt = f"You are an expert quiz creator. Follow these custom instructions: {instructions}"
+        
+        if summaries:
+            summaries_text = "\n".join([f"- {summary}" for summary in summaries])
+            system_prompt += f"\n\nPrevious content summaries for context:\n{summaries_text}"
+            system_prompt += "\n\nConsider the previous summaries for context but focus on new information in the current content chunk."
+        
+        return system_prompt
+
+    @staticmethod
     def get_quiz_generation_prompt(instructions: str, summaries: List[str], page_title: str, content: str) -> str:
         """
         Generate a prompt for quiz question generation with custom instructions and context
@@ -64,17 +85,10 @@ Topics:"""
         Returns:
             Formatted prompt string for quiz generation
         """
-        summaries_context = ""
-        if summaries:
-            summaries_text = "\n".join([f"- {summary}" for summary in summaries])
-            summaries_context = f"\n\nPrevious content summaries for context:\n{summaries_text}"
         
         prompt = f"""You are an expert quiz creator. Generate high-quality multiple-choice questions and a summary based on the provided content.
 
 Page Title: {page_title}
-
-Custom Instructions: {instructions}
-{summaries_context}
 
 Content to analyze:
 {content}
@@ -87,22 +101,67 @@ Instructions:
 5. Questions should test understanding, not just memorization
 6. Provide clear explanations for why each option is correct or incorrect
 7. Generate a concise summary (1-2 sentences) of the key points in this content chunk
-8. Consider the previous summaries for context but focus on new information in this chunk
-
-Format your response as JSON with this exact structure:
-{{
-  "questions": [
-    {{
-      "question": "Question text here?",
-      "options": [
-        {{"text": "Option A", "correct": true, "explanation": "Why this is correct"}},
-        {{"text": "Option B", "correct": false, "explanation": "Why this is incorrect"}},
-        {{"text": "Option C", "correct": false, "explanation": "Why this is incorrect"}},
-        {{"text": "Option D", "correct": false, "explanation": "Why this is incorrect"}}
-      ]
-    }}
-  ],
-  "summary": "Concise summary of this content chunk"
-}}"""
+"""
         
         return prompt
+
+    @staticmethod
+    def get_quiz_generation_json_schema() -> dict:
+        """
+        Get the JSON schema for quiz generation response structure
+        
+        Returns:
+            Dictionary containing the JSON schema for structured quiz output
+        """
+        return {
+            "name": "quiz_generation_response",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "question": {
+                                    "type": "string",
+                                    "description": "The quiz question text"
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "text": {
+                                                "type": "string",
+                                                "description": "The option text"
+                                            },
+                                            "correct": {
+                                                "type": "boolean",
+                                                "description": "Whether this option is correct"
+                                            },
+                                            "explanation": {
+                                                "type": "string",
+                                                "description": "Explanation for why this option is correct or incorrect"
+                                            }
+                                        },
+                                        "required": ["text", "correct", "explanation"],
+                                        "additionalProperties": False
+                                    },
+                                    "minItems": 4,
+                                    "maxItems": 4
+                                }
+                            },
+                            "required": ["question", "options"],
+                            "additionalProperties": False
+                        }
+                    },
+                    "summary": {
+                        "type": "string",
+                        "description": "Concise summary of the content chunk"
+                    }
+                },
+                "required": ["questions", "summary"],
+                "additionalProperties": False
+            }
+        }

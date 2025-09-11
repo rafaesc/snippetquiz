@@ -30,7 +30,7 @@ class OpenRouterClient:
         ]
 
     def generate_completion(
-        self, messages: List[dict], max_tokens: int = 1000
+        self, messages: List[dict], max_tokens: int = 1000, json_schema: Optional[dict] = None
     ) -> Optional[str]:
         """
         Generate completion using OpenRouter AI API via OpenAI client
@@ -38,20 +38,31 @@ class OpenRouterClient:
         Args:
             messages: List of message dictionaries with 'role' and 'content'
             max_tokens: Maximum tokens for the response
+            json_schema: Optional JSON schema object for structured output
 
         Returns:
             Generated text content or None if error
         """
         try:
-            completion = self.client.chat.completions.create(
-                model=self.model,
-                extra_body={
+            # Build the request parameters
+            request_params = {
+                "model": self.model,
+                "extra_body": {
                     "models": self.models,
                 },
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=0.7,
-            )
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": 0.7,
+            }
+            
+            # Add response_format if json_schema is provided
+            if json_schema is not None:
+                request_params["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": json_schema
+                }
+            
+            completion = self.client.chat.completions.create(**request_params)
             
             return completion.choices[0].message.content.strip()
             
@@ -233,23 +244,34 @@ class OpenRouterClient:
         """
         from prompt_templates import PromptTemplates
 
-        # Create the prompt using the template
-        prompt = PromptTemplates.get_quiz_generation_prompt(
+        # Create the system and user prompts using the templates
+        system_prompt = PromptTemplates.get_quiz_generation_system_prompt(
+            instructions=instructions,
+            summaries=summaries
+        )
+        
+        user_prompt = PromptTemplates.get_quiz_generation_prompt(
             instructions=instructions,
             summaries=summaries,
             page_title=page_title,
             content=content,
         )
 
-        messages = [{"role": "user", "content": prompt}]
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
 
-        # First attempt
-        response = self.generate_completion(messages, max_tokens=1500)
+        # Get JSON schema from prompt templates
+        json_schema = PromptTemplates.get_quiz_generation_json_schema()
+
+        # First attempt with JSON schema
+        response = self.generate_completion(messages, max_tokens=1500, json_schema=json_schema)
 
         # Retry mechanism - single retry attempt if first attempt fails
         if not response:
             print("First attempt failed, retrying once...")
-            response = self.generate_completion(messages, max_tokens=1500)
+            response = self.generate_completion(messages, max_tokens=1500, json_schema=json_schema)
 
         if response:
             # Clean and parse the JSON response
@@ -270,7 +292,7 @@ class OpenRouterClient:
                 print(f"Raw response: {response}")
                 # Retry with a fresh request if JSON parsing fails
                 print("JSON parsing failed, retrying request once...")
-                retry_response = self.generate_completion(messages, max_tokens=1500)
+                retry_response = self.generate_completion(messages, max_tokens=1500, json_schema=json_schema)
                 if retry_response:
                     try:
                         cleaned_retry_response = self._clean_json_response(
