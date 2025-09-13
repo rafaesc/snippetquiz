@@ -1,6 +1,3 @@
--- CreateEnum
-CREATE TYPE "ContentType" AS ENUM ('selected_text', 'full_html', 'video_transcript');
-
 -- CreateTable
 CREATE TABLE "content_banks" (
     "id" BIGSERIAL NOT NULL,
@@ -36,7 +33,7 @@ CREATE TABLE "youtube_channels" (
 -- CreateTable
 CREATE TABLE "content_entries" (
     "id" BIGSERIAL NOT NULL,
-    "content_type" "ContentType" NOT NULL,
+    "content_type" VARCHAR(50) NOT NULL,
     "content" TEXT,
     "source_url" TEXT,
     "page_title" TEXT,

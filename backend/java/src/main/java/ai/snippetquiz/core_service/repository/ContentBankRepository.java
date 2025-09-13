@@ -22,7 +22,7 @@ public interface ContentBankRepository extends JpaRepository<ContentBank, Long> 
     
     // Find all by user ID with optional name filtering
     @Query("SELECT cb FROM ContentBank cb WHERE cb.userId = :userId " +
-           "AND (:name IS NULL OR LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')))")
+           "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
     Page<ContentBank> findByUserIdAndNameContainingIgnoreCase(
         @Param("userId") UUID userId, 
         @Param("name") String name, 
@@ -31,7 +31,7 @@ public interface ContentBankRepository extends JpaRepository<ContentBank, Long> 
     
     // Count by user ID and optional name filter
     @Query("SELECT COUNT(cb) FROM ContentBank cb WHERE cb.userId = :userId " +
-           "AND (:name IS NULL OR LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')))")
+           "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
     long countByUserIdAndNameContainingIgnoreCase(
         @Param("userId") UUID userId, 
         @Param("name") String name
