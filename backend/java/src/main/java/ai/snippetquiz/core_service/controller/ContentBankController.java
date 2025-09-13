@@ -10,24 +10,23 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestHeader;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/content-banks")
 @Validated
+@RequiredArgsConstructor
 public class ContentBankController {
 
     private final ContentBankService contentBankService;
-
-    public ContentBankController(ContentBankService contentBankService) {
-        this.contentBankService = contentBankService;
-    }
 
     @PostMapping
     public ResponseEntity<ContentBankResponse> create(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateContentBankRequest request) {
-        
+
         ContentBankResponse response = contentBankService.create(UUID.fromString(userId), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -36,7 +35,7 @@ public class ContentBankController {
     public ResponseEntity<PaginatedContentBanksResponse> findAll(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid FindAllContentBanksRequest request) {
-        
+
         PaginatedContentBanksResponse response = contentBankService.findAll(UUID.fromString(userId), request);
         return ResponseEntity.ok(response);
     }
@@ -45,7 +44,7 @@ public class ContentBankController {
     public ResponseEntity<ContentBankResponse> findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-    
+
         ContentBankResponse response = contentBankService.findOne(UUID.fromString(userId), id);
         return ResponseEntity.ok(response);
     }
@@ -54,7 +53,7 @@ public class ContentBankController {
     public ResponseEntity<ContentBankResponse> update(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
-            @Valid @RequestBody UpdateContentBankRequest request) {        
+            @Valid @RequestBody UpdateContentBankRequest request) {
         ContentBankResponse response = contentBankService.update(UUID.fromString(userId), id, request);
         return ResponseEntity.ok(response);
     }

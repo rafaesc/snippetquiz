@@ -116,6 +116,3 @@ jobs:
       - name: Build core-service
         run: npm run build core-service
 
-      - name: Build logs-service
-        run: npm run build logs-service
-

@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.dto.request.*;
 import ai.snippetquiz.core_service.dto.response.*;
 import ai.snippetquiz.core_service.entity.*;
 import ai.snippetquiz.core_service.repository.*;
+import lombok.AllArgsConstructor;
 import ai.snippetquiz.core_service.exception.NotFoundException;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,23 +22,15 @@ import java.util.stream.Collectors;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 @Transactional
 public class ContentBankService {
 
-    @Autowired
-    private ContentBankRepository contentBankRepository;
-    
-    @Autowired
-    private ContentEntryRepository contentEntryRepository;
-    
-    @Autowired
-    private ContentEntryBankRepository contentEntryBankRepository;
-    
-    @Autowired
-    private QuestionRepository questionRepository;
-    
-    @Autowired
-    private QuestionOptionRepository questionOptionRepository;
+    private final ContentBankRepository contentBankRepository;
+
+    private final ContentEntryRepository contentEntryRepository;
+
+    private final ContentEntryBankRepository contentEntryBankRepository;
 
     public ContentBankResponse create(UUID userId, CreateContentBankRequest request) {
         String name = request.name();
@@ -54,16 +47,16 @@ public class ContentBankService {
         contentBank.setName(name.trim());
         contentBank.setCreatedAt(LocalDateTime.now());
         contentBank.setUpdatedAt(LocalDateTime.now());
-        
+
         ContentBank savedBank = contentBankRepository.save(contentBank);
 
         return new ContentBankResponse(
-            savedBank.getId(),
-            savedBank.getName(),
-            userId.toString(),
-            savedBank.getCreatedAt(),
-            savedBank.getUpdatedAt(),
-            0 // entry_count starts at 0
+                savedBank.getId(),
+                savedBank.getName(),
+                userId.toString(),
+                savedBank.getCreatedAt(),
+                savedBank.getUpdatedAt(),
+                0 // entry_count starts at 0
         );
     }
 
@@ -75,32 +68,29 @@ public class ContentBankService {
 
         // Create pageable with descending order by createdAt
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        
+
         // Find content banks with pagination and filtering
         Page<ContentBank> contentBanksPage = contentBankRepository.findByUserIdAndNameContainingIgnoreCase(
-            userId, name, pageable
-        );
+                userId, name, pageable);
 
         // Map to response DTOs with entry counts
         List<ContentBankItemResponse> contentBankItems = contentBanksPage.getContent().stream()
-            .map(bank -> {
-                long entryCount = contentEntryRepository.countByContentBankId(bank.getId());
-                return new ContentBankItemResponse(
-                    bank.getId(),
-                    bank.getName(),
-                    bank.getUserId().toString(),
-                    bank.getCreatedAt(),
-                    bank.getUpdatedAt(),
-                    (int) entryCount
-                );
-            })
-            .collect(Collectors.toList());
+                .map(bank -> {
+                    long entryCount = contentEntryRepository.countByContentBankId(bank.getId());
+                    return new ContentBankItemResponse(
+                            bank.getId(),
+                            bank.getName(),
+                            bank.getUserId().toString(),
+                            bank.getCreatedAt(),
+                            bank.getUpdatedAt(),
+                            (int) entryCount);
+                })
+                .collect(Collectors.toList());
 
         PaginationInfo pagination = new PaginationInfo(
-            page,
-            limit,
-            contentBanksPage.getTotalElements()
-        );
+                page,
+                limit,
+                contentBanksPage.getTotalElements());
 
         return new PaginatedContentBanksResponse(contentBankItems, pagination);
     }
@@ -108,18 +98,17 @@ public class ContentBankService {
     @Transactional(readOnly = true)
     public ContentBankResponse findOne(UUID userId, String id) {
         ContentBank contentBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
-            .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
+                .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         long entryCount = contentEntryRepository.countByContentBankId(contentBank.getId());
 
         return new ContentBankResponse(
-            contentBank.getId(),
-            contentBank.getName(),
-            contentBank.getUserId().toString(),
-            contentBank.getCreatedAt(),
-            contentBank.getUpdatedAt(),
-            (int) entryCount
-        );
+                contentBank.getId(),
+                contentBank.getName(),
+                contentBank.getUserId().toString(),
+                contentBank.getCreatedAt(),
+                contentBank.getUpdatedAt(),
+                (int) entryCount);
     }
 
     public ContentBankResponse update(UUID userId, String id, UpdateContentBankRequest request) {
@@ -127,38 +116,37 @@ public class ContentBankService {
 
         // Check if the content bank exists and belongs to the user
         ContentBank existingBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
-            .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
+                .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         // Check if user already has another content bank with this name
         if (name != null && !name.trim().isEmpty()) {
             Optional<ContentBank> duplicateBank = contentBankRepository.findByUserIdAndNameExcludingId(
-                userId, name.trim(), Long.parseLong(id)
-            );
-            
+                    userId, name.trim(), Long.parseLong(id));
+
             if (duplicateBank.isPresent()) {
                 throw new ConflictException("A content bank with this name already exists");
             }
-            
+
             existingBank.setName(name.trim());
         }
-        
+
         existingBank.setUpdatedAt(LocalDateTime.now());
         ContentBank updatedBank = contentBankRepository.save(existingBank);
 
         return new ContentBankResponse(
-            updatedBank.getId(),
-            updatedBank.getName(),
-            updatedBank.getUserId().toString(),
-            updatedBank.getCreatedAt(),
-            updatedBank.getUpdatedAt(),
-            null // Don't include entry count in update response
+                updatedBank.getId(),
+                updatedBank.getName(),
+                updatedBank.getUserId().toString(),
+                updatedBank.getCreatedAt(),
+                updatedBank.getUpdatedAt(),
+                null // Don't include entry count in update response
         );
     }
 
     public DeleteResponse remove(UUID userId, String id) {
         // Check if the content bank exists and belongs to the user
         ContentBank contentBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
-            .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
+                .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         // Delete the content bank (cascade should handle related entities)
         contentBankRepository.delete(contentBank);
@@ -171,12 +159,12 @@ public class ContentBankService {
 
         // Check if the original content bank exists and belongs to the user
         ContentBank originalBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
-            .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
+                .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         // Generate new name if not provided
-        String finalName = (newName != null && !newName.trim().isEmpty()) 
-            ? newName.trim() 
-            : "Copy of " + originalBank.getName();
+        String finalName = (newName != null && !newName.trim().isEmpty())
+                ? newName.trim()
+                : "Copy of " + originalBank.getName();
 
         // Check if user already has a content bank with this name
         Optional<ContentBank> existingBank = contentBankRepository.findByUserIdAndName(userId, finalName);
@@ -194,69 +182,29 @@ public class ContentBankService {
         newBank.setName(newName);
         newBank.setCreatedAt(LocalDateTime.now());
         newBank.setUpdatedAt(LocalDateTime.now());
-        
+
         ContentBank savedNewBank = contentBankRepository.save(newBank);
 
         // Get all content entries associated with the original bank
-        List<ContentEntryBank> contentEntryAssociations = contentEntryBankRepository.findByContentBankId(originalBank.getId());
+        List<ContentEntryBank> contentEntryAssociations = contentEntryBankRepository
+                .findByContentBankId(originalBank.getId());
 
         // Duplicate each content entry and its associations
         for (ContentEntryBank association : contentEntryAssociations) {
-            ContentEntry originalEntry = contentEntryRepository.findById(association.getContentEntry().getId()).orElse(null);
-            
-            if (originalEntry != null) {
-                // Create new content entry
-                ContentEntry newEntry = new ContentEntry();
-                newEntry.setContentType(originalEntry.getContentType());
-                newEntry.setContent(originalEntry.getContent());
-                newEntry.setSourceUrl(originalEntry.getSourceUrl());
-                newEntry.setPageTitle(originalEntry.getPageTitle());
-                newEntry.setPromptSummary(originalEntry.getPromptSummary());
-                newEntry.setCreatedAt(LocalDateTime.now());
-                
-                ContentEntry savedNewEntry = contentEntryRepository.save(newEntry);
-
-                // Associate the new content entry with the new bank
-                ContentEntryBank newAssociation = new ContentEntryBank();
-                newAssociation.setContentEntry(savedNewEntry);
-                newAssociation.setContentBank(savedNewBank);
-                contentEntryBankRepository.save(newAssociation);
-
-                // Duplicate questions and their options
-                List<Question> originalQuestions = questionRepository.findByContentEntryId(originalEntry.getId());
-                
-                for (Question originalQuestion : originalQuestions) {
-                    Question newQuestion = new Question();
-                    newQuestion.setQuestion(originalQuestion.getQuestion());
-                    newQuestion.setType(originalQuestion.getType());
-                    newQuestion.setContentEntry(savedNewEntry);
-                    newQuestion.setCreatedAt(LocalDateTime.now());
-                    
-                    Question savedNewQuestion = questionRepository.save(newQuestion);
-
-                    // Duplicate question options
-                    List<QuestionOption> originalOptions = questionOptionRepository.findByQuestionId(originalQuestion.getId());
-                    
-                    for (QuestionOption originalOption : originalOptions) {
-                        QuestionOption newOption = new QuestionOption();
-                        newOption.setQuestion(savedNewQuestion);
-                        newOption.setOptionText(originalOption.getOptionText());
-                        newOption.setOptionExplanation(originalOption.getOptionExplanation());
-                        newOption.setIsCorrect(originalOption.getIsCorrect());
-                        
-                        questionOptionRepository.save(newOption);
-                    }
-                }
-            }
+            // Associate the new content entry with the new bank
+            ContentEntryBank newAssociation = new ContentEntryBank();
+            newAssociation.setContentEntry(association.getContentEntry());
+            newAssociation.setContentBank(savedNewBank);
+            contentEntryBankRepository.save(newAssociation);
         }
 
         return new ContentBankResponse(
-            savedNewBank.getId(),
-            savedNewBank.getName(),
-            savedNewBank.getUserId().toString(),
-            savedNewBank.getCreatedAt(),
-            savedNewBank.getUpdatedAt(),
-            null // Don't include entry count in duplicate response
+                savedNewBank.getId(),
+                savedNewBank.getName(),
+                savedNewBank.getUserId().toString(),
+                savedNewBank.getCreatedAt(),
+                savedNewBank.getUpdatedAt(),
+                null // Don't include entry count in duplicate response
         );
     }
 }
