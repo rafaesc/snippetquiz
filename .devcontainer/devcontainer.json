@@ -39,7 +39,9 @@
         "pkief.material-icon-theme",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "vmware.vscode-boot-dev-pack",
+        "vscjava.vscode-java-pack"
       ]
     }
   },

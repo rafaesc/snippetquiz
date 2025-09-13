@@ -6,7 +6,7 @@ plugins {
 
 group = 'ai.snippetquiz'
 version = '0.0.1-SNAPSHOT'
-description = 'SnippetQuiz Core Service'
+description = 'Core Service'
 
 java {
 	toolchain {
@@ -47,7 +47,11 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
 }
 
 dependencyManagement {

@@ -1,8 +1,8 @@
 -- CreateEnum
-CREATE TYPE "public"."ContentType" AS ENUM ('selected_text', 'full_html', 'video_transcript');
+CREATE TYPE "auth"."ContentType" AS ENUM ('selected_text', 'full_html', 'video_transcript');
 
 -- CreateTable
-CREATE TABLE "public"."users" (
+CREATE TABLE "auth"."users" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE "public"."users" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."content_banks" (
+CREATE TABLE "auth"."content_banks" (
     "id" BIGSERIAL NOT NULL,
     "user_id" UUID NOT NULL,
     "name" TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE "public"."content_banks" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."topics" (
+CREATE TABLE "auth"."topics" (
     "id" BIGSERIAL NOT NULL,
     "user_id" UUID NOT NULL,
     "topic" TEXT NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE "public"."topics" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."youtube_channels" (
+CREATE TABLE "auth"."youtube_channels" (
     "id" BIGSERIAL NOT NULL,
     "channel_id" TEXT NOT NULL,
     "channel_name" TEXT NOT NULL,
@@ -47,9 +47,9 @@ CREATE TABLE "public"."youtube_channels" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."content_entries" (
+CREATE TABLE "auth"."content_entries" (
     "id" BIGSERIAL NOT NULL,
-    "content_type" "public"."ContentType" NOT NULL,
+    "content_type" "auth"."ContentType" NOT NULL,
     "content" TEXT,
     "source_url" TEXT,
     "page_title" TEXT,
@@ -65,7 +65,7 @@ CREATE TABLE "public"."content_entries" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quizzes" (
+CREATE TABLE "auth"."quizzes" (
     "id" BIGSERIAL NOT NULL,
     "bank_id" BIGINT,
     "bank_name" TEXT,
@@ -82,7 +82,7 @@ CREATE TABLE "public"."quizzes" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."questions" (
+CREATE TABLE "auth"."questions" (
     "id" BIGSERIAL NOT NULL,
     "question" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE "public"."questions" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."question_options" (
+CREATE TABLE "auth"."question_options" (
     "id" BIGSERIAL NOT NULL,
     "question_id" BIGINT NOT NULL,
     "option_text" TEXT NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE "public"."question_options" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quiz_generation_instructions" (
+CREATE TABLE "auth"."quiz_generation_instructions" (
     "id" BIGSERIAL NOT NULL,
     "instruction" TEXT NOT NULL,
     "user_id" UUID NOT NULL,
@@ -114,7 +114,7 @@ CREATE TABLE "public"."quiz_generation_instructions" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."content_entries_bank" (
+CREATE TABLE "auth"."content_entries_bank" (
     "id" BIGSERIAL NOT NULL,
     "content_entry_id" BIGINT NOT NULL,
     "content_bank_id" BIGINT NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE "public"."content_entries_bank" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."content_entry_topics" (
+CREATE TABLE "auth"."content_entry_topics" (
     "id" BIGSERIAL NOT NULL,
     "content_entry_id" BIGINT NOT NULL,
     "topic_id" BIGINT NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE "public"."content_entry_topics" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quiz_topics" (
+CREATE TABLE "auth"."quiz_topics" (
     "id" BIGSERIAL NOT NULL,
     "quiz_id" BIGINT NOT NULL,
     "topic_name" TEXT NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE "public"."quiz_topics" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quiz_questions" (
+CREATE TABLE "auth"."quiz_questions" (
     "id" BIGSERIAL NOT NULL,
     "question" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -154,7 +154,7 @@ CREATE TABLE "public"."quiz_questions" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quiz_question_options" (
+CREATE TABLE "auth"."quiz_question_options" (
     "id" BIGSERIAL NOT NULL,
     "quiz_question_id" BIGINT NOT NULL,
     "option_text" TEXT NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE "public"."quiz_question_options" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quiz_question_responses" (
+CREATE TABLE "auth"."quiz_question_responses" (
     "id" BIGSERIAL NOT NULL,
     "quiz_id" BIGINT NOT NULL,
     "quiz_question_id" BIGINT NOT NULL,
@@ -178,70 +178,70 @@ CREATE TABLE "public"."quiz_question_responses" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "auth"."users"("email");
 
 -- CreateIndex
-CREATE INDEX "users_email_idx" ON "public"."users"("email");
+CREATE INDEX "users_email_idx" ON "auth"."users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "public"."topics"("user_id", "topic");
+CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "auth"."topics"("user_id", "topic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "public"."youtube_channels"("channel_id");
+CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "auth"."youtube_channels"("channel_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "quiz_generation_instructions_user_id_key" ON "public"."quiz_generation_instructions"("user_id");
+CREATE UNIQUE INDEX "quiz_generation_instructions_user_id_key" ON "auth"."quiz_generation_instructions"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "public"."content_entries_bank"("content_entry_id", "content_bank_id");
+CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "auth"."content_entries_bank"("content_entry_id", "content_bank_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "public"."content_entry_topics"("content_entry_id", "topic_id");
+CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "auth"."content_entry_topics"("content_entry_id", "topic_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "public"."quiz_topics"("quiz_id", "topic_name");
+CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "auth"."quiz_topics"("quiz_id", "topic_name");
 
 -- AddForeignKey
-ALTER TABLE "public"."content_entries" ADD CONSTRAINT "content_entries_youtube_channel_id_fkey" FOREIGN KEY ("youtube_channel_id") REFERENCES "public"."youtube_channels"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "auth"."content_entries" ADD CONSTRAINT "content_entries_youtube_channel_id_fkey" FOREIGN KEY ("youtube_channel_id") REFERENCES "auth"."youtube_channels"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quizzes" ADD CONSTRAINT "quizzes_bank_id_fkey" FOREIGN KEY ("bank_id") REFERENCES "public"."content_banks"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "auth"."quizzes" ADD CONSTRAINT "quizzes_bank_id_fkey" FOREIGN KEY ("bank_id") REFERENCES "auth"."content_banks"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."questions" ADD CONSTRAINT "questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "auth"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."question_options" ADD CONSTRAINT "question_options_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."question_options" ADD CONSTRAINT "question_options_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "auth"."questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "auth"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_bank_id_fkey" FOREIGN KEY ("content_bank_id") REFERENCES "public"."content_banks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_bank_id_fkey" FOREIGN KEY ("content_bank_id") REFERENCES "auth"."content_banks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."content_entry_topics" ADD CONSTRAINT "content_entry_topics_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."content_entry_topics" ADD CONSTRAINT "content_entry_topics_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "auth"."content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."content_entry_topics" ADD CONSTRAINT "content_entry_topics_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "public"."topics"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."content_entry_topics" ADD CONSTRAINT "content_entry_topics_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "auth"."topics"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_topics" ADD CONSTRAINT "quiz_topics_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_topics" ADD CONSTRAINT "quiz_topics_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "auth"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_questions" ADD CONSTRAINT "quiz_questions_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_questions" ADD CONSTRAINT "quiz_questions_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "auth"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_questions" ADD CONSTRAINT "quiz_questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "public"."content_entries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_questions" ADD CONSTRAINT "quiz_questions_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "auth"."content_entries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_question_options" ADD CONSTRAINT "quiz_question_options_quiz_question_id_fkey" FOREIGN KEY ("quiz_question_id") REFERENCES "public"."quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_question_options" ADD CONSTRAINT "quiz_question_options_quiz_question_id_fkey" FOREIGN KEY ("quiz_question_id") REFERENCES "auth"."quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "auth"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_question_id_fkey" FOREIGN KEY ("quiz_question_id") REFERENCES "public"."quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_question_id_fkey" FOREIGN KEY ("quiz_question_id") REFERENCES "auth"."quiz_questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_question_option_id_fkey" FOREIGN KEY ("quiz_question_option_id") REFERENCES "public"."quiz_question_options"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "auth"."quiz_question_responses" ADD CONSTRAINT "quiz_question_responses_quiz_question_option_id_fkey" FOREIGN KEY ("quiz_question_option_id") REFERENCES "auth"."quiz_question_options"("id") ON DELETE CASCADE ON UPDATE CASCADE;

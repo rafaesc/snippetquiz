@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-CoreServiceApplication<java>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "ai.snippetquiz.core_service.CoreServiceApplication",
+            "projectName": "java",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
