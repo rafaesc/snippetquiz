@@ -6,7 +6,6 @@ import ai.snippetquiz.core_service.dto.request.FindAllContentEntriesRequest;
 import ai.snippetquiz.core_service.dto.request.RemoveContentEntryRequest;
 import ai.snippetquiz.core_service.dto.response.ContentEntryItemResponse;
 import ai.snippetquiz.core_service.dto.response.ContentEntryResponse;
-import ai.snippetquiz.core_service.dto.response.GenerateTopicsResponse;
 import ai.snippetquiz.core_service.dto.response.PaginatedResponse;
 import ai.snippetquiz.core_service.dto.response.PaginationInfo;
 import ai.snippetquiz.core_service.entity.ContentBank;
@@ -237,7 +236,7 @@ public class ContentEntryService {
         contentEntryRepository.delete(contentEntry);
     }
 
-    public GenerateTopicsResponse generateTopicsForContentEntry(UUID userId, ContentEntry contentEntry) {
+    public void generateTopicsForContentEntry(UUID userId, ContentEntry contentEntry) {
         Long entryId = contentEntry.getId();
 
         // Process topics from request
@@ -252,9 +251,6 @@ public class ContentEntryService {
             // Log error but don't fail the operation
             log.error("Failed to emit Kafka event: " + e.getMessage());
         }
-
-        return new GenerateTopicsResponse(
-                "Topics generated successfully");
     }
 
     public ContentEntryResponse updateContentEntry(UUID userId, String id) {
