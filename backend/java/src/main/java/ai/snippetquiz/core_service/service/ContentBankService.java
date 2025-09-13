@@ -7,7 +7,6 @@ import ai.snippetquiz.core_service.repository.*;
 import lombok.AllArgsConstructor;
 import ai.snippetquiz.core_service.exception.NotFoundException;
 import ai.snippetquiz.core_service.exception.ConflictException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
