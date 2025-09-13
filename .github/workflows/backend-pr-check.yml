@@ -45,7 +45,7 @@ jobs:
     env:
       # Test environment variables
       NODE_ENV: test
-      DATABASE_URL_POSTGRES: postgresql://test_user:test_pass@localhost:5432/test_db
+      POSTGRESQL_PRISMA_URL: postgresql://test_user:test_pass@localhost:5432/test_db
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
