@@ -1,10 +1,10 @@
-package ai.snippetquiz.core;
+package ai.snippetquiz.core_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CoreApplicationTests {
+class CoreServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

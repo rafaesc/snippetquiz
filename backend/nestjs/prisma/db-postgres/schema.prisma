@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL_POSTGRES")
+  url      = env("POSTGRESQL_PRISMA_URL")
 }
 
 model User {
