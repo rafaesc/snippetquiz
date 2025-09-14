@@ -23,8 +23,9 @@ public class QuizQuestion {
     @Column(name = "type", nullable = false)
     private String type;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "content_entry_type", nullable = false)
-    private String contentEntryType;
+    private ContentType contentEntryType;
 
     @Column(name = "content_entry_source_url")
     private String contentEntrySourceUrl;
@@ -43,7 +44,7 @@ public class QuizQuestion {
     @OneToMany(mappedBy = "quizQuestion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuizQuestionResponse> quizQuestionResponses;
 
-    public QuizQuestion(String question, String type, String contentEntryType, String contentEntrySourceUrl, ContentEntry contentEntry, Quiz quiz) {
+    public QuizQuestion(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl, ContentEntry contentEntry, Quiz quiz) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;

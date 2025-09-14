@@ -28,7 +28,8 @@ public class Quiz {
     private String bankName;
 
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private QuizStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
@@ -61,7 +62,7 @@ public class Quiz {
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuizQuestionResponse> quizQuestionResponses;
 
-    public Quiz(ContentBank contentBank, String bankName, String status, UUID userId) {
+    public Quiz(ContentBank contentBank, String bankName, QuizStatus status, UUID userId) {
         this.contentBank = contentBank;
         this.bankName = bankName;
         this.status = status;

@@ -9,6 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import ai.snippetquiz.core_service.dto.request.ContentEntryDto;
+import ai.snippetquiz.core_service.dto.request.CreateQuizRequest;
+import ai.snippetquiz.core_service.dto.request.GenerateQuizRequest;
+
+import java.util.List;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -36,7 +42,32 @@ public class KafkaProducerService {
         }
     }
 
-    // Inner record class for the event payload
+    public void emitCreateQuizEvent(
+        GenerateQuizRequest quizRequest, String userId, String quizId, Integer bankId, Integer entriesSkipped) {
+        try {
+            var payload = new CreateQuizGenerationEventPayload(
+                    quizRequest.instructions(),
+                    quizRequest.contentEntries(),
+                    entriesSkipped,
+                    quizId,
+                    userId,
+                    bankId
+            );
+
+            var key = "user-" + userId;
+            var jsonPayload = objectMapper.writeValueAsString(payload);
+
+            kafkaTemplate.send("create-quiz", key, jsonPayload);
+
+            log.info("Create quiz event emitted for quizId: {}, bankId: {}, userId: {}", quizId, bankId, userId);
+
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize create quiz event payload", e);
+            throw new RuntimeException("Failed to emit create quiz event", e);
+        }
+    }
+
+    // Inner record class for the content entry event payload
     public record ContentEntryEventPayload(
             String userId,
             String contentId,
@@ -44,5 +75,15 @@ public class KafkaProducerService {
             String content,
             String pageTitle,
             String existingTopics) {
+    }
+
+    // Inner record class for the create quiz generation event payload
+    public record CreateQuizGenerationEventPayload(
+            String instructions,
+            List<ContentEntryDto> contentEntries,
+            Integer entriesSkipped,
+            String quizId,
+            String userId,
+            Integer bankId) {
     }
 }

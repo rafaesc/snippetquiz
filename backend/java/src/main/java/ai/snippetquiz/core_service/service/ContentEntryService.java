@@ -99,12 +99,12 @@ public class ContentEntryService {
     @Transactional(readOnly = true)
     public PaginatedResponse<ContentEntryItemResponse> findAll(UUID userId, FindAllContentEntriesRequest request) {
         // Validate content bank ownership
-        Long bankId = Long.parseLong(request.bankId());
+        Long bankId = Long.parseLong(request.getBankId());
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
-        int page = request.page() != null ? request.page() : 1;
-        int limit = request.limit() != null ? request.limit() : 10;
+        int page = request.getPage() != null ? request.getPage() : 1;
+        int limit = request.getLimit() != null ? request.getLimit() : 10;
 
         // Create pageable with descending order by createdAt
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));

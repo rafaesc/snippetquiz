@@ -1,14 +1,17 @@
 package ai.snippetquiz.core_service.dto.request;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public record FindAllContentEntriesRequest(
-    @Min(value = 1, message = "Page must be non-negative")
-    Integer page,
-    @Min(value = 1, message = "Limit must be positive")
-    Integer limit,
-    String name,
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class FindAllContentEntriesRequest extends PaginationRequest {
+    
+    private String name;
+    
     @NotBlank(message = "Bank ID is required")
-    String bankId
-) {}
+    private String bankId;
+}
