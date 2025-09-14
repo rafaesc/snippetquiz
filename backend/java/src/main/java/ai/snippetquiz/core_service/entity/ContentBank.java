@@ -41,6 +41,14 @@ public class ContentBank {
     @OneToMany(mappedBy = "contentBank", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ContentEntryBank> contentEntryBanks;
 
+    @ManyToMany
+    @JoinTable(
+        name = "content_entries_bank",
+        joinColumns = @JoinColumn(name = "content_bank_id"),
+        inverseJoinColumns = @JoinColumn(name = "content_entry_id")
+    )
+    private List<ContentEntry> contentEntries;
+
     public ContentBank(UUID userId, String name) {
         this.userId = userId;
         this.name = name;

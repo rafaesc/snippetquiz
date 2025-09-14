@@ -61,9 +61,9 @@ public class ContentBankService {
 
     @Transactional(readOnly = true)
     public PaginatedContentBanksResponse findAll(UUID userId, FindAllContentBanksRequest request) {
-        int page = request.page() != null ? request.page() : 1;
-        int limit = request.limit() != null ? request.limit() : 10;
-        String name = request.name();
+        int page = request.getPage() != null ? request.getPage() : 1;
+        int limit = request.getLimit() != null ? request.getLimit() : 10;
+        String name = request.getName();
 
         // Create pageable with descending order by createdAt
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));

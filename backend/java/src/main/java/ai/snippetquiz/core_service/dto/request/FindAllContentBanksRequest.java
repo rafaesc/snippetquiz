@@ -1,13 +1,12 @@
 package ai.snippetquiz.core_service.dto.request;
 
-import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public record FindAllContentBanksRequest(
-    @Min(value = 1, message = "Page must be greater than 0")
-    Integer page,
-    
-    @Min(value = 1, message = "Limit must be greater than 0")
-    Integer limit,
-    
-    String name // Optional field for filtering
-) {}
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class FindAllContentBanksRequest extends PaginationRequest {
+    private String name;
+}
