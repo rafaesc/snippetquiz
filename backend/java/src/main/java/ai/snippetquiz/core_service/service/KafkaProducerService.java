@@ -10,7 +10,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import ai.snippetquiz.core_service.dto.request.ContentEntryDto;
-import ai.snippetquiz.core_service.dto.request.CreateQuizRequest;
 import ai.snippetquiz.core_service.dto.request.GenerateQuizRequest;
 
 import java.util.List;
