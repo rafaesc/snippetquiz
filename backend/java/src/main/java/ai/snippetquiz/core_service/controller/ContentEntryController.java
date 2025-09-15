@@ -67,13 +67,4 @@ public class ContentEntryController {
         contentEntryService.remove(UUID.fromString(userId), request);
         return ResponseEntity.noContent().build();
     }
-
-    @PutMapping("/{id}/questions-generated")
-    public ResponseEntity<ContentEntryResponse> updateQuestionsGenerated(
-            @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
-
-        ContentEntryResponse response = contentEntryService.updateContentEntry(UUID.fromString(userId), id);
-        return ResponseEntity.ok(response);
-    }
 }

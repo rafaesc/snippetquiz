@@ -43,13 +43,9 @@ public interface ContentBankRepository extends JpaRepository<ContentBank, Long> 
             @Param("name") String name,
             @Param("excludeId") Long excludeId);
 
-    @Query("SELECT cb FROM ContentBank cb " +
+    @Query("SELECT DISTINCT cb FROM ContentBank cb " +
            "LEFT JOIN FETCH cb.contentEntryBanks ceb " +
            "LEFT JOIN FETCH ceb.contentEntry ce " +
-           "LEFT JOIN FETCH ce.contentEntryTopics cet " +
-           "LEFT JOIN FETCH cet.topic t " +
-           "LEFT JOIN FETCH ce.questions q " +
-           "LEFT JOIN FETCH q.questionOptions " +
-           "WHERE cb.id = :id AND cb.userId = :userId")
+           "WHERE cb.id = :id AND cb.userId = :userId AND ce.questionsGenerated = true")
     Optional<ContentBank> findByIdAndUserIdWithContentEntries(@Param("id") Long id, @Param("userId") UUID userId);
 }

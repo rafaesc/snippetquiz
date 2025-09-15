@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 public record ContentEntryDto(
     @NotNull(message = "Content entry ID cannot be null")
     @Positive(message = "Content entry ID must be positive")
-    Integer id,
+    Long id,
     
     @NotBlank(message = "Page title cannot be blank")
     String pageTitle,

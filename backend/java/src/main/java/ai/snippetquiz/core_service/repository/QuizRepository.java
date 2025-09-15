@@ -1,6 +1,8 @@
 package ai.snippetquiz.core_service.repository;
 
 import ai.snippetquiz.core_service.entity.Quiz;
+import ai.snippetquiz.core_service.entity.QuizStatus;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +20,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     // Find by ID and user ID for ownership verification
     Optional<Quiz> findByIdAndUserId(Long id, UUID userId);
 
-    List<Quiz> findAllByUserIdAndStatus(UUID userId, String status);
+    List<Quiz> findAllByUserIdAndStatus(UUID userId, QuizStatus status);
     
     // Find all quizzes by user ID with pagination
     Page<Quiz> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);

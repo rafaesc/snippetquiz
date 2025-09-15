@@ -35,6 +35,7 @@ public class QuizService {
     private final QuizQuestionOptionRepository quizQuestionOptionRepository;
     private final QuizGenerationInstructionRepository quizGenerationInstructionRepository;
     private final QuizTopicRepository quizTopicRepository;
+    private final KafkaProducerService kafkaProducerService;
 
     private String getFinalStatus(Quiz quiz) {
         String finalStatus = quiz.getStatus().getValue();
@@ -79,15 +80,16 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public FindOneQuizResponse findOne(Long id, UUID userId) {
-        Quiz quiz = quizRepository.findByIdAndUserIdWithTopics(id, userId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found"));
+    public FindOneQuizResponse findOne(UUID userId, String id) {
+        Long quizId = Long.parseLong(id);
+        Quiz quiz = quizRepository.findByIdAndUserIdWithTopics(quizId, userId)
+                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
 
         List<String> topics = quiz.getQuizTopics() != null ? quiz.getQuizTopics().stream()
                 .map(QuizTopic::getTopicName)
                 .collect(Collectors.toList()) : List.of();
 
-        List<QuizQuestionDTOResponse> questions = quizQuestionRepository.findByQuizIdWithOptions(id)
+        List<QuizQuestionDTOResponse> questions = quizQuestionRepository.findByQuizIdWithOptions(quizId)
                 .stream()
                 .map(question -> {
                     List<QuizQuestionOptionDTOResponse> options = question.getQuizQuestionOptions() != null
@@ -120,7 +122,7 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public PaginatedQuizResponsesDto findQuizResponses(FindQuizResponsesRequest request, UUID userId) {
+    public PaginatedQuizResponsesDto findQuizResponses(UUID userId, FindQuizResponsesRequest request) {
         Long quizId = Long.valueOf(request.getQuizId());
         Integer page = request.getPage();
         Integer limit = request.getLimit();
@@ -207,7 +209,7 @@ public class QuizService {
                 log.warn("No content entries found for bankId: {}", bankId);
             }
 
-            List<GetContentEntriesResponse.ContentEntryDto> mappedEntries = List.of();
+            List<GetContentEntriesResponse.ContentEntryDto> mappedEntries = new ArrayList<>();
             int entriesSkipped = 0;
 
             for (ContentEntry entry : contentEntries) {
@@ -257,7 +259,7 @@ public class QuizService {
     public CheckQuizInProgressResponse checkQuizInProgress(UUID userId) {
 
         List<Quiz> inProgressQuizzes = quizRepository.findAllByUserIdAndStatus(userId,
-                QuizStatus.IN_PROGRESS.getValue());
+                QuizStatus.IN_PROGRESS);
 
         if (inProgressQuizzes.isEmpty()) {
             return new CheckQuizInProgressResponse(false, null);
@@ -284,7 +286,7 @@ public class QuizService {
         return new CheckQuizInProgressResponse(inProgressQuiz != null, inProgressQuiz);
     }
 
-    public void remove(Long id, UUID userId) {
+    public void remove(UUID userId, Long id) {
         Quiz quiz = quizRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
@@ -292,7 +294,7 @@ public class QuizService {
     }
 
     @Transactional
-    public String createQuiz(CreateQuizRequest request, UUID userId) {
+    public String createQuiz(UUID userId, CreateQuizRequest request) {
         // Find content bank with all related data
         ContentBank contentBank = contentBankRepository
                 .findByIdAndUserIdWithContentEntries(request.bankId().longValue(), userId)
@@ -437,9 +439,10 @@ public class QuizService {
         return new CreateQuestionResponse("Question created successfully", savedQuestion.getId());
     }
 
-    public UpdateQuizResponse updateQuiz(UUID userId, Long quizId, Long questionOptionId) {
+    public UpdateQuizResponse updateQuiz(UUID userId, String quizId, Long questionOptionId) {
+        Long quizIdLong = Long.parseLong(quizId);
         // Validate if the quiz belongs to the user
-        Quiz quiz = quizRepository.findByIdAndUserIdWithQuestions(quizId, userId)
+        Quiz quiz = quizRepository.findByIdAndUserIdWithQuestions(quizIdLong, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
 
         // Check if quiz is already completed
@@ -524,6 +527,45 @@ public class QuizService {
         return new UpdateQuizResponse(
                 "Quiz updated successfully",
                 true, isCompleted);
+    }
+
+    public EmitCreateQuizEventResponse emitCreateQuizEvent(String userId, String quizId, Integer bankId) {
+        try {
+            // Get content entries by bank ID
+            GetContentEntriesResponse contentEntriesResponse = getContentEntriesByBankId(
+                    bankId.longValue(), UUID.fromString(userId));
+
+            // Extract the GenerateQuizRequest from the response
+            GetContentEntriesResponse.GenerateQuizRequest quizRequest = contentEntriesResponse.request();
+            Integer entriesSkipped = contentEntriesResponse.entriesSkipped();
+
+            // Emit the Kafka event using the existing KafkaProducerService
+            kafkaProducerService.emitCreateQuizEvent(
+                    new GenerateQuizRequest(
+                            quizRequest.instructions(),
+                            quizRequest.contentEntries().stream()
+                                    .map(entry -> new ContentEntryDto(
+                                            entry.id(),
+                                            entry.pageTitle(),
+                                            entry.content(),
+                                            entry.wordCountAnalyzed()))
+                                    .collect(Collectors.toList())),
+                    userId,
+                    quizId,
+                    bankId,
+                    entriesSkipped);
+
+            log.info("Create quiz event emitted for quizId: {}, bankId: {}, userId: {}", quizId, bankId, userId);
+
+            return new EmitCreateQuizEventResponse(
+                    "Quiz generation event emitted successfully",
+                    entriesSkipped);
+
+        } catch (Exception error) {
+            log.error("Failed to emit create quiz event for quizId: {}, bankId: {}, userId: {}",
+                    quizId, bankId, userId, error);
+            throw new RuntimeException("Failed to emit create quiz event", error);
+        }
     }
 
 }
