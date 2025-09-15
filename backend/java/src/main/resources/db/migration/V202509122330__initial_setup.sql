@@ -33,6 +33,7 @@ CREATE TABLE "youtube_channels" (
 -- CreateTable
 CREATE TABLE "content_entries" (
     "id" BIGSERIAL NOT NULL,
+    "user_id" UUID NOT NULL,
     "content_type" VARCHAR(50) NOT NULL,
     "content" TEXT,
     "source_url" TEXT,
@@ -51,6 +52,7 @@ CREATE TABLE "content_entries" (
 -- CreateTable
 CREATE TABLE "quizzes" (
     "id" BIGSERIAL NOT NULL,
+    "user_id" UUID NOT NULL,
     "bank_id" BIGINT,
     "bank_name" TEXT,
     "status" VARCHAR(255),
@@ -60,7 +62,6 @@ CREATE TABLE "quizzes" (
     "questions_completed" INTEGER NOT NULL DEFAULT 0,
     "completed_at" TIMESTAMP(3),
     "question_updated_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
-    "user_id" UUID,
 
     CONSTRAINT "quizzes_pkey" PRIMARY KEY ("id")
 );
