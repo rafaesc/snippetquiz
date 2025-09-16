@@ -5,6 +5,7 @@ import ai.snippetquiz.core_service.dto.response.*;
 import ai.snippetquiz.core_service.entity.*;
 import ai.snippetquiz.core_service.repository.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ai.snippetquiz.core_service.exception.NotFoundException;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 @Transactional
+@Slf4j
 public class ContentBankService {
 
     private final ContentBankRepository contentBankRepository;
@@ -67,7 +69,6 @@ public class ContentBankService {
 
         // Create pageable with descending order by createdAt
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-
         // Find content banks with pagination and filtering
         Page<ContentBank> contentBanksPage = contentBankRepository.findByUserIdAndNameContainingIgnoreCase(
                 userId, name, pageable);

@@ -69,6 +69,7 @@ public class ContentEntryService {
 
         // Create content entry
         ContentEntry contentEntry = new ContentEntry();
+        contentEntry.setUserId(userId);
         contentEntry.setContentType(ContentType.valueOf(request.type().toUpperCase()));
         contentEntry.setContent(request.content());
         contentEntry.setSourceUrl(request.sourceUrl());
@@ -178,6 +179,7 @@ public class ContentEntryService {
 
         // Clone the content entry
         ContentEntry clonedEntry = new ContentEntry();
+        clonedEntry.setUserId(userId);
         clonedEntry.setContentType(sourceEntry.getContentType());
         clonedEntry.setContent(sourceEntry.getContent());
         clonedEntry.setSourceUrl(sourceEntry.getSourceUrl());

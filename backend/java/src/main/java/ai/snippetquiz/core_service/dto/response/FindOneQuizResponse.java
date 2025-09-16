@@ -12,5 +12,5 @@ public record FindOneQuizResponse(
     String status,
     Integer contentEntriesCount,
     List<String> topics,
-    List<QuizQuestionDTOResponse> questions
+    QuizQuestionDTOResponse question
 ) {}

@@ -29,7 +29,7 @@ spring:
             port: ${REDIS_PORT:6379}
             password: ${REDIS_PASSWORD}
     kafka:
-        bootstrap-servers: localhost:9092
+        bootstrap-servers: ${KAFKA_HOST:localhost}:9092
         consumer:
             group-id: core-consumer-group
             auto-offset-reset: earliest

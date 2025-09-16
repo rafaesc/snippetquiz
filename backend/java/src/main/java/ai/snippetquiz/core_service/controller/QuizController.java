@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.dto.response.CheckQuizInProgressResponse;
 import ai.snippetquiz.core_service.dto.response.FindOneQuizResponse;
 import ai.snippetquiz.core_service.dto.response.PaginatedQuizzesResponse;
 import ai.snippetquiz.core_service.dto.response.UpdateQuizResponse;
+import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import ai.snippetquiz.core_service.service.QuizService;
 import jakarta.validation.Valid;
@@ -93,6 +94,14 @@ public class QuizController {
         request.setQuizId(id);
 
         Object response = quizService.findQuizResponses(UUID.fromString(userId), request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<QuizSummaryResponseDto> findQuizSummary(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable String id) {
+        QuizSummaryResponseDto response = quizService.findQuizSummary(Long.parseLong(id), UUID.fromString(userId));
         return ResponseEntity.ok(response);
     }
 }

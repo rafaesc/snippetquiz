@@ -89,25 +89,23 @@ public class QuizService {
                 .map(QuizTopic::getTopicName)
                 .collect(Collectors.toList()) : List.of();
 
-        List<QuizQuestionDTOResponse> questions = quizQuestionRepository.findByQuizIdWithOptions(quizId)
-                .stream()
-                .map(question -> {
-                    List<QuizQuestionOptionDTOResponse> options = question.getQuizQuestionOptions() != null
-                            ? question.getQuizQuestionOptions().stream()
-                                    .map(option -> new QuizQuestionOptionDTOResponse(
-                                            option.getId().toString(),
-                                            option.getOptionText(),
-                                            option.getOptionExplanation(),
-                                            option.getIsCorrect()))
-                                    .collect(Collectors.toList())
-                            : List.of();
+        var currentQuestion = quizQuestionRepository.findByQuizIdWithOptions(quizId).get(quiz.getQuestionsCompleted());
+        QuizQuestionDTOResponse currentQuestionDto = null;
 
-                    return new QuizQuestionDTOResponse(
-                            question.getId().toString(),
-                            question.getQuestion(),
-                            options);
-                })
-                .collect(Collectors.toList());
+        if (Objects.nonNull(currentQuestion)) {
+            var options = currentQuestion.getQuizQuestionOptions().stream()
+                    .map(option -> new QuizQuestionOptionDTOResponse(
+                            option.getId().toString(),
+                            option.getOptionText(),
+                            option.getOptionExplanation(),
+                            option.getIsCorrect()))
+                    .collect(Collectors.toList());
+
+            currentQuestionDto = new QuizQuestionDTOResponse(
+                    currentQuestion.getId().toString(),
+                    currentQuestion.getQuestion(),
+                    options);
+        }
 
         return new FindOneQuizResponse(
                 quiz.getId().toString(),
@@ -118,7 +116,7 @@ public class QuizService {
                 getFinalStatus(quiz),
                 quiz.getContentEntriesCount(),
                 topics,
-                questions);
+                currentQuestionDto);
     }
 
     @Transactional(readOnly = true)
@@ -297,7 +295,7 @@ public class QuizService {
     public String createQuiz(UUID userId, CreateQuizRequest request) {
         // Find content bank with all related data
         ContentBank contentBank = contentBankRepository
-                .findByIdAndUserIdWithContentEntries(request.bankId().longValue(), userId)
+                .findByIdAndUserIdWithContentEntries(request.bankId(), userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or you do not have permission to access it"));
 
@@ -335,10 +333,6 @@ public class QuizService {
                 .flatMap(entry -> entry.getTopics().stream())
                 .map(Topic::getTopic)
                 .collect(Collectors.toSet());
-
-        // Create content entry map for quick lookup
-        Map<Long, ContentEntry> contentEntryMap = contentBank.getContentEntries().stream()
-                .collect(Collectors.toMap(ContentEntry::getId, entry -> entry));
 
         if (allQuestions.isEmpty()) {
             // Update quiz with entry count but no questions
@@ -424,6 +418,7 @@ public class QuizService {
         question.setContentEntry(contentEntry);
 
         Question savedQuestion = questionRepository.save(question);
+        var quizQuestionOptions = new ArrayList<QuestionOption>();
 
         // Create question options
         for (QuestionOptionRequest optionRequest : options) {
@@ -433,8 +428,10 @@ public class QuizService {
             option.setOptionExplanation(optionRequest.optionExplanation());
             option.setIsCorrect(optionRequest.isCorrect());
 
-            questionOptionRepository.save(option);
+            quizQuestionOptions.add(questionOptionRepository.save(option));
         }
+
+        savedQuestion.setQuestionOptions(quizQuestionOptions);
 
         return new CreateQuestionResponse("Question created successfully", savedQuestion.getId());
     }
