@@ -529,7 +529,7 @@ public class QuizService {
                 true, isCompleted);
     }
 
-    public EmitCreateQuizEventResponse emitCreateQuizEvent(String userId, String quizId, Integer bankId) {
+    public EmitCreateQuizEventResponse emitCreateQuizEvent(String userId, String quizId, Long bankId) {
         try {
             // Get content entries by bank ID
             GetContentEntriesResponse contentEntriesResponse = getContentEntriesByBankId(

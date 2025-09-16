@@ -1,5 +1,6 @@
 {
     "configurations": [
+        
         {
             "type": "java",
             "name": "Spring Boot-CoreServiceApplication<java>",
@@ -7,7 +8,7 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "ai.snippetquiz.core_service.CoreServiceApplication",
             "projectName": "java",
-            "args": "",
+            "args": "-Dspring.output.ansi.enabled=ALWAYS",
             "envFile": "${workspaceFolder}/.env"
         }
     ]

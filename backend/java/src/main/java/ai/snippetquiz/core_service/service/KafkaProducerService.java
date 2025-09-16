@@ -26,7 +26,7 @@ public class KafkaProducerService {
             String content, String pageTitle, String existingTopics) {
         try {
             var payload = new ContentEntryEventPayload(
-                    userId, contentId, "GENERATE", content, pageTitle, existingTopics);
+                    userId, contentId, "GENERATE", content, pageTitle, existingTopics, null);
 
             var key = "content-entry-" + contentId;
             var jsonPayload = objectMapper.writeValueAsString(payload);
@@ -42,7 +42,7 @@ public class KafkaProducerService {
     }
 
     public void emitCreateQuizEvent(
-        GenerateQuizRequest quizRequest, String userId, String quizId, Integer bankId, Integer entriesSkipped) {
+            GenerateQuizRequest quizRequest, String userId, String quizId, Long bankId, Integer entriesSkipped) {
         try {
             var payload = new CreateQuizGenerationEventPayload(
                     quizRequest.instructions(),
@@ -50,8 +50,7 @@ public class KafkaProducerService {
                     entriesSkipped,
                     quizId,
                     userId,
-                    bankId
-            );
+                    bankId);
 
             var key = "user-" + userId;
             var jsonPayload = objectMapper.writeValueAsString(payload);
@@ -73,7 +72,8 @@ public class KafkaProducerService {
             String action,
             String content,
             String pageTitle,
-            String existingTopics) {
+            String existingTopics,
+            List<String> topics) {
     }
 
     // Inner record class for the create quiz generation event payload
@@ -83,6 +83,6 @@ public class KafkaProducerService {
             Integer entriesSkipped,
             String quizId,
             String userId,
-            Integer bankId) {
+            Long bankId) {
     }
 }
