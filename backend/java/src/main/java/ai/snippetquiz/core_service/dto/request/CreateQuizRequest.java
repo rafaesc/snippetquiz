@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 public record CreateQuizRequest(
     @NotNull(message = "Bank ID cannot be null")
     @Positive(message = "Bank ID must be positive")
-    Integer bankId,
+    Long bankId,
     String quizId,
     @NotNull(message = "Status cannot be null")
     QuizStatus status
