@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthServiceController } from './auth/auth-service.controller';
 import { AuthServiceService } from './auth/auth-service.service';
@@ -10,6 +11,7 @@ import { envs } from './config/envs';
 
 @Module({
   imports: [
+    HttpModule,
     UsersModule,
     RedisModule,
     JwtModule.register({

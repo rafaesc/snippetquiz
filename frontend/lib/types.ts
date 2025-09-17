@@ -74,7 +74,7 @@ export interface ContentEntry {
 }
 
 export interface ContentEntriesResponse {
-  entries: ContentEntry[];
+  data: ContentEntry[];
   pagination: {
     page: number;
     limit: number;

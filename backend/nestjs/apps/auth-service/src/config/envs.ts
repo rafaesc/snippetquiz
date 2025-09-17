@@ -3,7 +3,9 @@ import * as joi from 'joi';
 
 interface EnvVars {
   AUTH_SERVICE_PORT: number;
-  DATABASE_URL_POSTGRES: string;
+  CORE_SERVICE_PORT: number;
+  CORE_SERVICE_HOST: string;
+  POSTGRESQL_PRISMA_URL: string;
   JWT_AUTH_SECRET: string;
   JWT_AUTH_REFRESH_SECRET: string;
   JWT_AUTH_EXPIRES_IN: string;
@@ -20,7 +22,9 @@ interface EnvVars {
 const envSchema = joi
   .object({
     AUTH_SERVICE_PORT: joi.number().required(),
-    DATABASE_URL_POSTGRES: joi.string().required(),
+    CORE_SERVICE_PORT: joi.number().required(),
+    CORE_SERVICE_HOST: joi.string().default('localhost'),
+    POSTGRESQL_PRISMA_URL: joi.string().required(),
     JWT_AUTH_SECRET: joi.string().required(),
     JWT_AUTH_REFRESH_SECRET: joi.string().required(),
     JWT_AUTH_EXPIRES_IN: joi.string().default('15m'),
@@ -45,7 +49,7 @@ export const envsVars: EnvVars = value;
 
 export const envs = {
   authServicePort: envsVars.AUTH_SERVICE_PORT,
-  databaseUrlPostgres: envsVars.DATABASE_URL_POSTGRES,
+  databaseUrlPostgres: envsVars.POSTGRESQL_PRISMA_URL,
   jwtAuthSecret: envsVars.JWT_AUTH_SECRET,
   jwtAuthRefreshSecret: envsVars.JWT_AUTH_REFRESH_SECRET,
   jwtAuthExpiresIn: envsVars.JWT_AUTH_EXPIRES_IN,
@@ -58,4 +62,5 @@ export const envs = {
   cookieSecret: envsVars.COOKIE_SECRET,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',
+  coreBaseUrl: `http://${envsVars.CORE_SERVICE_HOST}:${envsVars.CORE_SERVICE_PORT}/api`,
 };

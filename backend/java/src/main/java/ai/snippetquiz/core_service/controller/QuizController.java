@@ -2,7 +2,6 @@ package ai.snippetquiz.core_service.controller;
 
 import ai.snippetquiz.core_service.dto.request.CreateQuizRequest;
 import ai.snippetquiz.core_service.dto.request.FindQuizResponsesRequest;
-import ai.snippetquiz.core_service.dto.request.UpdateQuizRequest;
 import ai.snippetquiz.core_service.dto.response.CheckQuizInProgressResponse;
 import ai.snippetquiz.core_service.dto.response.FindOneQuizResponse;
 import ai.snippetquiz.core_service.dto.response.PaginatedQuizzesResponse;
@@ -11,6 +10,7 @@ import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import ai.snippetquiz.core_service.service.QuizService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,7 @@ public class QuizController {
 
     private final QuizService quizService;
 
-    @GetMapping("/check-in-progress")
+    @GetMapping("/validate")
     public ResponseEntity<CheckQuizInProgressResponse> checkQuizInProgress(
             @RequestHeader("X-User-Id") String userId) {
         CheckQuizInProgressResponse response = quizService.checkQuizInProgress(UUID.fromString(userId));
@@ -64,12 +64,12 @@ public class QuizController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/option/{questionOptionId}")
     public ResponseEntity<UpdateQuizResponse> updateQuiz(
             @RequestHeader("X-User-Id") String userId,
             @PathVariable String id,
-            @Valid @RequestBody UpdateQuizRequest request) {
-        UpdateQuizResponse response = quizService.updateQuiz(UUID.fromString(userId), id, request.questionOptionId());
+           @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") String questionOptionId) {
+        UpdateQuizResponse response = quizService.updateQuiz(UUID.fromString(userId), id, questionOptionId);
         return ResponseEntity.ok(response);
     }
 

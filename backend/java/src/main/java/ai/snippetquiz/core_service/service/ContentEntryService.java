@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.service;
 
-import ai.snippetquiz.core_service.dto.request.CloneContentEntryRequest;
 import ai.snippetquiz.core_service.dto.request.CreateContentEntryRequest;
 import ai.snippetquiz.core_service.dto.request.FindAllContentEntriesRequest;
 import ai.snippetquiz.core_service.dto.request.RemoveContentEntryRequest;
@@ -23,6 +22,8 @@ import ai.snippetquiz.core_service.repository.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.repository.ContentEntryTopicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +31,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -54,9 +58,25 @@ public class ContentEntryService {
         ContentBank contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
+        // Process HTML content if type is FULL_HTML
+        String processedContent = request.content();
+        ContentType type = ContentType.valueOf(request.type().toUpperCase());
+        if (type == ContentType.FULL_HTML && request.content() != null) {
+            try {
+                // Clean HTML content using JSoup's Safelist (similar to DOMPurify)
+                String cleanHtml = Jsoup.clean(request.content(), Safelist.relaxed());
+                // Extract plain text from cleaned HTML (similar to Readability)
+                processedContent = Jsoup.parse(cleanHtml).text();
+            } catch (Exception error) {
+                log.error("Error processing HTML content: {}", error.getMessage(), error);
+                processedContent = request.content();
+            }
+        }
+
         // Handle YouTube channel if provided
         YoutubeChannel youtubeChannel = null;
-        if (request.youtubeChannelId() != null && !request.youtubeChannelId().trim().isEmpty()) {
+        if (type == ContentType.VIDEO_TRANSCRIPT && request.youtubeChannelId() != null
+                && !request.youtubeChannelId().trim().isEmpty()) {
             youtubeChannel = youtubeChannelRepository.findByChannelId(request.youtubeChannelId())
                     .orElseGet(() -> {
                         YoutubeChannel newChannel = new YoutubeChannel(
@@ -67,40 +87,101 @@ public class ContentEntryService {
                     });
         }
 
-        // Create content entry
-        ContentEntry contentEntry = new ContentEntry();
-        contentEntry.setUserId(userId);
-        contentEntry.setContentType(ContentType.valueOf(request.type().toUpperCase()));
-        contentEntry.setContent(request.content());
-        contentEntry.setSourceUrl(request.sourceUrl());
-        contentEntry.setPageTitle(request.pageTitle());
-        contentEntry.setYoutubeVideoId(request.youtubeVideoId());
-        contentEntry.setVideoDuration(request.youtubeVideoDuration());
-        contentEntry.setYoutubeChannel(youtubeChannel);
-        contentEntry.setQuestionsGenerated(false);
+        ContentEntry resultEntry = null;
 
-        // Calculate word count if content is provided
-        if (request.content() != null && !request.content().trim().isEmpty()) {
-            contentEntry.setWordCount(request.content().trim().split("\\s+").length);
+        // Check for existing entry with same sourceUrl and type 'full_html'
+        ContentEntry existingEntry = null;
+        if (type == ContentType.FULL_HTML && request.sourceUrl() != null) {
+            existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
+                    request.sourceUrl(), ContentType.FULL_HTML, bankId)
+                    .orElse(null);
+
+            if (existingEntry != null) {
+                // Update existing entry
+                existingEntry.setContent(processedContent);
+                existingEntry.setPageTitle(request.pageTitle());
+                existingEntry.setCreatedAt(LocalDateTime.now());
+
+                // Calculate word count for FULL_HTML
+                if (processedContent != null && !processedContent.trim().isEmpty()) {
+                    int wordCount = processedContent.trim().split("\\s+").length;
+                    existingEntry.setWordCount(wordCount);
+                }
+
+                resultEntry = contentEntryRepository.save(existingEntry);
+            }
         }
 
-        ContentEntry savedEntry = contentEntryRepository.save(contentEntry);
+        // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
+        if (type == ContentType.VIDEO_TRANSCRIPT && request.sourceUrl() != null) {
+            existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
+                    request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
+                    .orElse(null);
 
-        this.generateTopicsForContentEntry(userId, savedEntry);
+            // If VIDEO_TRANSCRIPT entry already exists, return it without creating/updating
+            if (existingEntry != null) {
+                resultEntry = existingEntry;
+            }
+        }
 
-        // Create association with content bank
-        ContentEntryBank association = new ContentEntryBank();
-        association.setContentEntry(savedEntry);
-        association.setContentBank(contentBank);
-        contentEntryBankRepository.save(association);
+        if (existingEntry == null) {
+            // Create new entry
+            ContentEntry contentEntry = new ContentEntry();
+            contentEntry.setUserId(userId);
+            contentEntry.setContentType(type);
+            contentEntry.setContent(processedContent);
+            contentEntry.setSourceUrl(request.sourceUrl());
+            contentEntry.setPageTitle(request.pageTitle());
+            contentEntry.setQuestionsGenerated(false);
 
-        return mapToContentEntryResponse(savedEntry, null);
+            // Calculate word count for selected_text and full_html content types
+            if ((type == ContentType.SELECTED_TEXT || type == ContentType.FULL_HTML) && processedContent != null
+                    && !processedContent.trim().isEmpty()) {
+                String[] words = processedContent.trim().split("\\s+");
+                int wordCount = (int) Arrays.stream(words).filter(word -> !word.isEmpty()).count();
+                contentEntry.setWordCount(wordCount);
+            }
+
+            // Add YouTube fields for VIDEO_TRANSCRIPT type
+            if (type == ContentType.VIDEO_TRANSCRIPT) {
+                if (request.youtubeVideoId() != null) {
+                    contentEntry.setYoutubeVideoId(request.youtubeVideoId());
+                }
+                if (request.youtubeVideoDuration() != null) {
+                    contentEntry.setVideoDuration(request.youtubeVideoDuration());
+                }
+                if (youtubeChannel != null) {
+                    contentEntry.setYoutubeChannel(youtubeChannel);
+                }
+            }
+
+            ContentEntry savedEntry = contentEntryRepository.save(contentEntry);
+
+            // Create association with content bank
+            ContentEntryBank association = new ContentEntryBank();
+            association.setContentEntry(savedEntry);
+            association.setContentBank(contentBank);
+            contentEntryBankRepository.save(association);
+
+            resultEntry = savedEntry;
+        }
+
+        // Generate topics asynchronously (similar to NestJS catch block)
+        try {
+            this.generateTopicsForContentEntry(userId, resultEntry);
+        } catch (Exception error) {
+            log.error("Failed to generate topics for content entry {}: {}",
+                    Optional.ofNullable(resultEntry).map(ContentEntry::getId).orElse(null), error.getMessage(), error);
+        }
+
+        return mapToContentEntryResponse(resultEntry, null);
     }
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<ContentEntryItemResponse> findAll(UUID userId, FindAllContentEntriesRequest request) {
+    public PaginatedResponse<ContentEntryItemResponse> findAll(UUID userId, String filterBybankId,
+            FindAllContentEntriesRequest request) {
         // Validate content bank ownership
-        Long bankId = Long.parseLong(request.getBankId());
+        Long bankId = Long.parseLong(filterBybankId);
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
@@ -111,7 +192,7 @@ public class ContentEntryService {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // Get content entries for the bank
-        List<ContentEntry> allEntries = contentEntryRepository.findByContentBankId(bankId);
+        List<ContentEntry> allEntries = contentEntryRepository.findByContentBankId(bankId, pageable);
 
         // Apply pagination manually since we're using a custom query
         int start = (int) pageable.getOffset();
@@ -157,9 +238,9 @@ public class ContentEntryService {
         return mapToContentEntryResponse(contentEntry, topics);
     }
 
-    public ContentEntryResponse clone(UUID userId, String entryId, CloneContentEntryRequest request) {
+    public ContentEntryResponse clone(UUID userId, String entryId, String cloneTargetBankId) {
         Long sourceId = Long.parseLong(entryId);
-        Long targetBankId = Long.parseLong(request.targetBankId());
+        Long targetBankId = Long.parseLong(cloneTargetBankId);
 
         // Verify source content entry access
         ContentEntry sourceEntry = contentEntryRepository.findById(sourceId)

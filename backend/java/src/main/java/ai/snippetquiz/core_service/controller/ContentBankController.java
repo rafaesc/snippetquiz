@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/content-banks")
+@RequestMapping("/content-bank")
 @Validated
 @RequiredArgsConstructor
 public class ContentBankController {

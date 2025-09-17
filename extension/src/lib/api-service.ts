@@ -180,7 +180,7 @@ export interface ContentEntry {
 }
 
 export interface ContentEntriesResponse {
-  entries: ContentEntry[];
+  data: ContentEntry[];
   pagination: {
     page: number;
     limit: number;
@@ -301,7 +301,7 @@ export const apiService = {
         params.append('name', name);
       }
 
-      const response = await makeAuthenticatedRequest(`/api/content-bank?${params}`);
+      const response = await makeAuthenticatedRequest(`/api/core/content-bank?${params}`);
 
       if (!response.ok) {
         const error = await response.json();
@@ -313,7 +313,7 @@ export const apiService = {
 
     // Create a new content bank
     create: async (data: CreateContentBankRequest): Promise<ContentBank> => {
-      const response = await makeAuthenticatedRequest('/api/content-bank', {
+      const response = await makeAuthenticatedRequest('/api/core/content-bank', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -331,7 +331,7 @@ export const apiService = {
 
     // Update/rename a content bank
     update: async (id: string, data: UpdateContentBankRequest): Promise<ContentBank> => {
-      const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`, {
+      const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -349,7 +349,7 @@ export const apiService = {
 
     // Delete a content bank
     delete: async (id: string): Promise<{ message: string }> => {
-      const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`, {
+      const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
         method: 'DELETE',
       });
 
@@ -363,7 +363,7 @@ export const apiService = {
 
     // Get all content banks for the user
     get: async (id?: string): Promise<ContentBank> => {
-      const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`);
+      const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`);
 
       if (!response.ok) {
         const error = await response.json();
@@ -387,7 +387,7 @@ export const apiService = {
         params.append('name', name);
       }
 
-      const response = await makeAuthenticatedRequest(`/api/content-entry/bank/${bankId}?${params}`);
+      const response = await makeAuthenticatedRequest(`/api/core/content-entry/bank/${bankId}?${params}`);
 
       if (!response.ok) {
         const error = await response.json();
@@ -399,7 +399,7 @@ export const apiService = {
 
     // Create a new content entry
     create: async (data: CreateContentEntryRequest): Promise<ContentEntry> => {
-      const response = await makeAuthenticatedRequest('/api/content-entry', {
+      const response = await makeAuthenticatedRequest('/api/core/content-entry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -417,7 +417,7 @@ export const apiService = {
 
     // Delete a content entry
     delete: async (id: string): Promise<{ message: string }> => {
-      const response = await makeAuthenticatedRequest(`/api/content-entry/${id}`, {
+      const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
         method: 'DELETE',
       });
 

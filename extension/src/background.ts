@@ -34,7 +34,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       const bankId = result.selectedBankId;
       
       // Create the content entry using direct API call
-      const response = await makeAuthenticatedRequest('/api/content-entry', {
+      const response = await makeAuthenticatedRequest('/api/core/content-entry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { ContentBankController } from './content-bank.controller';
+import { HttpModule } from '@nestjs/axios';
 import { CORE_SERVICE } from '../config/services';
 import { envs } from '../config/envs';
-import { ContentEntryController } from './content-entry.controller';
-import { InstructionsController } from './instructions.controller';
-import { QuizController } from './quiz.controller';
+import { CoreController } from './core.controller';
+import { CoreServiceProxyService } from './core-service-proxy.service';
 import { join } from 'path';
+
 
 @Module({
   imports: [
+    HttpModule,
     ClientsModule.register([
       {
         name: CORE_SERVICE,
@@ -28,11 +29,11 @@ import { join } from 'path';
     ]),
   ],
   controllers: [
-    ContentBankController,
-    ContentEntryController,
-    InstructionsController,
-    QuizController,
+    CoreController
   ],
-  providers: [],
+  providers: [
+    CoreServiceProxyService,
+  ],
+  exports: [CoreServiceProxyService],
 })
 export class CoreServiceModule {}

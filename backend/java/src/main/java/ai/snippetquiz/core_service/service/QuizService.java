@@ -175,22 +175,6 @@ public class QuizService {
                 totalCorrectAnswers);
     }
 
-    @Transactional(readOnly = true)
-    public Integer getQuestionsGenerated(UUID userId, Long contentBankId) {
-        contentBankRepository.findByIdAndUserId(contentBankId, userId)
-                .orElseThrow(() -> new NotFoundException("Content bank not found"));
-
-        List<ContentEntry> contentEntries = contentEntryRepository.findByContentBankId(contentBankId);
-
-        int questionsGeneratedSoFar = 0;
-        for (ContentEntry entry : contentEntries) {
-            List<Question> questions = questionRepository.findByContentEntryId(entry.getId());
-            questionsGeneratedSoFar += questions.size();
-        }
-
-        return questionsGeneratedSoFar;
-    }
-
     public GetContentEntriesResponse getContentEntriesByBankId(Long bankId, UUID userId) {
         try {
             contentBankRepository.findByIdAndUserId(bankId, userId)
@@ -199,7 +183,7 @@ public class QuizService {
 
             log.info("Content bank {} validated for user {}", bankId, userId);
 
-            List<ContentEntry> contentEntries = contentEntryRepository.findByContentBankId(bankId);
+            List<ContentEntry> contentEntries = contentEntryRepository.findByContentBankId(bankId, PageRequest.of(0, Integer.MAX_VALUE));
 
             log.info("Found {} content entries for bankId: {}", contentEntries.size(), bankId);
 
@@ -436,8 +420,10 @@ public class QuizService {
         return new CreateQuestionResponse("Question created successfully", savedQuestion.getId());
     }
 
-    public UpdateQuizResponse updateQuiz(UUID userId, String quizId, Long questionOptionId) {
+    public UpdateQuizResponse updateQuiz(UUID userId, String quizId, String questionOptionId) {
         Long quizIdLong = Long.parseLong(quizId);
+        Long optionSelectedId = Long.parseLong(questionOptionId);
+
         // Validate if the quiz belongs to the user
         Quiz quiz = quizRepository.findByIdAndUserIdWithQuestions(quizIdLong, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
@@ -473,7 +459,7 @@ public class QuizService {
 
         // Validate if the question_option_id exists in the current question's options
         QuizQuestionOption selectedOption = currentQuestion.getQuizQuestionOptions().stream()
-                .filter(option -> option.getId().equals(questionOptionId))
+                .filter(option -> option.getId().equals(optionSelectedId))
                 .findFirst()
                 .orElse(null);
 
