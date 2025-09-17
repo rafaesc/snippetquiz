@@ -65,7 +65,6 @@ export class CodeService {
       }
 
       // Generate tokens
-      // Replace: const tokens = this.generateTokens(user);
       const tokens = this.tokenService.generateTokens(user);
 
       return {
@@ -84,6 +83,4 @@ export class CodeService {
       throw new BadRequestException('Failed to resolve code');
     }
   }
-
-  // Remove the private generateTokens method
 }

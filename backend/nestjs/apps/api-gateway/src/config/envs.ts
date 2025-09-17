@@ -43,6 +43,7 @@ export const envs = {
   apiGatewayPort: envsVars.API_GATEWAY_PORT,
   coreServicePort: envsVars.CORE_SERVICE_PORT,
   coreServiceHost: envsVars.CORE_SERVICE_HOST,
+  coreBaseUrl: `http://${envsVars.CORE_SERVICE_HOST}:${envsVars.CORE_SERVICE_PORT}`,
   authServicePort: envsVars.AUTH_SERVICE_PORT,
   authServiceHost: envsVars.AUTH_SERVICE_HOST,
   cookieSecret: envsVars.COOKIE_SECRET,

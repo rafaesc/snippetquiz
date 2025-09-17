@@ -225,7 +225,7 @@ export const apiService = {
 
   // Get quiz generation instructions
   getInstructions: async (): Promise<GetInstructionsResponse> => {
-    const response = await makeAuthenticatedRequest('/api/instructions');
+    const response = await makeAuthenticatedRequest('/api/core/instructions');
 
     if (!response.ok) {
       const error = await response.json();
@@ -237,7 +237,7 @@ export const apiService = {
 
   // Update quiz generation instructions
   updateInstructions: async (instruction: string): Promise<UpdateInstructionsResponse> => {
-    const response = await makeAuthenticatedRequest('/api/instructions', {
+    const response = await makeAuthenticatedRequest('/api/core/instructions', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ export const apiService = {
       params.append('name', name);
     }
 
-    const response = await makeAuthenticatedRequest(`/api/content-bank?${params}`);
+    const response = await makeAuthenticatedRequest(`/api/core/content-bank?${params}`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -275,7 +275,7 @@ export const apiService = {
   },
 
   createContentBank: async (data: CreateContentBankRequest): Promise<ContentBank> => {
-    const response = await makeAuthenticatedRequest('/api/content-bank', {
+    const response = await makeAuthenticatedRequest('/api/core/content-bank', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ export const apiService = {
   },
 
   updateContentBank: async (id: string, data: UpdateContentBankRequest): Promise<ContentBank> => {
-    const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`, {
+    const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -309,7 +309,7 @@ export const apiService = {
   },
 
   deleteContentBank: async (id: string): Promise<{ message: string }> => {
-    const response = await makeAuthenticatedRequest(`/api/content-bank/${id}`, {
+    const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'DELETE',
     });
 
@@ -322,7 +322,7 @@ export const apiService = {
   },
 
   duplicateContentBank: async (id: string, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
-    const response = await makeAuthenticatedRequest(`/api/content-bank/${id}/duplicate`, {
+    const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}/duplicate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -349,7 +349,7 @@ export const apiService = {
       params.append('name', name);
     }
 
-    const response = await makeAuthenticatedRequest(`/api/content-entry/bank/${bankId}?${params}`);
+    const response = await makeAuthenticatedRequest(`/api/core/content-entry/bank/${bankId}?${params}`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -360,7 +360,7 @@ export const apiService = {
   },
 
   createContentEntry: async (data: CreateContentEntryRequest): Promise<ContentEntry> => {
-    const response = await makeAuthenticatedRequest('/api/content-entry', {
+    const response = await makeAuthenticatedRequest('/api/core/content-entry', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -377,7 +377,7 @@ export const apiService = {
   },
 
   cloneContentEntry: async (id: string, bankId: string): Promise<ContentEntry & { message: string }> => {
-    const response = await makeAuthenticatedRequest(`/api/content-entry/${id}/clone-to/${bankId}`, {
+    const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}/clone-to/${bankId}`, {
       method: 'POST',
     });
 
@@ -390,7 +390,7 @@ export const apiService = {
   },
 
   deleteContentEntry: async (id: string): Promise<{ message: string }> => {
-    const response = await makeAuthenticatedRequest(`/api/content-entry/${id}`, {
+    const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
       method: 'DELETE',
     });
 
@@ -409,7 +409,7 @@ export const apiService = {
       limit: limit.toString(),
     });
 
-    const response = await makeAuthenticatedRequest(`/api/quiz?${params}`);
+    const response = await makeAuthenticatedRequest(`/api/core/quiz?${params}`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -420,7 +420,7 @@ export const apiService = {
   },
 
   getQuiz: async (id: number): Promise<FindOneQuizResponse> => {
-    const response = await makeAuthenticatedRequest(`/api/quiz/${id}`);
+    const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}`);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch quiz');
@@ -435,7 +435,7 @@ export const apiService = {
       limit: limit.toString(),
     });
 
-    const response = await makeAuthenticatedRequest(`/api/quiz/${id}/responses?${params}`);
+    const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}/responses?${params}`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -446,7 +446,7 @@ export const apiService = {
   },
 
   getQuizSummary: async (id: string): Promise<QuizSummaryResponse> => {
-    const response = await makeAuthenticatedRequest(`/api/quiz/${id}/summary`);
+    const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}/summary`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -457,7 +457,7 @@ export const apiService = {
   },
 
   deleteQuiz: async (id: string): Promise<{ message: string }> => {
-    const response = await makeAuthenticatedRequest(`/api/quiz/${id}`, {
+    const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}`, {
       method: 'DELETE',
     });
 
@@ -470,7 +470,7 @@ export const apiService = {
   },
 
   updateQuiz: async (quizId: number, optionId: number): Promise<UpdateQuizResponse> => {
-    const response = await makeAuthenticatedRequest(`/api/quiz/${quizId}/option/${optionId}`, {
+    const response = await makeAuthenticatedRequest(`/api/core/quiz/${quizId}/option/${optionId}`, {
       method: 'PUT',
     });
 
@@ -483,7 +483,7 @@ export const apiService = {
   },
 
   validateQuizInProgress: async (): Promise<ValidateQuizInProgressResponse> => {
-    const response = await makeAuthenticatedRequest('/api/quiz/validate');
+    const response = await makeAuthenticatedRequest('/api/core/quiz/validate');
 
     if (!response.ok) {
       const error = await response.json();
@@ -494,7 +494,7 @@ export const apiService = {
   },
 
   createQuiz: async (data: CreateQuizRequest): Promise<CreateQuizResponse> => {
-    const response = await makeAuthenticatedRequest('/api/quiz', {
+    const response = await makeAuthenticatedRequest('/api/core/quiz', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

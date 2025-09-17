@@ -9,12 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/content-entries")
+@RequestMapping("/content-entry")
 @Validated
 @RequiredArgsConstructor
 public class ContentEntryController {
@@ -30,12 +31,14 @@ public class ContentEntryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping
+    @GetMapping("/bank/{bankId}")
     public ResponseEntity<PaginatedResponse<ContentEntryItemResponse>> findAll(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
+            @PathVariable String bankId,
             @Valid FindAllContentEntriesRequest request) {
 
-        PaginatedResponse<ContentEntryItemResponse> response = contentEntryService.findAll(UUID.fromString(userId), request);
+        PaginatedResponse<ContentEntryItemResponse> response = contentEntryService.findAll(UUID.fromString(userId),
+                bankId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -48,13 +51,13 @@ public class ContentEntryController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{id}/clone")
+    @PostMapping("/{id}/clone-to/{targetBankId}")
     public ResponseEntity<ContentEntryResponse> clone(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
-            @Valid @RequestBody CloneContentEntryRequest request) {
+            @Valid @PathVariable @NotBlank(message = "Target bank ID is required") String targetBankId) {
 
-        ContentEntryResponse response = contentEntryService.clone(UUID.fromString(userId), id, request);
+        ContentEntryResponse response = contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

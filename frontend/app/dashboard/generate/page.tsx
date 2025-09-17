@@ -82,7 +82,7 @@ export default function GenerateQuiz() {
   });
 
   const banks = banksData?.contentBanks || [];
-  const entries = entriesData?.entries || [];
+  const entries = entriesData?.data || [];
   const selectedBank = banks.find((bank) => bank.id === selectedBankId);
   const totalEntryPages = entriesData
     ? Math.ceil(entriesData.pagination.total / entriesPerPage)

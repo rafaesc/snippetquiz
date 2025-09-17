@@ -7,7 +7,12 @@ import ai.snippetquiz.core_service.util.Constants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -25,7 +30,7 @@ public class InstructionsController {
         return ResponseEntity.ok(response);
     }
     
-    @PostMapping
+    @PutMapping
     public ResponseEntity<InstructionResponse> createOrUpdate(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateOrUpdateInstructionRequest request) {

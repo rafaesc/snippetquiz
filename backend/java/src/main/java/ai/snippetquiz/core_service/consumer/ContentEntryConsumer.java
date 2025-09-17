@@ -33,9 +33,7 @@ public class ContentEntryConsumer {
     @Transactional
     public void consume(String message) {
         try {
-            ContentEntryEventPayload payload = objectMapper.readValue(message, ContentEntryEventPayload.class);
-            log.info("Received content entry event: {}", payload);
-
+            ContentEntryEventPayload payload = objectMapper.readValue(message, ContentEntryEventPayload.class);            
             if ("SAVE".equals(payload.action())) {
                 handleSaveEvent(payload);
             }

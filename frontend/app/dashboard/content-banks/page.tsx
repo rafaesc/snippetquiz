@@ -326,7 +326,7 @@ export default function ContentBanks() {
         {/* Entries Table/Cards */}
         {!entriesLoading && (
           <ResponsiveEntryTable
-            entries={entriesData?.entries || []}
+            entries={entriesData?.data || []}
             getMediaTypeIcon={getMediaTypeIcon}
             onDelete={handleDeleteEntry}
             onClone={handleCloneEntry}

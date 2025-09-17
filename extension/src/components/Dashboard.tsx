@@ -332,7 +332,7 @@ function Dashboard() {
     };
 
     // Derived values
-    const savedContent = contentEntries?.entries || [];
+    const savedContent = contentEntries?.data || [];
     const currentItems = savedContent;
     const totalPages = contentEntries?.pagination.total ? Math.ceil(contentEntries.pagination.total / itemsPerPage) : 1;
     const startIndex = (currentPage - 1) * itemsPerPage;

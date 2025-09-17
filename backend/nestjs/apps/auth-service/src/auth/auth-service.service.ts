@@ -25,6 +25,9 @@ import {
   getVerificationEmailTemplate,
   getResendVerificationEmailTemplate,
 } from '../utils/email-templates';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { X_USER_ID_HEADER } from 'apps/commons/config/constants';
 
 @Injectable()
 export class AuthServiceService {
@@ -37,6 +40,7 @@ export class AuthServiceService {
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
     private readonly prisma: PrismaService,
+    private readonly httpService: HttpService,
   ) {
     this.setupEmailTransporter();
   }
@@ -88,14 +92,6 @@ export class AuthServiceService {
       email,
       password,
       verified: !emailVerificationEnabled, // Auto-verify if email is disabled
-    });
-
-    // Create a default content bank for the new user
-    await this.prisma.contentBank.create({
-      data: {
-        userId: newUser.id,
-        name: 'Default',
-      },
     });
 
     // If email verification is enabled, send verification email
@@ -164,6 +160,22 @@ export class AuthServiceService {
 
       // Generate tokens for automatic login after verification
       const tokens = this.tokenService.generateTokens(updatedUser);
+
+      // Create a default content bank for the new user
+      await firstValueFrom(
+        this.httpService.post(
+          `${envs.coreBaseUrl}/content-bank`,
+          {
+            name: 'Default',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              [X_USER_ID_HEADER]: user.id,
+            },
+          },
+        ),
+      );
 
       return {
         message: 'Email verified successfully',
