@@ -70,6 +70,8 @@ services:
       AI_GENERATION_SERVICE_HOST: "0.0.0.0"
       KAFKA_HOST: "broker"
       KAFKA_PORT: "29092"
+      CORE_SERVICE_HOST: "host.docker.internal"
+      CORE_SERVICE_PORT: "7001"
     depends_on:
       - broker
     volumes:

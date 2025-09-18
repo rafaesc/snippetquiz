@@ -242,7 +242,7 @@ class KafkaTopicConsumer:
             print(f"Processing topic generation for page: {page_title}")
 
             # Use OpenRouterClient to generate topics
-            client = GroqClient()
+            client = OpenRouterClient()
             generated_topics = client.generate_topics(
                 content=content, page_title=page_title, existing_topics=existing_topics
             )
@@ -346,7 +346,7 @@ class KafkaTopicConsumer:
                         
                         # Generate questions using AI instead of mock questions
                         try:
-                            client = GroqClient()
+                            client = OpenRouterClient()
                             result = client.generate_quiz_questions(
                                 instructions=instructions,
                                 summaries=summaries,
