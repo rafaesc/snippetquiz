@@ -4,7 +4,7 @@ import * as joi from 'joi';
 interface EnvVars {
   CORE_SERVICE_HOST: string;
   CORE_SERVICE_PORT: number;
-  DATABASE_URL_POSTGRES: string;
+  POSTGRESQL_PRISMA_URL: string;
   NODE_ENV: string;
   KAFKA_HOST: string;
   KAFKA_PORT: number;
@@ -14,7 +14,7 @@ const envSchema = joi
   .object({
     CORE_SERVICE_HOST: joi.string().default('0.0.0.0'),
     CORE_SERVICE_PORT: joi.number().required(),
-    DATABASE_URL_POSTGRES: joi.string().required(),
+    POSTGRESQL_PRISMA_URL: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
     KAFKA_HOST: joi.string().default('localhost'),
     KAFKA_PORT: joi.number().default(9092),
@@ -36,7 +36,7 @@ export const envs = {
   kafkaPort: envsVars.KAFKA_PORT,
   kafkaCoreConsumerGroup: "core-service-consumer-group",
   kafkaEmitQuizConsumerGroup: "core-service-emit-quiz-consumer-group",
-  databaseUrlPostgres: envsVars.DATABASE_URL_POSTGRES,
+  databaseUrlPostgres: envsVars.POSTGRESQL_PRISMA_URL,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',
 };

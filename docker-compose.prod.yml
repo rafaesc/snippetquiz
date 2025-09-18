@@ -43,7 +43,7 @@ services:
       context: ./backend/nestjs
       dockerfile: apps/auth-service/Dockerfile
       args:
-        - DATABASE_URL_POSTGRES=${DATABASE_URL_POSTGRES}
+        - POSTGRESQL_PRISMA_URL=${POSTGRESQL_PRISMA_URL}
     image: auth-service-prod
     environment:
       <<: *common-env
@@ -53,7 +53,7 @@ services:
       context: ./backend/nestjs
       dockerfile: apps/core-service/Dockerfile
       args:
-        - DATABASE_URL_POSTGRES=${DATABASE_URL_POSTGRES}
+        - POSTGRESQL_PRISMA_URL=${POSTGRESQL_PRISMA_URL}
     image: core-service-prod
     environment:
       <<: *common-env

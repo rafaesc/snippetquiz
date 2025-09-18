@@ -420,7 +420,7 @@ class KafkaTopicConsumer:
                         time.sleep(20)  # 20 second delay between chunks
                 else:
                     print(f"📄 Entry {entry_index + 1} (ID: {entry_id}): '{page_title}' - No content")
-            print(f"🎯 Final total questions generated: {total_questions_generated} - {chunk_content_entry}")
+            print(f"🎯 Final total questions generated: {total_questions_generated}")
             
         except Exception as e:
             print(f"❌ Error processing CREATE QUIZ event: {e}")
