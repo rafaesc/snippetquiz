@@ -3,13 +3,13 @@ package ai.snippetquiz.core_service.repository;
 import ai.snippetquiz.core_service.entity.ContentEntry;
 import ai.snippetquiz.core_service.entity.ContentType;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,7 +19,7 @@ public interface ContentEntryRepository extends JpaRepository<ContentEntry, Long
     @Query("SELECT ce FROM ContentEntry ce " +
            "JOIN ContentEntryBank ceb ON ce.id = ceb.contentEntry.id " +
            "WHERE ceb.contentBank.id = :contentBankId")
-    List<ContentEntry> findByContentBankId(@Param("contentBankId") Long contentBankId, Pageable pageable);
+    Page<ContentEntry> findByContentBankId(@Param("contentBankId") Long contentBankId, Pageable pageable);
     
     // Count content entries for a specific content bank
     @Query("SELECT COUNT(ce) FROM ContentEntry ce " +

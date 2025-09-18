@@ -7,7 +7,7 @@ public record FindOneQuizResponse(
     String id,
     String name,
     LocalDateTime createdAt,
-    Integer questionsCount,
+    Integer totalQuestions,
     Integer questionsCompleted,
     String status,
     Integer contentEntriesCount,

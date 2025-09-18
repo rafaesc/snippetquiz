@@ -101,6 +101,22 @@ Instructions:
 5. Questions should test understanding, not just memorization
 6. Provide clear explanations for why each option is correct or incorrect
 7. Generate a concise summary (1-2 sentences) of the key points in this content chunk
+
+Format your response as JSON with this exact structure:
+{{
+  "questions": [
+    {{
+      "question": "Question text here?",
+      "options": [
+        {{"text": "Option A", "correct": true, "explanation": "Why this is correct"}},
+        {{"text": "Option B", "correct": false, "explanation": "Why this is incorrect"}},
+        {{"text": "Option C", "correct": false, "explanation": "Why this is incorrect"}},
+        {{"text": "Option D", "correct": false, "explanation": "Why this is incorrect"}}
+      ]
+    }}
+  ],
+  "summary": "Concise summary of this content chunk"
+}}
 """
         
         return prompt

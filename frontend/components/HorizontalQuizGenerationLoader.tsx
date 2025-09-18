@@ -19,10 +19,14 @@ export function HorizontalQuizGenerationLoader({ progress, progressPercentage }:
     );
   }
 
+  if (!progress.contentEntry) {
+    return null;
+  }
+
   const generationProgress = {
-    contentEntryName: progress.contentEntry.name,
+    contentEntryName: progress.contentEntry?.name,
     questionsGeneratedSoFar: progress.questionsGeneratedSoFar,
-    wordCountAnalyzed: progress.contentEntry.wordCountAnalyzed
+    wordCountAnalyzed: progress.contentEntry?.wordCountAnalyzed
   };
 
   return (
