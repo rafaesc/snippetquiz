@@ -22,9 +22,8 @@ import ai.snippetquiz.core_service.repository.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.repository.ContentEntryTopicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -62,15 +61,7 @@ public class ContentEntryService {
         String processedContent = request.content();
         ContentType type = ContentType.valueOf(request.type().toUpperCase());
         if (type == ContentType.FULL_HTML && request.content() != null) {
-            try {
-                // Clean HTML content using JSoup's Safelist (similar to DOMPurify)
-                String cleanHtml = Jsoup.clean(request.content(), Safelist.relaxed());
-                // Extract plain text from cleaned HTML (similar to Readability)
-                processedContent = Jsoup.parse(cleanHtml).text();
-            } catch (Exception error) {
-                log.error("Error processing HTML content: {}", error.getMessage(), error);
-                processedContent = request.content();
-            }
+            processedContent = request.content().trim();
         }
 
         // Handle YouTube channel if provided
@@ -192,15 +183,10 @@ public class ContentEntryService {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // Get content entries for the bank
-        List<ContentEntry> allEntries = contentEntryRepository.findByContentBankId(bankId, pageable);
-
-        // Apply pagination manually since we're using a custom query
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), allEntries.size());
-        List<ContentEntry> pagedEntries = allEntries.subList(start, end);
+        Page<ContentEntry> entriesPage = contentEntryRepository.findByContentBankId(bankId, pageable);
 
         // Map to response DTOs
-        List<ContentEntryItemResponse> items = pagedEntries.stream()
+        List<ContentEntryItemResponse> items = entriesPage.getContent().stream()
                 .map(entry -> {
                     List<String> topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entry.getId());
                     return new ContentEntryItemResponse(
@@ -215,7 +201,7 @@ public class ContentEntryService {
                 })
                 .collect(Collectors.toList());
 
-        PaginationInfo pagination = new PaginationInfo(page, limit, (long) allEntries.size());
+        PaginationInfo pagination = new PaginationInfo(page, limit, entriesPage.getTotalElements());
         return new PaginatedResponse<>(items, pagination);
     }
 

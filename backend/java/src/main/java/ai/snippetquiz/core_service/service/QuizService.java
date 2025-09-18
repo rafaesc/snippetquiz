@@ -73,10 +73,10 @@ public class QuizService {
 
         return new PaginatedQuizzesResponse(
                 quizResponses,
-                quizPage.getTotalPages(),
-                quizPage.getTotalElements(),
-                page,
-                limit);
+                new PaginationInfo(
+                        page,
+                        limit,
+                        quizPage.getTotalElements()));
     }
 
     @Transactional(readOnly = true)
@@ -89,10 +89,23 @@ public class QuizService {
                 .map(QuizTopic::getTopicName)
                 .collect(Collectors.toList()) : List.of();
 
-        var currentQuestion = quizQuestionRepository.findByQuizIdWithOptions(quizId).get(quiz.getQuestionsCompleted());
-        QuizQuestionDTOResponse currentQuestionDto = null;
+        var questions = quizQuestionRepository.findByQuizIdWithOptions(quizId);
+        if (questions.isEmpty()) {
+            return new FindOneQuizResponse(
+                    quiz.getId().toString(),
+                    quiz.getBankName(),
+                    quiz.getCreatedAt(),
+                    quiz.getQuestionsCount(),
+                    quiz.getQuestionsCompleted(),
+                    getFinalStatus(quiz),
+                    quiz.getContentEntriesCount(),
+                    topics,
+                    null);
+        }
 
-        if (Objects.nonNull(currentQuestion)) {
+        QuizQuestionDTOResponse currentQuestionDto = null;
+        if (quiz.getQuestionsCompleted() < questions.size()) {
+            var currentQuestion = questions.get(quiz.getQuestionsCompleted());
             var options = currentQuestion.getQuizQuestionOptions().stream()
                     .map(option -> new QuizQuestionOptionDTOResponse(
                             option.getId().toString(),
@@ -183,7 +196,9 @@ public class QuizService {
 
             log.info("Content bank {} validated for user {}", bankId, userId);
 
-            List<ContentEntry> contentEntries = contentEntryRepository.findByContentBankId(bankId, PageRequest.of(0, Integer.MAX_VALUE));
+            Page<ContentEntry> contentEntryPage = contentEntryRepository.findByContentBankId(bankId,
+                    PageRequest.of(0, Integer.MAX_VALUE));
+            List<ContentEntry> contentEntries = contentEntryPage.getContent();
 
             log.info("Found {} content entries for bankId: {}", contentEntries.size(), bankId);
 
@@ -252,7 +267,7 @@ public class QuizService {
         for (Quiz quiz : inProgressQuizzes) {
             String finalStatus = getFinalStatus(quiz);
 
-            if (QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
+            if (QuizStatus.PREPARE.equals(quiz.getStatus()) || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
                 inProgressQuiz = new QuizInProgressDetails(
                         quiz.getId().toString(),
                         quiz.getContentBank() != null ? quiz.getContentBank().getId().toString() : null,
@@ -276,7 +291,7 @@ public class QuizService {
     }
 
     @Transactional
-    public String createQuiz(UUID userId, CreateQuizRequest request) {
+    public String createQuiz(UUID userId, CreateQuizDTO request) {
         // Find content bank with all related data
         ContentBank contentBank = contentBankRepository
                 .findByIdAndUserIdWithContentEntries(request.bankId(), userId)

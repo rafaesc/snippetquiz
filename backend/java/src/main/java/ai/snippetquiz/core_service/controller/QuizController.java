@@ -1,11 +1,14 @@
 package ai.snippetquiz.core_service.controller;
 
-import ai.snippetquiz.core_service.dto.request.CreateQuizRequest;
+import ai.snippetquiz.core_service.dto.request.CreateQuizDTO;
 import ai.snippetquiz.core_service.dto.request.FindQuizResponsesRequest;
 import ai.snippetquiz.core_service.dto.response.CheckQuizInProgressResponse;
+import ai.snippetquiz.core_service.dto.response.CreateQuizResponse;
+import ai.snippetquiz.core_service.dto.request.CreateQuizRequest;
 import ai.snippetquiz.core_service.dto.response.FindOneQuizResponse;
 import ai.snippetquiz.core_service.dto.response.PaginatedQuizzesResponse;
 import ai.snippetquiz.core_service.dto.response.UpdateQuizResponse;
+import ai.snippetquiz.core_service.entity.QuizStatus;
 import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import ai.snippetquiz.core_service.service.QuizService;
@@ -32,7 +35,7 @@ public class QuizController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createQuiz(
+    public ResponseEntity<CreateQuizResponse> createQuiz(
             @RequestHeader("X-User-Id") String userId,
             @Valid @RequestBody CreateQuizRequest request) {
         var checkQuizInProgressResponse = quizService.checkQuizInProgress(UUID.fromString(userId));
@@ -40,10 +43,15 @@ public class QuizController {
             throw new ConflictException("Quiz in progress");
         }
 
-        var quizId = quizService.createQuiz(UUID.fromString(userId), request);
+        var createQuizDto = new CreateQuizDTO(
+                request.bankId(),
+                request.quizId(),
+                QuizStatus.PREPARE);
+
+        var quizId = quizService.createQuiz(UUID.fromString(userId), createQuizDto);
         quizService.emitCreateQuizEvent(userId, quizId, request.bankId());
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new CreateQuizResponse(quizId));
     }
 
     @GetMapping

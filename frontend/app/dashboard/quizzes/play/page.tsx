@@ -45,7 +45,7 @@ export default function QuizPlayerPage() {
   });
 
   useEffect(() => {
-    if (quiz?.status === "IN_PROGRESS" && !isGenerating && !isComplete) {
+    if ((quiz?.status === "IN_PROGRESS" || quiz?.status === "PREPARE") && !isGenerating && !isComplete) {
       generateQuiz();
     }
   }, [quiz?.status, isGenerating, isComplete, generateQuiz]);
@@ -62,7 +62,7 @@ export default function QuizPlayerPage() {
     if (wsProgress && quiz) {
       const shouldRefetch = 
         quiz.totalQuestions === 0 || 
-        (quiz.questionsCompleted === quiz.totalQuestions && quiz.status === 'IN_PROGRESS');
+        (quiz.questionsCompleted === quiz.totalQuestions && (quiz.status === 'IN_PROGRESS' || quiz.status === 'PREPARE'));
       
       if (shouldRefetch) {
         refetch();
@@ -161,7 +161,7 @@ export default function QuizPlayerPage() {
   // Check if we need to show waiting message
   const shouldShowWaitingMessage = quiz && (
     quiz.totalQuestions === 0 || 
-    (quiz.questionsCompleted === quiz.totalQuestions && quiz.status === 'IN_PROGRESS')
+    (quiz.questionsCompleted === quiz.totalQuestions && (quiz.status === 'IN_PROGRESS' || quiz.status === 'PREPARE'))
   );
 
   // Use displayQuestion for rendering to maintain question during transition

@@ -93,7 +93,7 @@ export interface CreateContentEntryRequest {
 // Quiz Types
 export interface Quiz {
   id: string;
-  status: "READY" | "READY_WITH_ERROR" | "IN_PROGRESS";
+  status: "READY" | "READY_WITH_ERROR" | "IN_PROGRESS" | "PREPARE";
   name: string;
   createdAt: string;
   questionsCompleted: number;
@@ -150,7 +150,7 @@ type QuizQuestion = {
 
 export type FindOneQuizResponse = {
   id: string;
-  status: "READY" | "READY_WITH_ERROR" | "IN_PROGRESS";
+  status: "READY" | "READY_WITH_ERROR" | "IN_PROGRESS" | "PREPARE";
   createdAt: string;
   questionsCompleted: number;
   contentEntriesCount: number;

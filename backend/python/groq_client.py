@@ -221,18 +221,21 @@ class GroqClient:
         from prompt_templates import PromptTemplates
         
         # Create the prompt using the template
-        prompt = PromptTemplates.get_quiz_generation_prompt(
+        system_prompt = PromptTemplates.get_quiz_generation_system_prompt(
+            instructions=instructions,
+            summaries=summaries
+        )
+        
+        user_prompt = PromptTemplates.get_quiz_generation_prompt(
             instructions=instructions,
             summaries=summaries,
             page_title=page_title,
-            content=content
+            content=content,
         )
         
         messages = [
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
         ]
         
         # First attempt
@@ -254,7 +257,6 @@ class GroqClient:
                 }
             except json.JSONDecodeError as e:
                 print(f"Failed to parse JSON response: {e}")
-                print(f"Raw response: {response}")
                 # Retry with a fresh request if JSON parsing fails
                 print("JSON parsing failed, retrying request once...")
                 retry_response = self.generate_completion(messages, max_tokens=1500)
@@ -268,9 +270,7 @@ class GroqClient:
                         }
                     except json.JSONDecodeError as retry_e:
                         print(f"Retry also failed to parse JSON: {retry_e}")
-                        print(f"Retry response: {retry_response}")
                 return {'questions': [], 'summary': ''}
         else:
-            print(f"Failed raw response after retry: {response}")
             print("Failed to generate quiz questions after retry, returning empty result")
             return {'questions': [], 'summary': ''}
