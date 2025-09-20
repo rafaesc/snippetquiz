@@ -164,6 +164,24 @@ public class ContentEntryService {
     }
 
     @Transactional(readOnly = true)
+    public ContentEntryDTOResponse findById(UUID userId, Long entryId) {        
+        var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
+                .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
+        
+        var topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(contentEntry.getId());
+        
+        return new ContentEntryDTOResponse(
+                contentEntry.getId().toString(),
+                contentEntry.getContentType().getValue(),
+                truncateContent(contentEntry.getContent(), 200),
+                contentEntry.getSourceUrl(),
+                contentEntry.getPageTitle(),
+                contentEntry.getCreatedAt(),
+                contentEntry.getQuestionsGenerated(),
+                topics);
+    }
+
+    @Transactional(readOnly = true)
     public PagedModel<ContentEntryDTOResponse> findAll(
             UUID userId, String filterBybankId,
             String name, Pageable pageable) {

@@ -33,12 +33,11 @@ public class ContentBankController {
     private final ContentBankService contentBankService;
 
     @PostMapping
-    public ResponseEntity<ContentBankResponse> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContentBankResponse create(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateContentBankRequest request) {
-
-        ContentBankResponse response = contentBankService.create(UUID.fromString(userId), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return contentBankService.create(UUID.fromString(userId), request);
     }
 
     @GetMapping
@@ -50,36 +49,35 @@ public class ContentBankController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ContentBankResponse> findOne(
+    public ContentBankResponse findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-        var response = contentBankService.findOne(UUID.fromString(userId), id);
-        return ResponseEntity.ok(response);
+        return contentBankService.findOne(UUID.fromString(userId), id);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ContentBankResponse> update(
+    @ResponseStatus(HttpStatus.OK)
+    public ContentBankResponse update(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
             @Valid @RequestBody UpdateContentBankRequest request) {
-        var response = contentBankService.update(UUID.fromString(userId), id, request);
-        return ResponseEntity.ok(response);
+        return contentBankService.update(UUID.fromString(userId), id, request);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remove(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
         contentBankService.remove(UUID.fromString(userId), id);
-        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/duplicate")
-    public ResponseEntity<ContentBankResponse> duplicate(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContentBankResponse duplicate(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
             @Valid @RequestBody DuplicateContentBankRequest request) {
-        ContentBankResponse response = contentBankService.duplicate(UUID.fromString(userId), id, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return contentBankService.duplicate(UUID.fromString(userId), id, request);
     }
 }

@@ -13,7 +13,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -31,12 +30,20 @@ public class ContentEntryController {
     private final ContentEntryService contentEntryService;
 
     @PostMapping
-    public ResponseEntity<ContentEntryResponse> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContentEntryResponse create(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateContentEntryRequest request) {
 
-        ContentEntryResponse response = contentEntryService.create(UUID.fromString(userId), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return contentEntryService.create(UUID.fromString(userId), request);
+    }
+
+    @GetMapping("/{id}")
+    public ContentEntryDTOResponse findById(
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
+            @PathVariable Long id) {
+
+        return contentEntryService.findById(UUID.fromString(userId), id);
     }
 
     @GetMapping("/bank/{bankId}")
@@ -51,22 +58,22 @@ public class ContentEntryController {
     }
 
     @PostMapping("/{id}/clone-to/{targetBankId}")
-    public ResponseEntity<ContentEntryResponse> clone(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContentEntryResponse clone(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
             @Valid @PathVariable @NotBlank(message = "Target bank ID is required") String targetBankId) {
 
-        var response = contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remove(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
 
         RemoveContentEntryRequest request = new RemoveContentEntryRequest(id);
         contentEntryService.remove(UUID.fromString(userId), request);
-        return ResponseEntity.noContent().build();
     }
 }
