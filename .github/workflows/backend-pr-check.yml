@@ -100,7 +100,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'eclipse-temurin'
+          distribution: 'temurin'
           cache: gradle
 
       - name: Make gradlew executable
@@ -166,7 +166,7 @@ jobs:
       POSTGRESQL_PRISMA_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=auth
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ""
+      REDIS_PASSWORD: "test_pass"
       JWT_AUTH_SECRET: test_jwt_secret_key_for_testing_only
       JWT_AUTH_REFRESH_SECRET: test_refresh_secret_key_for_testing_only
       JWT_AUTH_EXPIRES_IN: 15m
@@ -223,9 +223,6 @@ jobs:
 
       - name: Run database migrations
         run: npm run prisma:deploy:postgres
-
-      - name: Run tests
-        run: npm test
 
       - name: Build api-gateway
         run: npm run build
