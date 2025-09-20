@@ -8,11 +8,106 @@ on:
       - master
 
 jobs:
-  test-and-build-backend:
-    name: Test and Build Backend
+  # Java Spring Boot Service
+  test-and-build-java:
+    name: Test and Build Java Service
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'backend/java/')
 
-    # Set up test services
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:6.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        env:
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        ports:
+          - 9092:9092
+
+      zookeeper:
+        image: confluentinc/cp-zookeeper:latest
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+        ports:
+          - 2181:2181
+
+    defaults:
+      run:
+        working-directory: backend/java
+
+    env:
+      SPRING_PROFILES_ACTIVE: test
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test_db
+      SPRING_DATASOURCE_USERNAME: test_user
+      SPRING_DATASOURCE_PASSWORD: test_pass
+      SPRING_REDIS_HOST: localhost
+      SPRING_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'eclipse-temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build application
+        run: ./gradlew bootJar --no-daemon
+
+      - name: Build Docker image
+        run: docker build -t snippetquiz-java-service .
+
+      - name: Test Docker image
+        run: |
+          docker run --rm -d --name test-java-service \
+            -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=test \
+            snippetquiz-java-service
+          sleep 30
+          curl -f http://localhost:8080/actuator/health || exit 1
+          docker stop test-java-service
+
+  # NestJS Services
+  test-and-build-nestjs:
+    name: Test and Build NestJS Services
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'backend/nestjs/')
+
     services:
       postgres:
         image: postgres:15
@@ -43,7 +138,6 @@ jobs:
         working-directory: backend/nestjs
 
     env:
-      # Test environment variables
       NODE_ENV: test
       POSTGRESQL_PRISMA_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=auth
       REDIS_HOST: localhost
@@ -63,7 +157,6 @@ jobs:
       ALLOWED_ORIGINS: http://localhost:3000
       COOKIE_SECRET: test_cookie_secret_for_testing_only
       FRONTEND_URL: http://localhost:3000
-
 
     steps:
       - name: Checkout code
@@ -107,6 +200,9 @@ jobs:
       - name: Run database migrations
         run: npm run prisma:deploy:postgres
 
+      - name: Run tests
+        run: npm test
+
       - name: Build api-gateway
         run: npm run build
 
@@ -115,4 +211,180 @@ jobs:
 
       - name: Build core-service
         run: npm run build core-service
+
+  # Python AI Service
+  test-and-build-python:
+    name: Test and Build Python AI Service
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'backend/python/')
+
+    services:
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        env:
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        ports:
+          - 9092:9092
+
+      zookeeper:
+        image: confluentinc/cp-zookeeper:latest
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+        ports:
+          - 2181:2181
+
+    defaults:
+      run:
+        working-directory: backend/python
+
+    env:
+      KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+      CORE_SERVICE_URL: http://localhost:7000
+      OPENROUTER_API_KEY: test_key
+      GROQ_API_KEY: test_key
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/python/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov flake8 black isort
+
+      - name: Code formatting check
+        run: |
+          black --check .
+          isort --check-only .
+
+      - name: Lint code
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run tests
+        run: |
+          pytest --cov=. --cov-report=xml --cov-report=term-missing
+
+      - name: Build Docker image
+        run: docker build -t snippetquiz-python-service .
+
+      - name: Test Docker image
+        run: |
+          docker run --rm -d --name test-python-service \
+            -p 8000:8000 \
+            -e KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+            snippetquiz-python-service
+          sleep 10
+          curl -f http://localhost:8000/health || exit 1
+          docker stop test-python-service
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [test-and-build-java, test-and-build-nestjs, test-and-build-python]
+    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success' || needs.test-and-build-python.result == 'success')
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:6.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        env:
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        ports:
+          - 9092:9092
+
+      zookeeper:
+        image: confluentinc/cp-zookeeper:latest
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+        ports:
+          - 2181:2181
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up -d --build
+          sleep 60
+
+      - name: Run integration tests
+        run: |
+          # Test API Gateway health
+          curl -f http://localhost:5000/health || exit 1
+          
+          # Test Auth Service health
+          curl -f http://localhost:6000/health || exit 1
+          
+          # Test Core Service health
+          curl -f http://localhost:7000/actuator/health || exit 1
+          
+          # Test Python Service health
+          curl -f http://localhost:8000/health || exit 1
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose -f docker-compose.yml down -v
+
+  # Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend/'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
 
