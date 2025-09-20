@@ -22,7 +22,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.data.web.SortDefault;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -43,14 +44,14 @@ public class QuizController {
     private final QuizService quizService;
 
     @GetMapping("/validate")
-    public ResponseEntity<CheckQuizInProgressResponse> checkQuizInProgress(
+    public CheckQuizInProgressResponse checkQuizInProgress(
             @RequestHeader(Constants.USER_ID_HEADER) String userId) {
-        var response = quizService.checkQuizInProgress(UUID.fromString(userId));
-        return ResponseEntity.ok(response);
+        return quizService.checkQuizInProgress(UUID.fromString(userId));
     }
 
     @PostMapping
-    public ResponseEntity<CreateQuizResponse> createQuiz(
+    @ResponseStatus(HttpStatus.CREATED)
+    public CreateQuizResponse createQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateQuizRequest request) {
         var checkQuizInProgressResponse = quizService.checkQuizInProgress(UUID.fromString(userId));
@@ -66,7 +67,7 @@ public class QuizController {
         var quizId = quizService.createQuiz(UUID.fromString(userId), createQuizDto);
         quizService.emitCreateQuizEvent(userId, quizId, request.bankId());
 
-        return ResponseEntity.ok(new CreateQuizResponse(quizId));
+        return new CreateQuizResponse(quizId);
     }
 
     @GetMapping
@@ -78,28 +79,27 @@ public class QuizController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FindOneQuizResponse> findOne(
+    public FindOneQuizResponse findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-        FindOneQuizResponse response = quizService.findOne(UUID.fromString(userId), id);
-        return ResponseEntity.ok(response);
+        return quizService.findOne(UUID.fromString(userId), id);
     }
 
     @PutMapping("/{id}/option/{questionOptionId}")
-    public ResponseEntity<UpdateQuizResponse> updateQuiz(
+    @ResponseStatus(HttpStatus.OK)
+    public UpdateQuizResponse updateQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
             @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") String questionOptionId) {
-        UpdateQuizResponse response = quizService.updateQuiz(UUID.fromString(userId), id, questionOptionId);
-        return ResponseEntity.ok(response);
+        return quizService.updateQuiz(UUID.fromString(userId), id, questionOptionId);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remove(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable Long id) {
         quizService.remove(UUID.fromString(userId), id);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/responses")
@@ -111,10 +111,9 @@ public class QuizController {
     }
 
     @GetMapping("/{id}/summary")
-    public ResponseEntity<QuizSummaryResponseDto> findQuizSummary(
+    public QuizSummaryResponseDto findQuizSummary(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-        QuizSummaryResponseDto response = quizService.findQuizSummary(Long.parseLong(id), UUID.fromString(userId));
-        return ResponseEntity.ok(response);
+        return quizService.findQuizSummary(Long.parseLong(id), UUID.fromString(userId));
     }
 }

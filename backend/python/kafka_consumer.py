@@ -94,9 +94,6 @@ class KafkaTopicConsumer:
                                 print(f"⚠️ Message queue full, applying backpressure. Dropping message from {message.topic}")
                                 # Could implement more sophisticated backpressure here
                                 break
-                else:
-                    # Add debug info when no messages are received
-                    print("🔍 No messages received in this poll cycle")
                 
                 # Commit offsets for processed messages
                 try:
@@ -170,8 +167,8 @@ class KafkaTopicConsumer:
                     "content-entry-events",
                     "create-quiz",
                     bootstrap_servers=kafka_brokers,
-                    group_id="python-consumer-group-v2",
-                    auto_offset_reset="earliest",
+                    group_id="python-consumer-group",
+                    auto_offset_reset="latest",
                     enable_auto_commit=False,  # Manual commit for better control
                     max_poll_interval_ms=300000,  # 5 minutes
                     session_timeout_ms=30000,    # 30 seconds
@@ -183,29 +180,6 @@ class KafkaTopicConsumer:
                 
                 # Initialize producer after successful consumer connection
                 self._initialize_producer(kafka_brokers)
-
-                # Debug: Print current consumer group offsets
-                try:
-                    partitions = self.consumer.assignment()
-                    print(f"🔍 Consumer assigned partitions: {partitions}")
-                    
-                    # Get current position for each partition
-                    for partition in partitions:
-                        position = self.consumer.position(partition)
-                        print(f"🔍 Current position for {partition}: {position}")
-                        
-                        # Get committed offset
-                        committed = self.consumer.committed(partition)
-                        print(f"🔍 Committed offset for {partition}: {committed}")
-                        
-                        # Get beginning and end offsets
-                        beginning_offsets = self.consumer.beginning_offsets([partition])
-                        end_offsets = self.consumer.end_offsets([partition])
-                        print(f"🔍 Beginning offset for {partition}: {beginning_offsets.get(partition)}")
-                        print(f"🔍 End offset for {partition}: {end_offsets.get(partition)}")
-                        
-                except Exception as debug_error:
-                    print(f"⚠️ Debug info error: {debug_error}")
 
                 self.running = True
                 self.poll_running = True
@@ -263,6 +237,16 @@ class KafkaTopicConsumer:
             content = message_data.get("content", "")
             page_title = message_data.get("pageTitle", "")
             existing_topics_str = message_data.get("existingTopics", "")
+            
+            # Idempotency check: validate if content entry already has topics
+            core_api = CoreApiClient()
+            content_entry = core_api.get_content_entry(content_id, user_id)
+            
+            if content_entry and content_entry.get("topics"):
+                topics_list = content_entry.get("topics", [])
+                if topics_list and len(topics_list) > 0:
+                    print(f"Content entry {content_id} already has topics: {topics_list}. Skipping topic generation.")
+                    return
             
             # Parse existing topics from comma-separated string
             existing_topics = [topic.strip() for topic in existing_topics_str.split(',') if topic.strip()] if existing_topics_str else []
