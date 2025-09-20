@@ -23,10 +23,14 @@ export function HorizontalQuizGenerationLoader({ progress, progressPercentage }:
     return null;
   }
 
+  // Destructure with guaranteed non-null values after the guard clause
+  const { name: contentEntryName, wordCountAnalyzed } = progress.contentEntry;
+  const { questionsGeneratedSoFar } = progress;
+
   const generationProgress = {
-    contentEntryName: progress.contentEntry?.name,
-    questionsGeneratedSoFar: progress.questionsGeneratedSoFar,
-    wordCountAnalyzed: progress.contentEntry?.wordCountAnalyzed
+    contentEntryName,
+    questionsGeneratedSoFar,
+    wordCountAnalyzed
   };
 
   return (
