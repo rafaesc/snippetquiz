@@ -152,11 +152,12 @@ export interface ContentBank {
 }
 
 export interface ContentBanksResponse {
-  contentBanks: ContentBank[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
+  content: ContentBank[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
   };
 }
 
@@ -180,11 +181,12 @@ export interface ContentEntry {
 }
 
 export interface ContentEntriesResponse {
-  data: ContentEntry[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
+  content: ContentEntry[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
   };
 }
 
@@ -293,8 +295,8 @@ export const apiService = {
     // Get all content banks for the user
     getAll: async (page = 1, limit = 10, name?: string): Promise<ContentBanksResponse> => {
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+        page: (page - 1).toString(),
+        size: limit.toString(),
       });
 
       if (name) {
@@ -348,7 +350,7 @@ export const apiService = {
     },
 
     // Delete a content bank
-    delete: async (id: string): Promise<{ message: string }> => {
+    delete: async (id: string): Promise<undefined> => {
       const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
         method: 'DELETE',
       });
@@ -357,8 +359,6 @@ export const apiService = {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete content bank');
       }
-
-      return response.json();
     },
 
     // Get all content banks for the user
@@ -379,8 +379,8 @@ export const apiService = {
     // Get all content entries for a specific bank
     getByBank: async (bankId: string, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+        page: (page - 1).toString(),
+        size: limit.toString(),
       });
 
       if (name) {
@@ -416,7 +416,7 @@ export const apiService = {
     },
 
     // Delete a content entry
-    delete: async (id: string): Promise<{ message: string }> => {
+    delete: async (id: string): Promise<undefined> => {
       const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
         method: 'DELETE',
       });
@@ -425,8 +425,6 @@ export const apiService = {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete content entry');
       }
-
-      return response.json();
     },
   },
 };

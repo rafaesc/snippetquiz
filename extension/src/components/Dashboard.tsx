@@ -243,7 +243,7 @@ function Dashboard() {
     };
 
     const handleDeleteBank = (bankId: string) => {
-        if (contentBanks?.contentBanks && contentBanks.contentBanks.length > 1) {
+        if (contentBanks?.content && contentBanks.content.length > 1) {
             deleteBankMutation.mutate(bankId);
         }
     };
@@ -267,16 +267,16 @@ function Dashboard() {
     // Effect to handle selectedBankId validation and initialization
     useEffect(() => {
         const initializeSelectedBank = async () => {
-            if (!contentBanks?.contentBanks?.length) return;
+            if (!contentBanks?.content?.length) return;
 
             try {
                 const storage = await chromeStorage.local.get<{ selectedBankId?: string }>(['selectedBankId']);
 
                 if (!storage.selectedBankId) {
-                    const firstBankId = contentBanks.contentBanks[0].id;
+                    const firstBankId = contentBanks.content[0].id;
                     await chromeStorage.local.set({ selectedBankId: firstBankId });
                     setSelectedBankId(firstBankId);
-                    setCurrentBank(contentBanks.contentBanks[0]);
+                    setCurrentBank(contentBanks.content[0]);
                 } else {
                     try {
                         const selectedBank = await apiService.contentBank.get(storage.selectedBankId);
@@ -284,25 +284,25 @@ function Dashboard() {
                             setSelectedBankId(storage.selectedBankId);
                             setCurrentBank(selectedBank);
                         } else {
-                            const firstBankId = contentBanks.contentBanks[0].id;
+                            const firstBankId = contentBanks.content[0].id;
                             await chromeStorage.local.set({ selectedBankId: firstBankId });
                             setSelectedBankId(firstBankId);
-                            setCurrentBank(contentBanks.contentBanks[0]);
+                            setCurrentBank(contentBanks.content[0]);
                         }
                     } catch (error) {
-                        const firstBankId = contentBanks.contentBanks[0].id;
+                        const firstBankId = contentBanks.content[0].id;
                         await chromeStorage.local.set({ selectedBankId: firstBankId });
                         setSelectedBankId(firstBankId);
-                        setCurrentBank(contentBanks.contentBanks[0]);
+                        setCurrentBank(contentBanks.content[0]);
                     }
                 }
             } catch (error) {
                 console.error('Error initializing selected bank:', error);
-                if (contentBanks.contentBanks.length > 0) {
-                    const firstBankId = contentBanks.contentBanks[0].id;
+                if (contentBanks.content.length > 0) {
+                    const firstBankId = contentBanks.content[0].id;
                     await chromeStorage.local.set({ selectedBankId: firstBankId });
                     setSelectedBankId(firstBankId);
-                    setCurrentBank(contentBanks.contentBanks[0]);
+                    setCurrentBank(contentBanks.content[0]);
                 }
             }
         };
@@ -332,14 +332,14 @@ function Dashboard() {
     };
 
     // Derived values
-    const savedContent = contentEntries?.data || [];
+    const savedContent = contentEntries?.content || [];
     const currentItems = savedContent;
-    const totalPages = contentEntries?.pagination.total ? Math.ceil(contentEntries.pagination.total / itemsPerPage) : 1;
+    const totalPages = contentEntries?.page.totalPages || 1;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
 
-    const currentBanks = contentBanks?.contentBanks || [];
-    const totalBankPages = contentBanks?.pagination.total ? Math.ceil(contentBanks.pagination.total / banksPerPage) : 1;
+    const currentBanks = contentBanks?.content || [];
+    const totalBankPages = contentBanks?.page.totalPages || 1;
     const bankStartIndex = (bankPage - 1) * banksPerPage;
     const bankEndIndex = bankStartIndex + banksPerPage;
     const selectedBank = selectedBankId;
@@ -482,7 +482,7 @@ function Dashboard() {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    disabled={(contentBanks?.contentBanks?.length || 0) <= 1 || deleteBankMutation.isPending}
+                                                    disabled={(contentBanks?.content?.length || 0) <= 1 || deleteBankMutation.isPending}
                                                     onClick={() => handleDeleteBank(bank.id)}
                                                 >
                                                     <Trash2 size={14} className="text-destructive" />
@@ -499,7 +499,7 @@ function Dashboard() {
                     {totalBankPages > 1 && (
                         <div className="flex items-center justify-between pt-3 border-t border-border">
                             <div className="text-xs text-muted-foreground">
-                                {bankStartIndex + 1}-{Math.min(bankEndIndex, contentBanks?.pagination.total || 0)} of {contentBanks?.pagination.total || 0} banks
+                                {bankStartIndex + 1}-{Math.min(bankEndIndex, contentBanks?.page.totalElements || 0)} of {contentBanks?.page.totalElements || 0} banks
                             </div>
                             <div className="flex items-center space-x-1">
                                 <Button
@@ -563,7 +563,7 @@ function Dashboard() {
                                 onClick={() => setShowBankSelector(true)}
                             >
                                 <div className="flex-1 flex items-center justify-between">
-                                    <span>{currentBank?.name} ({contentEntries?.pagination.total || 0} items)</span>
+                                    <span>{currentBank?.name} ({contentEntries?.page.totalElements || 0} items)</span>
                                     <ChevronRight size={16} className="text-muted-foreground" />
                                 </div>
                             </div>
@@ -586,7 +586,7 @@ function Dashboard() {
                         <Collapsible open={isContentExpanded} onOpenChange={setIsContentExpanded}>
                             <CollapsibleTrigger className="flex items-center space-x-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
                                 {isContentExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                <span>📄 Saved Content ({contentEntries?.pagination.total})</span>
+                                <span>📄 Saved Content ({contentEntries?.page.totalElements})</span>
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-3 mt-3">
                                 <div className="space-y-2">

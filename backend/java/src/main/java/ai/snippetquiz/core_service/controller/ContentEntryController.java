@@ -1,9 +1,17 @@
 package ai.snippetquiz.core_service.controller;
 
-import ai.snippetquiz.core_service.dto.request.*;
-import ai.snippetquiz.core_service.dto.response.*;
+import ai.snippetquiz.core_service.dto.request.CreateContentEntryRequest;
+import ai.snippetquiz.core_service.dto.request.RemoveContentEntryRequest;
+import ai.snippetquiz.core_service.dto.response.ContentEntryDTOResponse;
+import ai.snippetquiz.core_service.dto.response.ContentEntryResponse;
 import ai.snippetquiz.core_service.service.ContentEntryService;
 import ai.snippetquiz.core_service.util.Constants;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -32,23 +40,14 @@ public class ContentEntryController {
     }
 
     @GetMapping("/bank/{bankId}")
-    public ResponseEntity<PaginatedResponse<ContentEntryItemResponse>> findAll(
+    public PagedModel<ContentEntryDTOResponse> findAll(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String bankId,
-            @Valid FindAllContentEntriesRequest request) {
+            @RequestParam(required = false) String name,
+            @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
-        PaginatedResponse<ContentEntryItemResponse> response = contentEntryService.findAll(UUID.fromString(userId),
-                bankId, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ContentEntryResponse> findOne(
-            @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
-
-        ContentEntryResponse response = contentEntryService.findOne(UUID.fromString(userId), id);
-        return ResponseEntity.ok(response);
+        return contentEntryService.findAll(UUID.fromString(userId),
+                bankId, name, pageable);
     }
 
     @PostMapping("/{id}/clone-to/{targetBankId}")
@@ -57,7 +56,7 @@ public class ContentEntryController {
             @PathVariable String id,
             @Valid @PathVariable @NotBlank(message = "Target bank ID is required") String targetBankId) {
 
-        ContentEntryResponse response = contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
+        var response = contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

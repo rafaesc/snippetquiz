@@ -254,10 +254,10 @@ export const apiService = {
   },
 
   // Content Bank API methods
-  getContentBanks: async (page = 1, limit = 10, name?: string): Promise<ContentBanksResponse> => {
+  getContentBanks: async (page = 0, limit = 10, name?: string): Promise<ContentBanksResponse> => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
+      page: (page - 1).toString(),
+      size: limit.toString(),
     });
 
     if (name) {
@@ -308,7 +308,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteContentBank: async (id: string): Promise<{ message: string }> => {
+  deleteContentBank: async (id: string): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'DELETE',
     });
@@ -317,8 +317,6 @@ export const apiService = {
       const error = await response.json();
       throw new Error(error.error || 'Failed to delete content bank');
     }
-
-    return response.json();
   },
 
   duplicateContentBank: async (id: string, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
@@ -341,8 +339,8 @@ export const apiService = {
   // Content Entry API methods
   getContentEntries: async (bankId: string, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
+      page: (page - 1).toString(),
+      size: limit.toString(),
     });
 
     if (name) {
@@ -389,7 +387,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteContentEntry: async (id: string): Promise<{ message: string }> => {
+  deleteContentEntry: async (id: string): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
       method: 'DELETE',
     });
@@ -398,15 +396,13 @@ export const apiService = {
       const error = await response.json();
       throw new Error(error.error || 'Failed to delete content entry');
     }
-
-    return response.json();
   },
 
   // Quiz API methods
   getQuizzes: async (page = 1, limit = 10): Promise<QuizzesResponse> => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
+      page: (page - 1).toString(),
+      size: limit.toString(),
     });
 
     const response = await makeAuthenticatedRequest(`/api/core/quiz?${params}`);
@@ -431,8 +427,8 @@ export const apiService = {
 
   getQuizResponses: async (id: string, page = 1, limit = 10): Promise<QuizResponsesResponse> => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
+      page: (page - 1).toString(),
+      size: limit.toString(),
     });
 
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}/responses?${params}`);
@@ -456,7 +452,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteQuiz: async (id: string): Promise<{ message: string }> => {
+  deleteQuiz: async (id: string): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}`, {
       method: 'DELETE',
     });
@@ -465,8 +461,6 @@ export const apiService = {
       const error = await response.json();
       throw new Error(error.error || 'Failed to delete quiz');
     }
-
-    return response.json();
   },
 
   updateQuiz: async (quizId: number, optionId: number): Promise<UpdateQuizResponse> => {

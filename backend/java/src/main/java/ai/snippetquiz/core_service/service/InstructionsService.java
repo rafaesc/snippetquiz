@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,7 +20,7 @@ public class InstructionsService {
     
     @Transactional(readOnly = true)
     public InstructionResponse findByUserId(UUID userId) {
-        Optional<QuizGenerationInstruction> instruction = instructionRepository.findFirstByUserId(userId);
+        var instruction = instructionRepository.findFirstByUserId(userId);
         
         return new InstructionResponse(
             instruction.map(QuizGenerationInstruction::getInstruction).orElse(null),
@@ -30,22 +29,21 @@ public class InstructionsService {
     }
     
     public InstructionResponse createOrUpdate(UUID userId, CreateOrUpdateInstructionRequest request) {
-        String trimmedInstruction = request.instruction().trim();
+        var trimmedInstruction = request.instruction().trim();
         
-        // Check if user already has an instruction
-        Optional<QuizGenerationInstruction> existingInstruction = instructionRepository.findFirstByUserId(userId);
+        var existingInstruction = instructionRepository.findFirstByUserId(userId);
         
         QuizGenerationInstruction result;
         
         if (existingInstruction.isPresent()) {
             // Update existing instruction
-            QuizGenerationInstruction instruction = existingInstruction.get();
+            var instruction = existingInstruction.get();
             instruction.setInstruction(trimmedInstruction);
             instruction.setUpdatedAt(LocalDateTime.now());
             result = instructionRepository.save(instruction);
         } else {
             // Create new instruction
-            QuizGenerationInstruction newInstruction = new QuizGenerationInstruction();
+            var newInstruction = new QuizGenerationInstruction();
             newInstruction.setInstruction(trimmedInstruction);
             newInstruction.setUserId(userId);
             newInstruction.setUpdatedAt(LocalDateTime.now());

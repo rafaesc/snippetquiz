@@ -81,12 +81,10 @@ export default function GenerateQuiz() {
     staleTime: 0,
   });
 
-  const banks = banksData?.contentBanks || [];
-  const entries = entriesData?.data || [];
+  const banks = banksData?.content || [];
+  const entries = entriesData?.content || [];
   const selectedBank = banks.find((bank) => bank.id === selectedBankId);
-  const totalEntryPages = entriesData
-    ? Math.ceil(entriesData.pagination.total / entriesPerPage)
-    : 0;
+  const totalEntryPages = entriesData ? entriesData.page.totalPages : 0;
 
   const getMediaTypeIcon = (type: MediaType) => {
     switch (type) {
@@ -102,7 +100,7 @@ export default function GenerateQuiz() {
   };
 
   const handleGenerateQuiz = async () => {
-    if (!selectedBank || !entriesData || entriesData.pagination.total === 0)
+    if (!selectedBank || !entriesData || entriesData.page.totalElements === 0)
       return;
 
     try {
@@ -264,7 +262,7 @@ export default function GenerateQuiz() {
                 : entriesError
                 ? "Failed to load entries"
                 : entriesData
-                ? `Showing ${entries.length} of ${entriesData.pagination.total} entries (Page ${currentPage} of ${totalEntryPages})`
+                ? `Showing ${entries.length} of ${entriesData.page.totalElements} entries (Page ${currentPage} of ${totalEntryPages})`
                 : "No entries found"}
             </p>
           </CardHeader>
@@ -421,7 +419,7 @@ export default function GenerateQuiz() {
           disabled={
             !selectedBank ||
             !entriesData ||
-            entriesData.pagination.total === 0 ||
+            entriesData.page.totalElements === 0 ||
             entriesLoading ||
             isCreatingQuiz
           }
@@ -440,7 +438,7 @@ export default function GenerateQuiz() {
         {selectedBank &&
           !entriesLoading &&
           entriesData &&
-          entriesData.pagination.total === 0 && (
+          entriesData.page.totalElements === 0 && (
             <p className="text-sm text-muted-foreground">
               The selected bank needs content entries to generate a quiz
             </p>

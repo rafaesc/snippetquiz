@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Search, Globe, FileText, Video, MoreHorizontal, Edit, Copy, Trash2, FolderOpen, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Globe, FileText, Video, MoreHorizontal, Edit, Copy, Trash2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -271,12 +270,12 @@ export default function ContentBanks() {
     }
   };
 
-  const currentBanks = banksData?.contentBanks || [];
-  const totalBankPages = banksData ? Math.ceil(banksData.pagination.total / banksPerPage) : 0;
-  const totalEntryPages = entriesData ? Math.ceil(entriesData.pagination.total / entriesPerPage) : 0;
+  const currentBanks = banksData?.content || [];
+  const totalBankPages = banksData ? banksData.page.totalPages : 0;
+  const totalEntryPages = entriesData ? entriesData.page.totalPages : 0;
 
   // Filter banks to exclude the current selected bank
-  const availableBanksForClone = allBanksData?.contentBanks.filter(
+  const availableBanksForClone = allBanksData?.content.filter(
     bank => bank.id !== selectedBank?.id
   ) || [];
 
@@ -299,7 +298,7 @@ export default function ContentBanks() {
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">{selectedBank.name}</h1>
               <p className="text-sm text-muted-foreground">
-                {entriesData?.pagination.total || 0} entries
+                {entriesData?.page.totalElements || 0} entries
               </p>
             </div>
           </div>
@@ -326,7 +325,7 @@ export default function ContentBanks() {
         {/* Entries Table/Cards */}
         {!entriesLoading && (
           <ResponsiveEntryTable
-            entries={entriesData?.data || []}
+            entries={entriesData?.content || []}
             getMediaTypeIcon={getMediaTypeIcon}
             onDelete={handleDeleteEntry}
             onClone={handleCloneEntry}

@@ -56,7 +56,7 @@ export const QuizList: React.FC<QuizListProps> = ({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const { quizzes } = quizzesData;
+  const { content: quizzes } = quizzesData;
 
   const handleContinue = (quiz: Quiz) => {
     setCurrentQuizId(Number(quiz.id));

@@ -83,7 +83,9 @@ class KafkaTopicConsumer:
                 
                 if message_batch:
                     for topic_partition, messages in message_batch.items():
+                        print(f"📥 Received {len(messages)} messages from {topic_partition}")
                         for message in messages:
+                            print(f"📨 Message offset: {message.offset}, key: {message.key}, topic: {message.topic}")
                             try:
                                 # Try to put message in queue with timeout
                                 self.message_queue.put(message, timeout=5)
@@ -92,6 +94,9 @@ class KafkaTopicConsumer:
                                 print(f"⚠️ Message queue full, applying backpressure. Dropping message from {message.topic}")
                                 # Could implement more sophisticated backpressure here
                                 break
+                else:
+                    # Add debug info when no messages are received
+                    print("🔍 No messages received in this poll cycle")
                 
                 # Commit offsets for processed messages
                 try:
@@ -165,8 +170,8 @@ class KafkaTopicConsumer:
                     "content-entry-events",
                     "create-quiz",
                     bootstrap_servers=kafka_brokers,
-                    group_id="python-consumer-group",
-                    auto_offset_reset="latest",
+                    group_id="python-consumer-group-v2",
+                    auto_offset_reset="earliest",
                     enable_auto_commit=False,  # Manual commit for better control
                     max_poll_interval_ms=300000,  # 5 minutes
                     session_timeout_ms=30000,    # 30 seconds
@@ -178,6 +183,29 @@ class KafkaTopicConsumer:
                 
                 # Initialize producer after successful consumer connection
                 self._initialize_producer(kafka_brokers)
+
+                # Debug: Print current consumer group offsets
+                try:
+                    partitions = self.consumer.assignment()
+                    print(f"🔍 Consumer assigned partitions: {partitions}")
+                    
+                    # Get current position for each partition
+                    for partition in partitions:
+                        position = self.consumer.position(partition)
+                        print(f"🔍 Current position for {partition}: {position}")
+                        
+                        # Get committed offset
+                        committed = self.consumer.committed(partition)
+                        print(f"🔍 Committed offset for {partition}: {committed}")
+                        
+                        # Get beginning and end offsets
+                        beginning_offsets = self.consumer.beginning_offsets([partition])
+                        end_offsets = self.consumer.end_offsets([partition])
+                        print(f"🔍 Beginning offset for {partition}: {beginning_offsets.get(partition)}")
+                        print(f"🔍 End offset for {partition}: {end_offsets.get(partition)}")
+                        
+                except Exception as debug_error:
+                    print(f"⚠️ Debug info error: {debug_error}")
 
                 self.running = True
                 self.poll_running = True

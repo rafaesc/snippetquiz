@@ -8,6 +8,10 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
+    },
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "jdkDistro": "ms"
     }
   },
   "customizations": {
@@ -28,7 +32,8 @@
         "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
         "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
         "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+        "java.jdt.ls.java.home": "/usr/local/sdkman/candidates/java/current"
       },
       "extensions": [
         "dbaeumer.vscode-eslint",
@@ -46,5 +51,5 @@
     }
   },
   "updateContentCommand": "bash .devcontainer/setup.sh",
-  "forwardPorts": [3000, 4173, 8080, 5000, 9292]
+  "forwardPorts": [3000, 4173, 8080, 5000, 9292, 7001]
 }

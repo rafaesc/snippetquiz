@@ -26,7 +26,7 @@ public class InstructionsController {
     @GetMapping
     public ResponseEntity<InstructionResponse> findByUserId(
             @RequestHeader(Constants.USER_ID_HEADER) String userId) {
-        InstructionResponse response = instructionsService.findByUserId(UUID.fromString(userId));
+        var response = instructionsService.findByUserId(UUID.fromString(userId));
         return ResponseEntity.ok(response);
     }
     
@@ -34,7 +34,7 @@ public class InstructionsController {
     public ResponseEntity<InstructionResponse> createOrUpdate(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateOrUpdateInstructionRequest request) {
-        InstructionResponse response = instructionsService.createOrUpdate(UUID.fromString(userId), request);
+        var response = instructionsService.createOrUpdate(UUID.fromString(userId), request);
         return ResponseEntity.ok(response);
     }
 }

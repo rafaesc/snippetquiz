@@ -1,13 +1,9 @@
 package ai.snippetquiz.core_service.service;
 
 import ai.snippetquiz.core_service.dto.request.CreateContentEntryRequest;
-import ai.snippetquiz.core_service.dto.request.FindAllContentEntriesRequest;
 import ai.snippetquiz.core_service.dto.request.RemoveContentEntryRequest;
-import ai.snippetquiz.core_service.dto.response.ContentEntryItemResponse;
+import ai.snippetquiz.core_service.dto.response.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.dto.response.ContentEntryResponse;
-import ai.snippetquiz.core_service.dto.response.PaginatedResponse;
-import ai.snippetquiz.core_service.dto.response.PaginationInfo;
-import ai.snippetquiz.core_service.entity.ContentBank;
 import ai.snippetquiz.core_service.entity.ContentEntry;
 import ai.snippetquiz.core_service.entity.ContentEntryBank;
 import ai.snippetquiz.core_service.entity.ContentEntryTopic;
@@ -23,16 +19,15 @@ import ai.snippetquiz.core_service.repository.ContentEntryTopicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -52,25 +47,25 @@ public class ContentEntryService {
     private final KafkaProducerService kafkaProducerService;
 
     public ContentEntryResponse create(UUID userId, CreateContentEntryRequest request) {
-        // Validate content bank ownership
-        Long bankId = Long.parseLong(request.bankId());
-        ContentBank contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
+        var bankId = Long.parseLong(request.bankId());
+        var contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         // Process HTML content if type is FULL_HTML
-        String processedContent = request.content();
-        ContentType type = ContentType.valueOf(request.type().toUpperCase());
-        if (type == ContentType.FULL_HTML && request.content() != null) {
+        var processedContent = request.content();
+        var type = ContentType.fromValue(request.type());
+
+        if (ContentType.FULL_HTML.equals(type)) {
             processedContent = request.content().trim();
         }
 
         // Handle YouTube channel if provided
         YoutubeChannel youtubeChannel = null;
-        if (type == ContentType.VIDEO_TRANSCRIPT && request.youtubeChannelId() != null
+        if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(request.youtubeChannelId())
                 && !request.youtubeChannelId().trim().isEmpty()) {
             youtubeChannel = youtubeChannelRepository.findByChannelId(request.youtubeChannelId())
                     .orElseGet(() -> {
-                        YoutubeChannel newChannel = new YoutubeChannel(
+                        var newChannel = new YoutubeChannel(
                                 request.youtubeChannelId(),
                                 request.youtubeChannelName(),
                                 request.youtubeAvatarUrl());
@@ -82,19 +77,19 @@ public class ContentEntryService {
 
         // Check for existing entry with same sourceUrl and type 'full_html'
         ContentEntry existingEntry = null;
-        if (type == ContentType.FULL_HTML && request.sourceUrl() != null) {
+        if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(request.sourceUrl())) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
                     request.sourceUrl(), ContentType.FULL_HTML, bankId)
                     .orElse(null);
 
-            if (existingEntry != null) {
+            if (Objects.nonNull(existingEntry)) {
                 // Update existing entry
                 existingEntry.setContent(processedContent);
                 existingEntry.setPageTitle(request.pageTitle());
                 existingEntry.setCreatedAt(LocalDateTime.now());
 
                 // Calculate word count for FULL_HTML
-                if (processedContent != null && !processedContent.trim().isEmpty()) {
+                if (Objects.nonNull(processedContent) && !processedContent.trim().isEmpty()) {
                     int wordCount = processedContent.trim().split("\\s+").length;
                     existingEntry.setWordCount(wordCount);
                 }
@@ -104,7 +99,7 @@ public class ContentEntryService {
         }
 
         // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
-        if (type == ContentType.VIDEO_TRANSCRIPT && request.sourceUrl() != null) {
+        if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(request.sourceUrl())) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
                     request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
                     .orElse(null);
@@ -117,7 +112,7 @@ public class ContentEntryService {
 
         if (existingEntry == null) {
             // Create new entry
-            ContentEntry contentEntry = new ContentEntry();
+            var contentEntry = new ContentEntry();
             contentEntry.setUserId(userId);
             contentEntry.setContentType(type);
             contentEntry.setContent(processedContent);
@@ -126,30 +121,31 @@ public class ContentEntryService {
             contentEntry.setQuestionsGenerated(false);
 
             // Calculate word count for selected_text and full_html content types
-            if ((type == ContentType.SELECTED_TEXT || type == ContentType.FULL_HTML) && processedContent != null
+            if ((ContentType.SELECTED_TEXT.equals(type) || ContentType.FULL_HTML.equals(type))
+                    && Objects.nonNull(processedContent)
                     && !processedContent.trim().isEmpty()) {
-                String[] words = processedContent.trim().split("\\s+");
-                int wordCount = (int) Arrays.stream(words).filter(word -> !word.isEmpty()).count();
+                var words = processedContent.trim().split("\\s+");
+                var wordCount = (int) Arrays.stream(words).filter(word -> !word.isEmpty()).count();
                 contentEntry.setWordCount(wordCount);
             }
 
             // Add YouTube fields for VIDEO_TRANSCRIPT type
-            if (type == ContentType.VIDEO_TRANSCRIPT) {
-                if (request.youtubeVideoId() != null) {
+            if (ContentType.VIDEO_TRANSCRIPT.equals(type)) {
+                if (Objects.nonNull(request.youtubeVideoId())) {
                     contentEntry.setYoutubeVideoId(request.youtubeVideoId());
                 }
-                if (request.youtubeVideoDuration() != null) {
+                if (Objects.nonNull(request.youtubeVideoDuration())) {
                     contentEntry.setVideoDuration(request.youtubeVideoDuration());
                 }
-                if (youtubeChannel != null) {
+                if (Objects.nonNull(youtubeChannel)) {
                     contentEntry.setYoutubeChannel(youtubeChannel);
                 }
             }
 
-            ContentEntry savedEntry = contentEntryRepository.save(contentEntry);
+            var savedEntry = contentEntryRepository.save(contentEntry);
 
             // Create association with content bank
-            ContentEntryBank association = new ContentEntryBank();
+            var association = new ContentEntryBank();
             association.setContentEntry(savedEntry);
             association.setContentBank(contentBank);
             contentEntryBankRepository.save(association);
@@ -157,7 +153,6 @@ public class ContentEntryService {
             resultEntry = savedEntry;
         }
 
-        // Generate topics asynchronously (similar to NestJS catch block)
         try {
             this.generateTopicsForContentEntry(userId, resultEntry);
         } catch (Exception error) {
@@ -169,113 +164,70 @@ public class ContentEntryService {
     }
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<ContentEntryItemResponse> findAll(UUID userId, String filterBybankId,
-            FindAllContentEntriesRequest request) {
-        // Validate content bank ownership
-        Long bankId = Long.parseLong(filterBybankId);
+    public PagedModel<ContentEntryDTOResponse> findAll(
+            UUID userId, String filterBybankId,
+            String name, Pageable pageable) {
+        var bankId = Long.parseLong(filterBybankId);
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
-        int page = request.getPage() != null ? request.getPage() : 1;
-        int limit = request.getLimit() != null ? request.getLimit() : 10;
+        var entriesPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId, pageable);
 
-        // Create pageable with descending order by createdAt
-        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        var contentEntryDTOPage = entriesPage.map(entry -> {
+            var topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entry.getId());
+            return new ContentEntryDTOResponse(
+                    entry.getId().toString(),
+                    entry.getContentType().getValue(),
+                    truncateContent(entry.getContent(), 200),
+                    entry.getSourceUrl(),
+                    entry.getPageTitle(),
+                    entry.getCreatedAt(),
+                    entry.getQuestionsGenerated(),
+                    topics);
+        });
 
-        // Get content entries for the bank
-        Page<ContentEntry> entriesPage = contentEntryRepository.findByContentBankId(bankId, pageable);
-
-        // Map to response DTOs
-        List<ContentEntryItemResponse> items = entriesPage.getContent().stream()
-                .map(entry -> {
-                    List<String> topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entry.getId());
-                    return new ContentEntryItemResponse(
-                            entry.getId().toString(),
-                            entry.getContentType().getValue(),
-                            truncateContent(entry.getContent(), 200),
-                            entry.getSourceUrl(),
-                            entry.getPageTitle(),
-                            entry.getCreatedAt(),
-                            entry.getQuestionsGenerated(),
-                            topics);
-                })
-                .collect(Collectors.toList());
-
-        PaginationInfo pagination = new PaginationInfo(page, limit, entriesPage.getTotalElements());
-        return new PaginatedResponse<>(items, pagination);
-    }
-
-    @Transactional(readOnly = true)
-    public ContentEntryResponse findOne(UUID userId, String id) {
-        Long entryId = Long.parseLong(id);
-        ContentEntry contentEntry = contentEntryRepository.findById(entryId)
-                .orElseThrow(() -> new NotFoundException("Content entry not found"));
-
-        // Verify user has access to this content entry through content banks
-        List<ContentEntryBank> associations = contentEntryBankRepository.findByContentEntryId(entryId);
-        boolean hasAccess = associations.stream()
-                .anyMatch(assoc -> assoc.getContentBank().getUserId().equals(userId));
-
-        if (!hasAccess) {
-            throw new NotFoundException("Content entry not found or access denied");
-        }
-
-        List<String> topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entryId);
-        return mapToContentEntryResponse(contentEntry, topics);
+        return new PagedModel<>(contentEntryDTOPage);
     }
 
     public ContentEntryResponse clone(UUID userId, String entryId, String cloneTargetBankId) {
-        Long sourceId = Long.parseLong(entryId);
-        Long targetBankId = Long.parseLong(cloneTargetBankId);
+        var sourceId = Long.parseLong(entryId);
+        var targetBankId = Long.parseLong(cloneTargetBankId);
 
-        // Verify source content entry access
-        ContentEntry sourceEntry = contentEntryRepository.findById(sourceId)
-                .orElseThrow(() -> new NotFoundException("Source content entry not found"));
+        var sourceEntry = contentEntryRepository.findByIdAndUserId(sourceId, userId)
+                .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
 
-        List<ContentEntryBank> sourceAssociations = contentEntryBankRepository.findByContentEntryId(sourceId);
-        boolean hasSourceAccess = sourceAssociations.stream()
-                .anyMatch(assoc -> assoc.getContentBank().getUserId().equals(userId));
-
-        if (!hasSourceAccess) {
-            throw new NotFoundException("Source content entry not found or access denied");
-        }
-
-        // Verify target content bank ownership
-        ContentBank targetBank = contentBankRepository.findByIdAndUserId(targetBankId, userId)
+        var targetBank = contentBankRepository.findByIdAndUserId(targetBankId, userId)
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
-        // Clone the content entry
-        ContentEntry clonedEntry = new ContentEntry();
+        var clonedEntry = new ContentEntry();
         clonedEntry.setUserId(userId);
         clonedEntry.setContentType(sourceEntry.getContentType());
         clonedEntry.setContent(sourceEntry.getContent());
         clonedEntry.setSourceUrl(sourceEntry.getSourceUrl());
         clonedEntry.setPageTitle(sourceEntry.getPageTitle());
         clonedEntry.setPromptSummary(sourceEntry.getPromptSummary());
-        clonedEntry.setQuestionsGenerated(false); // Reset questions generated flag
+        clonedEntry.setQuestionsGenerated(false);
         clonedEntry.setWordCount(sourceEntry.getWordCount());
         clonedEntry.setVideoDuration(sourceEntry.getVideoDuration());
         clonedEntry.setYoutubeVideoId(sourceEntry.getYoutubeVideoId());
         clonedEntry.setYoutubeChannel(sourceEntry.getYoutubeChannel());
 
-        ContentEntry savedClone = contentEntryRepository.save(clonedEntry);
+        var savedClone = contentEntryRepository.save(clonedEntry);
 
-        // Create association with target bank
-        ContentEntryBank association = new ContentEntryBank();
+        var association = new ContentEntryBank();
         association.setContentEntry(savedClone);
         association.setContentBank(targetBank);
         contentEntryBankRepository.save(association);
 
-        // Clone topics
-        List<ContentEntryTopic> sourceTopics = contentEntryTopicRepository.findByContentEntryId(sourceId);
+        var sourceTopics = contentEntryTopicRepository.findByContentEntryId(sourceId);
         for (ContentEntryTopic sourceTopic : sourceTopics) {
-            ContentEntryTopic clonedTopic = new ContentEntryTopic();
+            var clonedTopic = new ContentEntryTopic();
             clonedTopic.setContentEntry(savedClone);
             clonedTopic.setTopic(sourceTopic.getTopic());
             contentEntryTopicRepository.save(clonedTopic);
         }
 
-        List<String> topics = sourceTopics.stream()
+        var topics = sourceTopics.stream()
                 .map(ct -> ct.getTopic().getTopic())
                 .collect(Collectors.toList());
 
@@ -285,59 +237,35 @@ public class ContentEntryService {
     public void remove(UUID userId, RemoveContentEntryRequest request) {
         Long entryId = Long.parseLong(request.id());
 
-        // Verify user has access to this content entry
-        ContentEntry contentEntry = contentEntryRepository.findById(entryId)
-                .orElseThrow(() -> new NotFoundException("Content entry not found"));
+        var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
+                .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
-        List<ContentEntryBank> associations = contentEntryBankRepository.findByContentEntryId(entryId);
-        boolean hasAccess = associations.stream()
-                .anyMatch(assoc -> assoc.getContentBank().getUserId().equals(userId));
-
-        if (!hasAccess) {
-            throw new NotFoundException("Content entry not found or access denied");
-        }
-
-        // Delete all associations and topics
         contentEntryBankRepository.deleteByContentEntryId(entryId);
         contentEntryTopicRepository.deleteByContentEntryId(entryId);
 
-        // Delete the content entry
         contentEntryRepository.delete(contentEntry);
     }
 
     public void generateTopicsForContentEntry(UUID userId, ContentEntry contentEntry) {
         Long entryId = contentEntry.getId();
 
-        // Process topics from request
         var existingTopics = topicRepository.findAllByUserId(userId).stream().map(topic -> topic.getTopic())
                 .collect(Collectors.joining(","));
 
-        // Emit Kafka event for topic generation
         try {
             kafkaProducerService.emitGenerateTopicsEvent(userId.toString(), entryId.toString(),
                     contentEntry.getContent(), contentEntry.getPageTitle(), existingTopics);
         } catch (Exception e) {
-            // Log error but don't fail the operation
             log.error("Failed to emit Kafka event: " + e.getMessage());
         }
     }
 
     public ContentEntryResponse updateContentEntry(UUID userId, String id) {
-        Long entryId = Long.parseLong(id);
+        var entryId = Long.parseLong(id);
 
-        // Verify user has access to this content entry
-        ContentEntry contentEntry = contentEntryRepository.findById(entryId)
-                .orElseThrow(() -> new NotFoundException("Content entry not found"));
+        var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
+                .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
-        List<ContentEntryBank> associations = contentEntryBankRepository.findByContentEntryId(entryId);
-        boolean hasAccess = associations.stream()
-                .anyMatch(assoc -> assoc.getContentBank().getUserId().equals(userId));
-
-        if (!hasAccess) {
-            throw new NotFoundException("Content entry not found or access denied");
-        }
-
-        // Update questions generated flag
         contentEntry.setQuestionsGenerated(true);
 
         return mapToContentEntryResponse(contentEntryRepository.save(contentEntry), null);
@@ -354,12 +282,11 @@ public class ContentEntryService {
                 entry.getQuestionsGenerated(),
                 entry.getPromptSummary(),
                 topics,
-                null // entryCount is not used in single entry response
-        );
+                null);
     }
 
     private String truncateContent(String content, int maxLength) {
-        if (content == null || content.length() <= maxLength) {
+        if (Objects.isNull(content) || content.length() <= maxLength) {
             return content;
         }
         return content.substring(0, maxLength) + "...";
