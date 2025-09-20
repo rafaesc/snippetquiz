@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         
         log.debug("Validation errors: {}", errors);
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        var errorResponse = new ErrorResponse(
             "VALIDATION_ERROR",
             "Validation failed for one or more fields",
             LocalDateTime.now(),
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         
         log.warn("IllegalArgumentException occurred: {}", ex.getMessage(), ex);
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        var errorResponse = new ErrorResponse(
             "BAD_REQUEST",
             ex.getMessage(),
             LocalDateTime.now(),
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
         
         if (ex.getClass().getSimpleName().equals("NotFoundException")) {
             log.warn("NotFoundException occurred: {}", ex.getMessage());
-            ErrorResponse errorResponse = new ErrorResponse(
+            var errorResponse = new ErrorResponse(
                 "NOT_FOUND",
                 ex.getMessage(),
                 LocalDateTime.now(),
@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
         
         if (ex.getClass().getSimpleName().equals("ConflictException")) {
             log.warn("ConflictException occurred: {}", ex.getMessage());
-            ErrorResponse errorResponse = new ErrorResponse(
+            var errorResponse = new ErrorResponse(
                 "CONFLICT",
                 ex.getMessage(),
                 LocalDateTime.now(),
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
         
         // Handle other RuntimeExceptions as internal server error
         log.error("Unexpected RuntimeException occurred: {}", ex.getMessage(), ex);
-        ErrorResponse errorResponse = new ErrorResponse(
+        var errorResponse = new ErrorResponse(
             "INTERNAL_SERVER_ERROR",
             "An unexpected error occurred",
             LocalDateTime.now(),
@@ -109,7 +109,7 @@ public class GlobalExceptionHandler {
         
         log.error("Unexpected exception occurred: {}", ex.getMessage(), ex);
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        var errorResponse = new ErrorResponse(
             "INTERNAL_SERVER_ERROR",
             "An unexpected error occurred: " + ex.getMessage(),
             LocalDateTime.now(),

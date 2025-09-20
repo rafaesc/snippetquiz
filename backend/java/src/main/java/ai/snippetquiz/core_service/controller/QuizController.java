@@ -1,22 +1,37 @@
 package ai.snippetquiz.core_service.controller;
 
 import ai.snippetquiz.core_service.dto.request.CreateQuizDTO;
-import ai.snippetquiz.core_service.dto.request.FindQuizResponsesRequest;
 import ai.snippetquiz.core_service.dto.response.CheckQuizInProgressResponse;
 import ai.snippetquiz.core_service.dto.response.CreateQuizResponse;
 import ai.snippetquiz.core_service.dto.request.CreateQuizRequest;
 import ai.snippetquiz.core_service.dto.response.FindOneQuizResponse;
-import ai.snippetquiz.core_service.dto.response.PaginatedQuizzesResponse;
+import ai.snippetquiz.core_service.dto.response.QuizResponse;
+import ai.snippetquiz.core_service.dto.response.QuizResponseItemDto;
 import ai.snippetquiz.core_service.dto.response.UpdateQuizResponse;
 import ai.snippetquiz.core_service.entity.QuizStatus;
 import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import ai.snippetquiz.core_service.service.QuizService;
+import ai.snippetquiz.core_service.util.Constants;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -29,14 +44,14 @@ public class QuizController {
 
     @GetMapping("/validate")
     public ResponseEntity<CheckQuizInProgressResponse> checkQuizInProgress(
-            @RequestHeader("X-User-Id") String userId) {
-        CheckQuizInProgressResponse response = quizService.checkQuizInProgress(UUID.fromString(userId));
+            @RequestHeader(Constants.USER_ID_HEADER) String userId) {
+        var response = quizService.checkQuizInProgress(UUID.fromString(userId));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
     public ResponseEntity<CreateQuizResponse> createQuiz(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @Valid @RequestBody CreateQuizRequest request) {
         var checkQuizInProgressResponse = quizService.checkQuizInProgress(UUID.fromString(userId));
         if (checkQuizInProgressResponse.inProgress()) {
@@ -55,18 +70,16 @@ public class QuizController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedQuizzesResponse> findAll(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit) {
+    public PagedModel<QuizResponse> findAll(
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
+            @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
-        PaginatedQuizzesResponse response = quizService.findAll(UUID.fromString(userId), page, limit);
-        return ResponseEntity.ok(response);
+        return quizService.findAll(UUID.fromString(userId), pageable);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<FindOneQuizResponse> findOne(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
         FindOneQuizResponse response = quizService.findOne(UUID.fromString(userId), id);
         return ResponseEntity.ok(response);
@@ -74,40 +87,32 @@ public class QuizController {
 
     @PutMapping("/{id}/option/{questionOptionId}")
     public ResponseEntity<UpdateQuizResponse> updateQuiz(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
-           @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") String questionOptionId) {
+            @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") String questionOptionId) {
         UpdateQuizResponse response = quizService.updateQuiz(UUID.fromString(userId), id, questionOptionId);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remove(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable Long id) {
         quizService.remove(UUID.fromString(userId), id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/responses")
-    public ResponseEntity<Object> findQuizResponses(
-            @RequestHeader("X-User-Id") String userId,
+    public PagedModel<QuizResponseItemDto> findQuizResponses(
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer limit) {
-
-        FindQuizResponsesRequest request = new FindQuizResponsesRequest();
-        request.setPage(page);
-        request.setLimit(limit);
-        request.setQuizId(id);
-
-        Object response = quizService.findQuizResponses(UUID.fromString(userId), request);
-        return ResponseEntity.ok(response);
+            @PageableDefault(size = Constants.DEFAULT_LIMIT) Pageable pageable) {
+        return quizService.findQuizResponses(UUID.fromString(userId), id, pageable);
     }
 
     @GetMapping("/{id}/summary")
     public ResponseEntity<QuizSummaryResponseDto> findQuizSummary(
-            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
         QuizSummaryResponseDto response = quizService.findQuizSummary(Long.parseLong(id), UUID.fromString(userId));
         return ResponseEntity.ok(response);

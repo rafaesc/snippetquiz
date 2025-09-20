@@ -9,10 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import ai.snippetquiz.core_service.dto.request.ContentEntryDto;
 import ai.snippetquiz.core_service.dto.request.GenerateQuizRequest;
+import ai.snippetquiz.core_service.dto.event.ContentEntryEventPayload;
+import ai.snippetquiz.core_service.dto.event.CreateQuizGenerationEventPayload;
 
-import java.util.List;
 
 @Service
 @Slf4j
@@ -63,26 +63,5 @@ public class KafkaProducerService {
             log.error("Failed to serialize create quiz event payload", e);
             throw new RuntimeException("Failed to emit create quiz event", e);
         }
-    }
-
-    // Inner record class for the content entry event payload
-    public record ContentEntryEventPayload(
-            String userId,
-            String contentId,
-            String action,
-            String content,
-            String pageTitle,
-            String existingTopics,
-            List<String> topics) {
-    }
-
-    // Inner record class for the create quiz generation event payload
-    public record CreateQuizGenerationEventPayload(
-            String instructions,
-            List<ContentEntryDto> contentEntries,
-            Integer entriesSkipped,
-            String quizId,
-            String userId,
-            Long bankId) {
     }
 }

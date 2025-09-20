@@ -17,28 +17,17 @@ import java.util.UUID;
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
     
-    // Find by ID and user ID for ownership verification
     Optional<Quiz> findByIdAndUserId(Long id, UUID userId);
 
     List<Quiz> findAllByUserIdAndStatus(UUID userId, QuizStatus status);
     
-    // Find all quizzes by user ID with pagination
     Page<Quiz> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
     
-    // Count quizzes by user ID
-    long countByUserId(UUID userId);
-    
-    // Find quiz with topics for detailed view
     @Query("SELECT q FROM Quiz q LEFT JOIN FETCH q.quizTopics WHERE q.id = :id AND q.userId = :userId")
     Optional<Quiz> findByIdAndUserIdWithTopics(@Param("id") Long id, @Param("userId") UUID userId);
     
-    // Find quiz with questions for detailed view
     @Query("SELECT q FROM Quiz q LEFT JOIN FETCH q.quizQuestions WHERE q.id = :id AND q.userId = :userId")
     Optional<Quiz> findByIdAndUserIdWithQuestions(@Param("id") Long id, @Param("userId") UUID userId);
-    
-    // Find quiz with responses for summary view
-    @Query("SELECT q FROM Quiz q LEFT JOIN FETCH q.quizQuestionResponses WHERE q.id = :id AND q.userId = :userId")
-    Optional<Quiz> findByIdAndUserIdWithResponses(@Param("id") Long id, @Param("userId") UUID userId);
 
     Optional<Quiz> findByIdAndUserId(Integer id, UUID userId);
 }

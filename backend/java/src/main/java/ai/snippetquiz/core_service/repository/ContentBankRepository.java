@@ -14,38 +14,24 @@ import java.util.UUID;
 @Repository
 public interface ContentBankRepository extends JpaRepository<ContentBank, Long> {
 
-    // Find by user ID and name for duplicate checking
-    Optional<ContentBank> findByUserIdAndName(UUID userId, String name);
+        Optional<ContentBank> findByUserIdAndName(UUID userId, String name);
 
-    // Find by ID and user ID for ownership verification
-    Optional<ContentBank> findByIdAndUserId(Long id, UUID userId);
+        Optional<ContentBank> findByIdAndUserId(Long id, UUID userId);
 
-    // Find all by user ID with optional name filtering
-    @Query("SELECT cb FROM ContentBank cb WHERE cb.userId = :userId " +
-            "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
-    Page<ContentBank> findByUserIdAndNameContainingIgnoreCase(
-            @Param("userId") UUID userId,
-            @Param("name") String name,
-            Pageable pageable);
+        void deleteByIdAndUserId(Long id, UUID userId);
 
-    // Count by user ID and optional name filter
-    @Query("SELECT COUNT(cb) FROM ContentBank cb WHERE cb.userId = :userId " +
-            "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
-    long countByUserIdAndNameContainingIgnoreCase(
-            @Param("userId") UUID userId,
-            @Param("name") String name);
+        @Query("SELECT cb FROM ContentBank cb WHERE cb.userId = :userId " +
+                        "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
+        Page<ContentBank> findByUserIdAndNameContainingIgnoreCase(
+                        @Param("userId") UUID userId,
+                        @Param("name") String name,
+                        Pageable pageable);
 
-    // Find by user ID and name excluding specific ID (for update validation)
-    @Query("SELECT cb FROM ContentBank cb WHERE cb.userId = :userId " +
-            "AND cb.name = :name AND cb.id != :excludeId")
-    Optional<ContentBank> findByUserIdAndNameExcludingId(
-            @Param("userId") UUID userId,
-            @Param("name") String name,
-            @Param("excludeId") Long excludeId);
+        Optional<ContentBank> findByUserIdAndNameAndIdNot(UUID userId, String name, Long excludeId);
 
-    @Query("SELECT DISTINCT cb FROM ContentBank cb " +
-           "INNER JOIN FETCH cb.contentEntryBanks ceb " +
-           "INNER JOIN FETCH ceb.contentEntry ce " +
-           "WHERE cb.id = :id AND cb.userId = :userId")
-    Optional<ContentBank> findByIdAndUserIdWithContentEntries(@Param("id") Long id, @Param("userId") UUID userId);
+        @Query("SELECT DISTINCT cb FROM ContentBank cb " +
+                        "INNER JOIN FETCH cb.contentEntryBanks ceb " +
+                        "INNER JOIN FETCH ceb.contentEntry ce " +
+                        "WHERE cb.id = :id AND cb.userId = :userId")
+        Optional<ContentBank> findByIdAndUserIdWithContentEntries(@Param("id") Long id, @Param("userId") UUID userId);
 }

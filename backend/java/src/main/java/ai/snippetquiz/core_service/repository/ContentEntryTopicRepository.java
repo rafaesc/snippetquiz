@@ -10,17 +10,12 @@ import java.util.List;
 
 @Repository
 public interface ContentEntryTopicRepository extends JpaRepository<ContentEntryTopic, Long> {
-    
-    // Find all topics for a content entry
     List<ContentEntryTopic> findByContentEntryId(Long contentEntryId);
     
-    // Find all content entries for a topic
     List<ContentEntryTopic> findByTopicId(Long topicId);
     
-    // Delete all associations for a content entry
     void deleteByContentEntryId(Long contentEntryId);
     
-    // Get topic names for a content entry
     @Query("SELECT cet.topic.topic FROM ContentEntryTopic cet WHERE cet.contentEntry.id = :contentEntryId")
     List<String> findTopicNamesByContentEntryId(@Param("contentEntryId") Long contentEntryId);
 }

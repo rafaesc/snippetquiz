@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record ContentEntryItemResponse(
+public record ContentEntryDTOResponse(
     String id,
     String contentType,
     String content, // truncated to 300 chars

@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/lib/api-service";
-import { QuizSummaryResponse, QuizResponsesResponse } from "@/lib/types";
 
 export default function QuizSummaryPage() {
   const params = useParams();
@@ -96,7 +95,7 @@ export default function QuizSummaryPage() {
   }
 
   const summary = summaryData;
-  const responses = responsesData.responses;
+  const responses = responsesData.content;
   const totalQuestions = summary.totalQuestions;
   const correctAnswers = summary.totalCorrectAnswers;
   const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;

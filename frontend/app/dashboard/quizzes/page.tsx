@@ -4,16 +4,10 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
-  Calendar,
-  ExternalLink,
-  ChevronLeft,
-  CheckCircle,
-  XCircle,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Pagination,
@@ -27,17 +21,11 @@ import { QuizList } from "@/components/QuizList";
 import { apiService } from "@/lib/api-service";
 import { Quiz, QuizResponse, QuizSummaryResponse } from "@/lib/types";
 
-interface QuizWithDetails extends Quiz {
-  responses?: QuizResponse[];
-  summary?: QuizSummaryResponse;
-}
-
 export default function QuizzesPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // Fetch quizzes using TanStack Query
   const {
     data: quizzesData,
     isLoading: isLoadingQuizzes,
@@ -57,7 +45,6 @@ export default function QuizzesPage() {
     setPage(newPage);
   };
 
-  // Loading state
   if (isLoadingQuizzes) {
     return (
       <div className="p-4 md:p-6 space-y-6">
@@ -75,7 +62,6 @@ export default function QuizzesPage() {
     );
   }
 
-  // Error state
   if (quizzesError) {
     return (
       <div className="p-4 md:p-6 space-y-6">
@@ -100,7 +86,6 @@ export default function QuizzesPage() {
     );
   }
 
-  // Quiz list view
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div>
@@ -112,7 +97,7 @@ export default function QuizzesPage() {
         </p>
       </div>
 
-      {quizzesData?.quizzes && quizzesData.quizzes.length > 0 ? (
+      {quizzesData?.content && quizzesData.content.length > 0 ? (
         <>
           <QuizList
             quizzesData={quizzesData}
@@ -120,7 +105,7 @@ export default function QuizzesPage() {
           />
 
           {/* Pagination */}
-          {quizzesData.pagination.total > limit && (
+          {quizzesData.page.totalPages > limit && (
             <div className="flex justify-center">
               <Pagination>
                 <PaginationContent>
@@ -138,13 +123,13 @@ export default function QuizzesPage() {
                     {
                       length: Math.min(
                         5,
-                        Math.ceil(quizzesData.pagination.total / limit)
+                        Math.ceil(quizzesData.page.totalElements / limit)
                       ),
                     },
                     (_, i) => {
                       const pageNum = i + Math.max(1, page - 2);
                       const totalPages = Math.ceil(
-                        quizzesData.pagination.total / limit
+                        quizzesData.page.totalElements / limit
                       );
                       if (pageNum > totalPages) return null;
                       return (
@@ -165,13 +150,13 @@ export default function QuizzesPage() {
                       onClick={() =>
                         handlePageChange(
                           Math.min(
-                            Math.ceil(quizzesData.pagination.total / limit),
+                            Math.ceil(quizzesData.page.totalElements / limit),
                             page + 1
                           )
                         )
                       }
                       className={
-                        page >= Math.ceil(quizzesData.pagination.total / limit)
+                        page >= Math.ceil(quizzesData.page.totalElements / limit)
                           ? "pointer-events-none opacity-50"
                           : "cursor-pointer"
                       }

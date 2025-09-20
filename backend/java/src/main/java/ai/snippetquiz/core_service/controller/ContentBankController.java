@@ -1,23 +1,33 @@
 package ai.snippetquiz.core_service.controller;
 
-import ai.snippetquiz.core_service.dto.request.*;
-import ai.snippetquiz.core_service.dto.response.*;
+import ai.snippetquiz.core_service.dto.request.CreateContentBankRequest;
+import ai.snippetquiz.core_service.dto.request.DuplicateContentBankRequest;
+import ai.snippetquiz.core_service.dto.request.UpdateContentBankRequest;
+import ai.snippetquiz.core_service.dto.response.ContentBankItemResponse;
+import ai.snippetquiz.core_service.dto.response.ContentBankResponse;
 import ai.snippetquiz.core_service.service.ContentBankService;
 import ai.snippetquiz.core_service.util.Constants;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestHeader;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.SortDefault;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/content-bank")
 @Validated
-@RequiredArgsConstructor
 public class ContentBankController {
 
     private final ContentBankService contentBankService;
@@ -32,20 +42,18 @@ public class ContentBankController {
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedContentBanksResponse> findAll(
+    public PagedModel<ContentBankItemResponse> findAll(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @Valid FindAllContentBanksRequest request) {
-
-        PaginatedContentBanksResponse response = contentBankService.findAll(UUID.fromString(userId), request);
-        return ResponseEntity.ok(response);
+            @RequestParam(required = false) String name,
+            @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
+        return contentBankService.findAll(UUID.fromString(userId), name, pageable);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ContentBankResponse> findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-
-        ContentBankResponse response = contentBankService.findOne(UUID.fromString(userId), id);
+        var response = contentBankService.findOne(UUID.fromString(userId), id);
         return ResponseEntity.ok(response);
     }
 
@@ -54,7 +62,7 @@ public class ContentBankController {
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
             @Valid @RequestBody UpdateContentBankRequest request) {
-        ContentBankResponse response = contentBankService.update(UUID.fromString(userId), id, request);
+        var response = contentBankService.update(UUID.fromString(userId), id, request);
         return ResponseEntity.ok(response);
     }
 

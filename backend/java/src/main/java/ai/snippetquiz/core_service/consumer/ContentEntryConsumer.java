@@ -1,12 +1,11 @@
 package ai.snippetquiz.core_service.consumer;
 
-import ai.snippetquiz.core_service.entity.ContentEntry;
+import ai.snippetquiz.core_service.dto.event.ContentEntryEventPayload;
 import ai.snippetquiz.core_service.entity.ContentEntryTopic;
 import ai.snippetquiz.core_service.entity.Topic;
 import ai.snippetquiz.core_service.repository.ContentEntryRepository;
 import ai.snippetquiz.core_service.repository.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.repository.TopicRepository;
-import ai.snippetquiz.core_service.service.KafkaProducerService.ContentEntryEventPayload;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -33,7 +31,7 @@ public class ContentEntryConsumer {
     @Transactional
     public void consume(String message) {
         try {
-            ContentEntryEventPayload payload = objectMapper.readValue(message, ContentEntryEventPayload.class);            
+            var payload = objectMapper.readValue(message, ContentEntryEventPayload.class);
             if ("SAVE".equals(payload.action())) {
                 handleSaveEvent(payload);
             }
@@ -52,44 +50,40 @@ public class ContentEntryConsumer {
         try {
             List<String> generatedTopics = payload.topics() != null ? payload.topics() : List.of();
 
-            int topicsCreated = 0;
+            var topicsCreated = 0;
 
-            // Get the content entry to link topics to
-            Long contentId = Long.parseLong(payload.contentId());
-            Optional<ContentEntry> contentEntryOpt = contentEntryRepository.findById(contentId);
+            var contentId = Long.parseLong(payload.contentId());
+            var contentEntryOpt = contentEntryRepository.findById(contentId);
 
             if (contentEntryOpt.isEmpty()) {
                 log.error("Content entry not found: {}", payload.contentId());
                 return;
             }
 
-            ContentEntry contentEntry = contentEntryOpt.get();
-            UUID userId = UUID.fromString(payload.userId());
+            var contentEntry = contentEntryOpt.get();
+            var userId = UUID.fromString(payload.userId());
 
-            // Process each generated topic
-            for (String topicName : generatedTopics) {
+            for (var topicName : generatedTopics) {
                 if (topicName == null || topicName.trim().isEmpty()) {
                     continue;
                 }
 
                 try {
-                    // Find or create topic
-                    Topic topic = topicRepository.findByUserIdAndTopic(userId, topicName)
+                    var topic = topicRepository.findByUserIdAndTopic(userId, topicName)
                             .orElseGet(() -> {
                                 Topic newTopic = new Topic(userId, topicName.trim());
                                 return topicRepository.save(newTopic);
                             });
 
-                    // Check if association already exists
-                    List<ContentEntryTopic> existingAssociations = contentEntryTopicRepository
+                    var existingAssociations = contentEntryTopicRepository
                             .findByContentEntryId(contentEntry.getId());
 
-                    boolean associationExists = existingAssociations.stream()
+                    var associationExists = existingAssociations.stream()
                             .anyMatch(cet -> cet.getTopic().getId().equals(topic.getId()));
 
                     if (!associationExists) {
                         // Create association between content entry and topic
-                        ContentEntryTopic contentEntryTopic = new ContentEntryTopic(contentEntry, topic);
+                        var contentEntryTopic = new ContentEntryTopic(contentEntry, topic);
                         contentEntryTopicRepository.save(contentEntryTopic);
                         topicsCreated++;
                     }

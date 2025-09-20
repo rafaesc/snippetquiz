@@ -19,10 +19,8 @@ import ai.snippetquiz.core_service.service.RedisPublisher;
 import ai.snippetquiz.core_service.service.ContentEntryService;
 import ai.snippetquiz.core_service.dto.request.CreateQuizDTO;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -38,7 +36,7 @@ public class QuizGenerationConsumer {
     @Transactional
     public void handleQuizGenerationEvent(String message) {
         try {
-            QuizGenerationEventPayload payload = objectMapper.readValue(message, QuizGenerationEventPayload.class);
+            var payload = objectMapper.readValue(message, QuizGenerationEventPayload.class);
             log.info("Received quiz generation event: {}", payload);
 
             handleSaveEvent(payload);
@@ -51,22 +49,22 @@ public class QuizGenerationConsumer {
 
     private void handleSaveEvent(QuizGenerationEventPayload data) {
         try {
-            UUID userId = UUID.fromString(data.userId());
-            String quizId = data.quizId();
+            var userId = UUID.fromString(data.userId());
+            var quizId = data.quizId();
             if (data.totalChunks() != 0) {
-                Long contentEntryId = data.contentEntry().id();
-                List<QuizGenerationEventPayload.QuestionDto> questions = data.contentEntry().questions();
+                var contentEntryId = data.contentEntry().id();
+                var questions = data.contentEntry().questions();
 
                 // Create questions for the content entry
-                for (QuizGenerationEventPayload.QuestionDto question : questions) {
-                    List<QuestionOptionRequest> options = question.options().stream()
+                for (var question : questions) {
+                    var options = question.options().stream()
                             .map(option -> new QuestionOptionRequest(
                                     option.optionText(),
                                     option.optionExplanation(),
                                     option.isCorrect()))
-                            .collect(Collectors.toList());
+                            .toList();
 
-                    CreateQuestionRequest questionRequest = new CreateQuestionRequest(
+                    var questionRequest = new CreateQuestionRequest(
                             contentEntryId,
                             question.question(),
                             options);
@@ -96,7 +94,7 @@ public class QuizGenerationConsumer {
                     quizId,
                     status);
 
-            String createdQuizId = quizService.createQuiz(userId, quizRequest);
+            var createdQuizId = quizService.createQuiz(userId, quizRequest);
 
             redisPublisher.sendFanoutMessageQuizGenerationEvent(userId.toString(), data);
             log.info("Quiz created successfully Quiz ID: {}", createdQuizId);

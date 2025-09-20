@@ -8,7 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface YoutubeChannelRepository extends JpaRepository<YoutubeChannel, Long> {
-    
-    // Find by channel ID
     Optional<YoutubeChannel> findByChannelId(String channelId);
 }

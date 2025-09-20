@@ -41,11 +41,12 @@ export interface ContentBank {
 }
 
 export interface ContentBanksResponse {
-  contentBanks: ContentBank[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
+  content: ContentBank[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
   };
 }
 
@@ -74,11 +75,12 @@ export interface ContentEntry {
 }
 
 export interface ContentEntriesResponse {
-  data: ContentEntry[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
+  content: ContentEntry[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
   };
 }
 
@@ -103,11 +105,12 @@ export interface Quiz {
 }
 
 export interface QuizzesResponse {
-  quizzes: Quiz[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
+  content: Quiz[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
   };
 }
 
@@ -121,11 +124,11 @@ export interface QuizResponse {
 }
 
 export interface QuizResponsesResponse {
-  responses: QuizResponse[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
+  content: QuizResponse[];
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
   };
 }
 
