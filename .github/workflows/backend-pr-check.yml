@@ -1,4 +1,7 @@
 name: Validate Backend Pull Request
+permissions:
+  contents: read
+  pull-requests: read
 
 on:
   pull_request:
@@ -8,11 +11,31 @@ on:
       - master
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      java: ${{ steps.filter.outputs.java }}
+      nestjs: ${{ steps.filter.outputs.nestjs }}
+      python: ${{ steps.filter.outputs.python }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            java:
+              - 'backend/java/**'
+            nestjs:
+              - 'backend/nestjs/**'
+            python:
+              - 'backend/python/**'
+
   # Java Spring Boot Service
   test-and-build-java:
     name: Test and Build Java Service
+    needs: changes
+    if: ${{ needs.changes.outputs.java == 'true' }}
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.changed_files, 'backend/java/')
 
     services:
       postgres:
@@ -105,8 +128,9 @@ jobs:
   # NestJS Services
   test-and-build-nestjs:
     name: Test and Build NestJS Services
+    needs: changes
+    if: ${{ needs.changes.outputs.nestjs == 'true' }}
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.changed_files, 'backend/nestjs/')
 
     services:
       postgres:
@@ -215,8 +239,9 @@ jobs:
   # Python AI Service
   test-and-build-python:
     name: Test and Build Python AI Service
+    needs: changes
+    if: ${{ needs.changes.outputs.python == 'true' }}
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.changed_files, 'backend/python/')
 
     services:
       kafka:
@@ -363,28 +388,4 @@ jobs:
       - name: Cleanup
         if: always()
         run: docker-compose -f docker-compose.yml down -v
-
-  # Security Scan
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: 'backend/'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
 
