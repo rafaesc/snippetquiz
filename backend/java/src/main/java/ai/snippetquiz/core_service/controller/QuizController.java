@@ -61,11 +61,9 @@ public class QuizController {
 
         var createQuizDto = new CreateQuizDTO(
                 request.bankId(),
-                request.quizId(),
-                QuizStatus.PREPARE);
+                request.quizId());
 
         var quizId = quizService.createQuiz(UUID.fromString(userId), createQuizDto);
-        quizService.emitCreateQuizEvent(userId, quizId, request.bankId());
 
         return new CreateQuizResponse(quizId);
     }
@@ -81,7 +79,7 @@ public class QuizController {
     @GetMapping("/{id}")
     public FindOneQuizResponse findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
+            @PathVariable Long id) {
         return quizService.findOne(UUID.fromString(userId), id);
     }
 
@@ -89,8 +87,8 @@ public class QuizController {
     @ResponseStatus(HttpStatus.OK)
     public UpdateQuizResponse updateQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id,
-            @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") String questionOptionId) {
+            @PathVariable Long id,
+            @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") Long questionOptionId) {
         return quizService.updateQuiz(UUID.fromString(userId), id, questionOptionId);
     }
 
@@ -105,7 +103,7 @@ public class QuizController {
     @GetMapping("/{id}/responses")
     public PagedModel<QuizResponseItemDto> findQuizResponses(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id,
+            @PathVariable Long id,
             @PageableDefault(size = Constants.DEFAULT_LIMIT) Pageable pageable) {
         return quizService.findQuizResponses(UUID.fromString(userId), id, pageable);
     }
@@ -113,7 +111,7 @@ public class QuizController {
     @GetMapping("/{id}/summary")
     public QuizSummaryResponseDto findQuizSummary(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
-        return quizService.findQuizSummary(Long.parseLong(id), UUID.fromString(userId));
+            @PathVariable Long id) {
+        return quizService.findQuizSummary(id, UUID.fromString(userId));
     }
 }

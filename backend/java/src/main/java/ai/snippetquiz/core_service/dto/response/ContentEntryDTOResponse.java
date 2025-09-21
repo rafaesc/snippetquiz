@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record ContentEntryDTOResponse(
-    String id,
+    Long id,
     String contentType,
     String content, // truncated to 300 chars
     String sourceUrl,

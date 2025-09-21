@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.consumer;
 import ai.snippetquiz.core_service.dto.event.ContentEntryEventPayload;
 import ai.snippetquiz.core_service.entity.ContentEntryTopic;
 import ai.snippetquiz.core_service.entity.Topic;
+import ai.snippetquiz.core_service.exception.NotFoundException;
 import ai.snippetquiz.core_service.repository.ContentEntryRepository;
 import ai.snippetquiz.core_service.repository.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.repository.TopicRepository;
@@ -47,20 +48,21 @@ public class ContentEntryConsumer {
                 payload.contentId(),
                 payload.topics() != null ? payload.topics().size() : 0);
 
+        var contentId = payload.contentId();
+        var contentEntry = contentEntryRepository.findById(contentId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Content Entry not found or you do not have permission to access it"));
+
+        if (!contentEntry.getTopics().isEmpty()) {
+            log.warn("Content entry already has topics: {}", contentEntry.getTopics());
+            return;
+        }
+
         try {
             List<String> generatedTopics = payload.topics() != null ? payload.topics() : List.of();
 
             var topicsCreated = 0;
 
-            var contentId = Long.parseLong(payload.contentId());
-            var contentEntryOpt = contentEntryRepository.findById(contentId);
-
-            if (contentEntryOpt.isEmpty()) {
-                log.error("Content entry not found: {}", payload.contentId());
-                return;
-            }
-
-            var contentEntry = contentEntryOpt.get();
             var userId = UUID.fromString(payload.userId());
 
             for (var topicName : generatedTopics) {

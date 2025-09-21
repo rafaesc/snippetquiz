@@ -190,8 +190,8 @@ export default function QuizPlayerPage() {
 
       // Update the quiz with the selected option
       await updateQuizMutation.mutateAsync({
-        quizId: parseInt(quiz.id),
-        optionId: parseInt(selectedOption.id),
+        quizId: quiz.id,
+        optionId: selectedOption.id,
       });
     } catch (error) {
       setSelectedAnswer(null);

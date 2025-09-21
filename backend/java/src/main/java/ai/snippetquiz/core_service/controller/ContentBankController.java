@@ -9,7 +9,6 @@ import ai.snippetquiz.core_service.service.ContentBankService;
 import ai.snippetquiz.core_service.util.Constants;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.Valid;
@@ -51,7 +50,7 @@ public class ContentBankController {
     @GetMapping("/{id}")
     public ContentBankResponse findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
+            @PathVariable Long id) {
         return contentBankService.findOne(UUID.fromString(userId), id);
     }
 
@@ -59,7 +58,7 @@ public class ContentBankController {
     @ResponseStatus(HttpStatus.OK)
     public ContentBankResponse update(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id,
+            @PathVariable Long id,
             @Valid @RequestBody UpdateContentBankRequest request) {
         return contentBankService.update(UUID.fromString(userId), id, request);
     }
@@ -68,7 +67,7 @@ public class ContentBankController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
+            @PathVariable Long id) {
         contentBankService.remove(UUID.fromString(userId), id);
     }
 
@@ -76,7 +75,7 @@ public class ContentBankController {
     @ResponseStatus(HttpStatus.CREATED)
     public ContentBankResponse duplicate(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id,
+            @PathVariable Long id,
             @Valid @RequestBody DuplicateContentBankRequest request) {
         return contentBankService.duplicate(UUID.fromString(userId), id, request);
     }

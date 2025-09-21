@@ -22,7 +22,7 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public void emitGenerateTopicsEvent(String userId, String contentId,
+    public void emitGenerateTopicsEvent(String userId, Long contentId,
             String content, String pageTitle, String existingTopics) {
         try {
             var payload = new ContentEntryEventPayload(
@@ -42,7 +42,7 @@ public class KafkaProducerService {
     }
 
     public void emitCreateQuizEvent(
-            GenerateQuizRequest quizRequest, String userId, String quizId, Long bankId, Integer entriesSkipped) {
+            GenerateQuizRequest quizRequest, String userId, Long quizId, Long bankId, Integer entriesSkipped) {
         try {
             var payload = new CreateQuizGenerationEventPayload(
                     quizRequest.instructions(),

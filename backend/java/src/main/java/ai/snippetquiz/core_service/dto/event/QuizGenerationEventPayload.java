@@ -3,8 +3,8 @@ package ai.snippetquiz.core_service.dto.event;
 import java.util.List;
 
 public record QuizGenerationEventPayload(
-    String quizId,
-    String bankId,
+    Long quizId,
+    Long bankId,
     String userId,
     Integer totalContentEntries,
     Integer totalContentEntriesSkipped,

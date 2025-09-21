@@ -18,7 +18,7 @@ public interface ContentEntryRepository extends JpaRepository<ContentEntry, Long
 
     Page<ContentEntry> findByContentEntryBanks_ContentBank_Id(Long contentBankId, Pageable pageable);
 
-    Optional<ContentEntry> findByIdAndUserId(Long id, UUID usUuid);
+    Optional<ContentEntry> findByIdAndUserId(Long id, UUID userId);
 
     @Query("SELECT COUNT(ce) FROM ContentEntry ce " +
             "JOIN ContentEntryBank ceb ON ce.id = ceb.contentEntry.id " +

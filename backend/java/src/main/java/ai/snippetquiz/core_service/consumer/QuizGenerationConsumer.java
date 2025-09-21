@@ -14,10 +14,12 @@ import ai.snippetquiz.core_service.dto.event.QuizGenerationEventPayload;
 import ai.snippetquiz.core_service.dto.request.CreateQuestionRequest;
 import ai.snippetquiz.core_service.dto.request.QuestionOptionRequest;
 import ai.snippetquiz.core_service.entity.QuizStatus;
+import ai.snippetquiz.core_service.exception.NotFoundException;
+import ai.snippetquiz.core_service.repository.ContentEntryRepository;
+import ai.snippetquiz.core_service.repository.QuizRepository;
 import ai.snippetquiz.core_service.service.QuizService;
 import ai.snippetquiz.core_service.service.RedisPublisher;
 import ai.snippetquiz.core_service.service.ContentEntryService;
-import ai.snippetquiz.core_service.dto.request.CreateQuizDTO;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -28,8 +30,11 @@ import java.util.UUID;
 public class QuizGenerationConsumer {
 
     private final ObjectMapper objectMapper;
+    private final QuizRepository quizRepository;
     private final QuizService quizService;
     private final ContentEntryService contentEntryService;
+    private final ContentEntryRepository contentEntryRepository;
+
     private final RedisPublisher redisPublisher;
 
     @KafkaListener(topics = "quiz-generation", containerFactory = "kafkaListenerContainerFactory")
@@ -51,11 +56,23 @@ public class QuizGenerationConsumer {
         try {
             var userId = UUID.fromString(data.userId());
             var quizId = data.quizId();
+            var quiz = quizRepository.findById(quizId)
+                    .orElseThrow(() -> new NotFoundException(
+                            "Quiz not found or you do not have permission to access it"));
+
+            if (QuizStatus.READY.equals(quiz.getStatus())) {
+                log.warn("Quiz {} is not in progress", quizId);
+                return;
+            }
+
             if (data.totalChunks() != 0) {
                 var contentEntryId = data.contentEntry().id();
+                var contentEntry = contentEntryRepository
+                        .findByIdAndUserId(contentEntryId, userId)
+                        .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
+
                 var questions = data.contentEntry().questions();
 
-                // Create questions for the content entry
                 for (var question : questions) {
                     var options = question.options().stream()
                             .map(option -> new QuestionOptionRequest(
@@ -69,17 +86,16 @@ public class QuizGenerationConsumer {
                             question.question(),
                             options);
 
-                    quizService.createQuestion(questionRequest, userId);
+                    contentEntryService.createQuestion(questionRequest, userId);
                 }
 
-                // Update content entry
-                contentEntryService.updateContentEntry(userId, contentEntryId.toString());
+                contentEntry.setQuestionsGenerated(true);
+                contentEntryRepository.save(contentEntry);
 
                 log.info("Quiz - {} Content entry {} updated. Progress: {}/{}",
                         quizId, contentEntryId, data.currentChunkIndex() + 1, data.totalChunks());
             }
 
-            // Determine quiz status based on progress
             QuizStatus status;
             if (data.currentChunkIndex() + 1 == data.totalChunks() || Objects.isNull(data.contentEntry())) {
                 log.info("All content entries processed. Creating quiz for bankId: {}", data.bankId());
@@ -88,16 +104,10 @@ public class QuizGenerationConsumer {
                 status = QuizStatus.IN_PROGRESS;
             }
 
-            // Create or update quiz
-            var quizRequest = new CreateQuizDTO(
-                    Long.parseLong(data.bankId()),
-                    quizId,
-                    status);
-
-            var createdQuizId = quizService.createQuiz(userId, quizRequest);
+            quizService.processNewQuizQuestions(quiz, status);
 
             redisPublisher.sendFanoutMessageQuizGenerationEvent(userId.toString(), data);
-            log.info("Quiz created successfully Quiz ID: {}", createdQuizId);
+            log.info("Quiz created successfully Quiz ID: {}", quizId);
 
         } catch (Exception e) {
             log.error("Failed to handle save event for quiz: {}", data.quizId(), e);

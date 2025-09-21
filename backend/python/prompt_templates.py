@@ -51,28 +51,34 @@ Topics:"""
         return prompt
 
     @staticmethod
-    def get_quiz_generation_system_prompt(instructions: str, summaries: List[str]) -> str:
+    def get_quiz_generation_system_prompt(
+        instructions: str, summaries: List[str]
+    ) -> str:
         """
         Generate a system prompt that includes instructions and context summaries
-        
+
         Args:
             instructions: User-customizable instructions for question generation
             summaries: List of summaries from previous chunks for context
-            
+
         Returns:
             Formatted system prompt string
         """
         system_prompt = f"You are an expert quiz creator. Follow these custom instructions: {instructions}"
-        
+
         if summaries:
             summaries_text = "\n".join([f"- {summary}" for summary in summaries])
-            system_prompt += f"\n\nPrevious content summaries for context:\n{summaries_text}"
+            system_prompt += (
+                f"\n\nPrevious content summaries for context:\n{summaries_text}"
+            )
             system_prompt += "\n\nConsider the previous summaries for context but focus on new information in the current content chunk."
-        
+
         return system_prompt
 
     @staticmethod
-    def get_quiz_generation_prompt(instructions: str, summaries: List[str], page_title: str, content: str) -> str:
+    def get_quiz_generation_prompt(
+        instructions: str, summaries: List[str], page_title: str, content: str
+    ) -> str:
         """
         Generate a prompt for quiz question generation with custom instructions and context
 
@@ -85,7 +91,7 @@ Topics:"""
         Returns:
             Formatted prompt string for quiz generation
         """
-        
+
         prompt = f"""You are an expert quiz creator. Generate high-quality multiple-choice questions and a summary based on the provided content.
 
 Page Title: {page_title}
@@ -118,14 +124,14 @@ Format your response as JSON with this exact structure:
   "summary": "Concise summary of this content chunk"
 }}
 """
-        
+
         return prompt
 
     @staticmethod
     def get_quiz_generation_json_schema() -> dict:
         """
         Get the JSON schema for quiz generation response structure
-        
+
         Returns:
             Dictionary containing the JSON schema for structured quiz output
         """
@@ -141,7 +147,7 @@ Format your response as JSON with this exact structure:
                             "properties": {
                                 "question": {
                                     "type": "string",
-                                    "description": "The quiz question text"
+                                    "description": "The quiz question text",
                                 },
                                 "options": {
                                     "type": "array",
@@ -150,34 +156,34 @@ Format your response as JSON with this exact structure:
                                         "properties": {
                                             "text": {
                                                 "type": "string",
-                                                "description": "The option text"
+                                                "description": "The option text",
                                             },
                                             "correct": {
                                                 "type": "boolean",
-                                                "description": "Whether this option is correct"
+                                                "description": "Whether this option is correct",
                                             },
                                             "explanation": {
                                                 "type": "string",
-                                                "description": "Explanation for why this option is correct or incorrect"
-                                            }
+                                                "description": "Explanation for why this option is correct or incorrect",
+                                            },
                                         },
                                         "required": ["text", "correct", "explanation"],
-                                        "additionalProperties": False
+                                        "additionalProperties": False,
                                     },
                                     "minItems": 4,
-                                    "maxItems": 4
-                                }
+                                    "maxItems": 4,
+                                },
                             },
                             "required": ["question", "options"],
-                            "additionalProperties": False
-                        }
+                            "additionalProperties": False,
+                        },
                     },
                     "summary": {
                         "type": "string",
-                        "description": "Concise summary of the content chunk"
-                    }
+                        "description": "Concise summary of the content chunk",
+                    },
                 },
                 "required": ["questions", "summary"],
-                "additionalProperties": False
-            }
+                "additionalProperties": False,
+            },
         }

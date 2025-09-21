@@ -53,7 +53,7 @@ public class RedisPublisher {
                         .currentContentEntryIndex(event.currentContentEntryIndex())
                         .questionsGeneratedSoFar(event.questionsGeneratedSoFar())
                         .contentEntry(QuizGenerationFanoutEventPayload.Progress.ContentEntry.builder()
-                                .id(event.contentEntry().id().toString())
+                                .id(event.contentEntry().id())
                                 .name(event.contentEntry().pageTitle())
                                 .wordCountAnalyzed(event.contentEntry().wordCountAnalyzed())
                                 .build())

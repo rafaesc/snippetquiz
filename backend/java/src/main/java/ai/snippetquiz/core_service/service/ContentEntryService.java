@@ -1,13 +1,17 @@
 package ai.snippetquiz.core_service.service;
 
 import ai.snippetquiz.core_service.dto.request.CreateContentEntryRequest;
-import ai.snippetquiz.core_service.dto.request.RemoveContentEntryRequest;
+import ai.snippetquiz.core_service.dto.request.CreateQuestionRequest;
+import ai.snippetquiz.core_service.dto.request.QuestionOptionRequest;
 import ai.snippetquiz.core_service.dto.response.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.dto.response.ContentEntryResponse;
+import ai.snippetquiz.core_service.dto.response.CreateQuestionResponse;
 import ai.snippetquiz.core_service.entity.ContentEntry;
 import ai.snippetquiz.core_service.entity.ContentEntryBank;
 import ai.snippetquiz.core_service.entity.ContentEntryTopic;
 import ai.snippetquiz.core_service.entity.ContentType;
+import ai.snippetquiz.core_service.entity.Question;
+import ai.snippetquiz.core_service.entity.QuestionOption;
 import ai.snippetquiz.core_service.entity.YoutubeChannel;
 import ai.snippetquiz.core_service.exception.NotFoundException;
 import ai.snippetquiz.core_service.repository.ContentEntryRepository;
@@ -16,6 +20,8 @@ import ai.snippetquiz.core_service.repository.ContentEntryBankRepository;
 import ai.snippetquiz.core_service.repository.TopicRepository;
 import ai.snippetquiz.core_service.repository.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.repository.ContentEntryTopicRepository;
+import ai.snippetquiz.core_service.repository.QuestionOptionRepository;
+import ai.snippetquiz.core_service.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -45,9 +52,11 @@ public class ContentEntryService {
     private final YoutubeChannelRepository youtubeChannelRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final KafkaProducerService kafkaProducerService;
+    private final QuestionRepository questionRepository;
+    private final QuestionOptionRepository questionOptionRepository;
 
     public ContentEntryResponse create(UUID userId, CreateContentEntryRequest request) {
-        var bankId = Long.parseLong(request.bankId());
+        var bankId = request.bankId();
         var contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
@@ -164,14 +173,14 @@ public class ContentEntryService {
     }
 
     @Transactional(readOnly = true)
-    public ContentEntryDTOResponse findById(UUID userId, Long entryId) {        
+    public ContentEntryDTOResponse findById(UUID userId, Long entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
-        
+
         var topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(contentEntry.getId());
-        
+
         return new ContentEntryDTOResponse(
-                contentEntry.getId().toString(),
+                contentEntry.getId(),
                 contentEntry.getContentType().getValue(),
                 truncateContent(contentEntry.getContent(), 200),
                 contentEntry.getSourceUrl(),
@@ -183,9 +192,8 @@ public class ContentEntryService {
 
     @Transactional(readOnly = true)
     public PagedModel<ContentEntryDTOResponse> findAll(
-            UUID userId, String filterBybankId,
+            UUID userId, Long bankId,
             String name, Pageable pageable) {
-        var bankId = Long.parseLong(filterBybankId);
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
@@ -194,7 +202,7 @@ public class ContentEntryService {
         var contentEntryDTOPage = entriesPage.map(entry -> {
             var topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entry.getId());
             return new ContentEntryDTOResponse(
-                    entry.getId().toString(),
+                    entry.getId(),
                     entry.getContentType().getValue(),
                     truncateContent(entry.getContent(), 200),
                     entry.getSourceUrl(),
@@ -207,9 +215,9 @@ public class ContentEntryService {
         return new PagedModel<>(contentEntryDTOPage);
     }
 
-    public ContentEntryResponse clone(UUID userId, String entryId, String cloneTargetBankId) {
-        var sourceId = Long.parseLong(entryId);
-        var targetBankId = Long.parseLong(cloneTargetBankId);
+    public ContentEntryResponse clone(UUID userId, Long entryId, Long cloneTargetBankId) {
+        var sourceId = entryId;
+        var targetBankId = cloneTargetBankId;
 
         var sourceEntry = contentEntryRepository.findByIdAndUserId(sourceId, userId)
                 .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
@@ -252,8 +260,7 @@ public class ContentEntryService {
         return mapToContentEntryResponse(savedClone, topics);
     }
 
-    public void remove(UUID userId, RemoveContentEntryRequest request) {
-        Long entryId = Long.parseLong(request.id());
+    public void remove(UUID userId, Long entryId) {
 
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
@@ -271,27 +278,53 @@ public class ContentEntryService {
                 .collect(Collectors.joining(","));
 
         try {
-            kafkaProducerService.emitGenerateTopicsEvent(userId.toString(), entryId.toString(),
+            kafkaProducerService.emitGenerateTopicsEvent(userId.toString(), entryId,
                     contentEntry.getContent(), contentEntry.getPageTitle(), existingTopics);
         } catch (Exception e) {
             log.error("Failed to emit Kafka event: " + e.getMessage());
         }
     }
 
-    public ContentEntryResponse updateContentEntry(UUID userId, String id) {
-        var entryId = Long.parseLong(id);
+    public CreateQuestionResponse createQuestion(CreateQuestionRequest request, UUID userId) {
+        var contentEntryId = request.contentEntryId();
+        var questionText = request.question();
+        var options = request.options();
 
-        var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
-                .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
+        var contentEntry = contentEntryRepository.findById(contentEntryId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Content entry not found or you do not have permission to access it"));
 
-        contentEntry.setQuestionsGenerated(true);
+        if (Objects.isNull(options) || options.isEmpty()) {
+            log.error("No options provided for question");
+            return new CreateQuestionResponse("No options provided for question", 0L);
+        }
 
-        return mapToContentEntryResponse(contentEntryRepository.save(contentEntry), null);
+        var question = new Question();
+        question.setQuestion(questionText);
+        question.setType("single_choice");
+        question.setContentEntry(contentEntry);
+
+        var savedQuestion = questionRepository.save(question);
+        var quizQuestionOptions = new ArrayList<QuestionOption>();
+
+        for (QuestionOptionRequest optionRequest : options) {
+            QuestionOption option = new QuestionOption();
+            option.setQuestion(savedQuestion);
+            option.setOptionText(optionRequest.optionText());
+            option.setOptionExplanation(optionRequest.optionExplanation());
+            option.setIsCorrect(optionRequest.isCorrect());
+
+            quizQuestionOptions.add(questionOptionRepository.save(option));
+        }
+
+        savedQuestion.setQuestionOptions(quizQuestionOptions);
+
+        return new CreateQuestionResponse("Question created successfully", savedQuestion.getId());
     }
 
     private ContentEntryResponse mapToContentEntryResponse(ContentEntry entry, List<String> topics) {
         return new ContentEntryResponse(
-                entry.getId().toString(),
+                entry.getId(),
                 entry.getContentType().getValue(),
                 entry.getContent(),
                 entry.getSourceUrl(),

@@ -25,14 +25,14 @@ export interface GetInstructionsResponse {
 }
 
 export interface UpdateInstructionsResponse {
-  id: string;
+  id: number;
   instruction: string;
   updatedAt: string; // ISO date string
 }
 
 // Content Bank Types
 export interface ContentBank {
-  id: string;
+  id: number;
   name: string;
   userId: string;
   createdAt: string;
@@ -64,7 +64,7 @@ export interface DuplicateContentBankRequest {
 
 // Content Entry Types
 export interface ContentEntry {
-  id: string;
+  id: number;
   contentType: 'full_html' | 'selected_text' | 'video_transcript';
   content?: string;
   sourceUrl?: string;
@@ -89,12 +89,12 @@ export interface CreateContentEntryRequest {
   content?: string;
   type: 'full_html' | 'selected_text' | 'video_transcript';
   pageTitle?: string;
-  bankId: string;
+  bankId: number;
 }
 
 // Quiz Types
 export interface Quiz {
-  id: string;
+  id: number;
   status: "READY" | "READY_WITH_ERROR" | "IN_PROGRESS" | "PREPARE";
   name: string;
   createdAt: string;
@@ -139,12 +139,12 @@ export interface QuizSummaryResponse {
 }
 
 type QuizQuestionOption = {
-  id: string;
+  id: number;
   optionText: string;
 }
 
 type QuizQuestion = {
-  id: string;
+  id: number;
   question: string;
   contentEntryType: string;
   contentEntrySourceUrl: string;
@@ -152,7 +152,7 @@ type QuizQuestion = {
 }
 
 export type FindOneQuizResponse = {
-  id: string;
+  id: number;
   status: "READY" | "READY_WITH_ERROR" | "IN_PROGRESS" | "PREPARE";
   createdAt: string;
   questionsCompleted: number;
@@ -169,8 +169,8 @@ export interface UpdateQuizResponse {
 
 
 export interface QuizInProgressDetails {
-  quizId: string;
-  bankId: string;
+  quizId: number;
+  bankId: number;
   name: string;
 }
 
@@ -184,5 +184,5 @@ export interface CreateQuizRequest {
 }
 
 export interface CreateQuizResponse {
-  quizId: string;
+  quizId: number;
 }

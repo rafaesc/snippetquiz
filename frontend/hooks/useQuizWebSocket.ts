@@ -20,11 +20,11 @@ export interface QuizGenerationProgress {
   questionsGeneratedSoFar: number;
   totalChunks: number;
   currentChunkIndex: number;
-  contentEntry: {
+  contentEntry?: {
     id: string;
     name: string;
     wordCountAnalyzed: number;
-  } | null;
+  };
 }
 
 interface QuizComplete {

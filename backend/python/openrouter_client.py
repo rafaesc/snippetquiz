@@ -1,8 +1,9 @@
-import requests
 import json
 import os
 import re
 from typing import List, Optional
+
+import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -15,22 +16,25 @@ class OpenRouterClient:
         self.api_key = os.getenv("OPENROUTER_API_KEY")
         if not self.api_key:
             raise ValueError("OPENROUTER_API_KEY environment variable is required")
-        
+
         # Initialize OpenAI client with OpenRouter endpoint
         self.client = OpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=self.api_key,
         )
-        
+
         self.model = "meta-llama/llama-3.3-8b-instruct:free"
         self.models = [
             "google/gemma-3n-e4b-it:free",
             "meta-llama/llama-3.2-3b-instruct:free",
-            "mistralai/mistral-7b-instruct:free"
+            "mistralai/mistral-7b-instruct:free",
         ]
 
     def generate_completion(
-        self, messages: List[dict], max_tokens: int = 1000, json_schema: Optional[dict] = None
+        self,
+        messages: List[dict],
+        max_tokens: int = 1000,
+        json_schema: Optional[dict] = None,
     ) -> Optional[str]:
         """
         Generate completion using OpenRouter AI API via OpenAI client
@@ -54,18 +58,18 @@ class OpenRouterClient:
                 "max_tokens": max_tokens,
                 "temperature": 0.7,
             }
-            
+
             # Add response_format if json_schema is provided
             if json_schema is not None:
                 request_params["response_format"] = {
                     "type": "json_schema",
-                    "json_schema": json_schema
+                    "json_schema": json_schema,
                 }
-            
+
             completion = self.client.chat.completions.create(**request_params)
-            
+
             return completion.choices[0].message.content.strip()
-            
+
         except Exception as e:
             print(f"Error generating completion: {e}")
             return None
@@ -246,10 +250,9 @@ class OpenRouterClient:
 
         # Create the system and user prompts using the templates
         system_prompt = PromptTemplates.get_quiz_generation_system_prompt(
-            instructions=instructions,
-            summaries=summaries
+            instructions=instructions, summaries=summaries
         )
-        
+
         user_prompt = PromptTemplates.get_quiz_generation_prompt(
             instructions=instructions,
             summaries=summaries,
@@ -259,19 +262,23 @@ class OpenRouterClient:
 
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": user_prompt},
         ]
 
         # Get JSON schema from prompt templates
         json_schema = PromptTemplates.get_quiz_generation_json_schema()
 
         # First attempt with JSON schema
-        response = self.generate_completion(messages, max_tokens=1500, json_schema=json_schema)
+        response = self.generate_completion(
+            messages, max_tokens=1500, json_schema=json_schema
+        )
 
         # Retry mechanism - single retry attempt if first attempt fails
         if not response:
             print("First attempt failed, retrying once...")
-            response = self.generate_completion(messages, max_tokens=1500, json_schema=json_schema)
+            response = self.generate_completion(
+                messages, max_tokens=1500, json_schema=json_schema
+            )
 
         if response:
             # Clean and parse the JSON response
@@ -281,7 +288,7 @@ class OpenRouterClient:
                 if cleaned_response is None:
                     print("No valid JSON block found in response")
                     return {"questions": [], "summary": ""}
-                
+
                 result = json.loads(cleaned_response)
                 return {
                     "questions": result.get("questions", []),
@@ -292,7 +299,9 @@ class OpenRouterClient:
                 print(f"Raw response: {response}")
                 # Retry with a fresh request if JSON parsing fails
                 print("JSON parsing failed, retrying request once...")
-                retry_response = self.generate_completion(messages, max_tokens=1500, json_schema=json_schema)
+                retry_response = self.generate_completion(
+                    messages, max_tokens=1500, json_schema=json_schema
+                )
                 if retry_response:
                     try:
                         cleaned_retry_response = self._clean_json_response(
@@ -302,7 +311,7 @@ class OpenRouterClient:
                         if cleaned_retry_response is None:
                             print("No valid JSON block found in retry response")
                             return {"questions": [], "summary": ""}
-                        
+
                         retry_result = json.loads(cleaned_retry_response)
                         return {
                             "questions": retry_result.get("questions", []),

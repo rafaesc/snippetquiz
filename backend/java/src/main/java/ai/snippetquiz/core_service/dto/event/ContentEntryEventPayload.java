@@ -4,7 +4,7 @@ import java.util.List;
 
 public record ContentEntryEventPayload(
     String userId,
-    String contentId,
+    Long contentId,
     String action,
     String content,
     String pageTitle,

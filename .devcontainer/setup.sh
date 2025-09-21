@@ -13,6 +13,7 @@ check_success() {
     fi
 }
 
+export CI=true
 # Get the current working directory (should be the workspace root)
 WORKSPACE_ROOT=$(pwd)
 echo "📍 Working from: $WORKSPACE_ROOT"
@@ -30,25 +31,24 @@ if [ -z "$JAVA_HOME" ]; then
     echo "📝 JAVA_HOME set to: $JAVA_HOME"
 fi
 
-wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
-
 # Install backend dependencies
 echo "📦 Installing backend dependencies..."
 cd "$WORKSPACE_ROOT/backend/nestjs"
-pnpm install
-check_success "Backend pnpm install"
+npm install
+check_success "Backend npm install"
 
 # Install Python backend dependencies
 echo "📦 Installing Python backend dependencies..."
 cd "$WORKSPACE_ROOT/backend/python"
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 check_success "Python backend pip install"
 
 # Install frontend dependencies
 echo "📦 Installing frontend dependencies..."
 cd "$WORKSPACE_ROOT/frontend"
-pnpm install
-check_success "Frontend pnpm install"
+npm install
+check_success "Frontend npm install"
 
 # Build Java backend (if gradle wrapper exists)
 echo "📦 Setting up Java backend..."
@@ -66,9 +66,9 @@ cd "$WORKSPACE_ROOT"
 
 echo "🎉 Setup completed! All dependencies installed successfully."
 echo "📝 Available commands:"
-echo "  - Frontend: cd frontend && pnpm run dev"
-echo "  - Backend: cd backend/nestjs && pnpm run start:dev"
+echo "  - Frontend: cd frontend && npm run dev"
+echo "  - Backend: cd backend/nestjs && npm run start:dev"
 echo "  - Python Backend: cd backend/python && python server.py"
 echo "  - Java Backend: cd backend/java && ./gradlew bootRun"
-echo "  - Extension: cd extension && pnpm i && pnpm run dev"
-echo "  - Landing: cd landing && pnpm install && pnpm run dev"
+echo "  - Extension: cd extension && npm i && npm run dev"
+echo "  - Landing: cd landing && npm install && npm run dev"
