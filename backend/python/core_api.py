@@ -36,10 +36,10 @@ class CoreApiClient:
             return None
 
     def get_content_entry(
-        self, content_entry_id: str, user_id: str
+        self, content_entry_id: int, user_id: str
     ) -> Optional[Dict[Any, Any]]:
         """Get content entry by ID"""
-        endpoint = f"content-entry/{content_entry_id}"
+        endpoint = f"content-entry/{str(content_entry_id)}"
         return self._make_request(endpoint, user_id)
 
     def get_quiz(self, quiz_id: str, user_id: str) -> Optional[Dict[Any, Any]]:
