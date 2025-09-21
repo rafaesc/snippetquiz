@@ -256,7 +256,7 @@ export const apiService = {
   // Content Bank API methods
   getContentBanks: async (page = 0, limit = 10, name?: string): Promise<ContentBanksResponse> => {
     const params = new URLSearchParams({
-      page: (page - 1).toString(),
+      page: page.toString(),
       size: limit.toString(),
     });
 
