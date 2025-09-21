@@ -21,7 +21,9 @@ class KafkaTopicConsumer:
 
         # Lightweight poller components
         queue_maxsize = int(os.environ.get("MESSAGE_QUEUE_MAXSIZE", "100"))
-        self.message_queue = queue.Queue(maxsize=queue_maxsize)  # Bounded queue for backpressure
+        self.message_queue = queue.Queue(
+            maxsize=queue_maxsize
+        )  # Bounded queue for backpressure
         self.poller_thread = None
         self.worker_thread = None
         self.poll_running = False
