@@ -42,7 +42,7 @@ class CoreApiClient:
         endpoint = f"content-entry/{str(content_entry_id)}"
         return self._make_request(endpoint, user_id)
 
-    def get_quiz(self, quiz_id: str, user_id: str) -> Optional[Dict[Any, Any]]:
+    def get_quiz(self, quiz_id: int, user_id: str) -> Optional[Dict[Any, Any]]:
         """Get quiz by ID"""
-        endpoint = f"quiz/{quiz_id}"
+        endpoint = f"quiz/{str(quiz_id)}"
         return self._make_request(endpoint, user_id)
