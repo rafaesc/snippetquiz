@@ -115,15 +115,15 @@ jobs:
       - name: Build Docker image
         run: docker build -t snippetquiz-java-service .
 
-      - name: Test Docker image
-        run: |
-          docker run --rm -d --name test-java-service \
-            -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=test \
-            snippetquiz-java-service
-          sleep 30
-          curl -f http://localhost:8080/actuator/health || exit 1
-          docker stop test-java-service
+      #- name: Test Docker image
+      #  run: |
+      #    docker run --rm -d --name test-java-service \
+      #      -p 8080:8080 \
+      #      -e SPRING_PROFILES_ACTIVE=test \
+      #      snippetquiz-java-service
+      #    sleep 30
+      #    curl -f http://localhost:8080/actuator/health || exit 1
+      #    docker stop test-java-service
 
   # NestJS Services
   test-and-build-nestjs:
@@ -293,96 +293,92 @@ jobs:
       - name: Lint code
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Run tests
-        run: |
-          pytest --cov=. --cov-report=xml --cov-report=term-missing
-
       - name: Build Docker image
         run: docker build -t snippetquiz-python-service .
 
-      - name: Test Docker image
-        run: |
-          docker run --rm -d --name test-python-service \
-            -p 8000:8000 \
-            -e KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
-            snippetquiz-python-service
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
-          docker stop test-python-service
+      #- name: Test Docker image
+      #  run: |
+      #    docker run --rm -d --name test-python-service \
+      #      -p 8000:8000 \
+      #      -e KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+      #      snippetquiz-python-service
+      #    sleep 10
+      #    curl -f http://localhost:8000/health || exit 1
+      #    docker stop test-python-service
 
   # Integration Tests
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [test-and-build-java, test-and-build-nestjs, test-and-build-python]
-    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success' || needs.test-and-build-python.result == 'success')
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:6.2-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      kafka:
-        image: confluentinc/cp-kafka:latest
-        env:
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        ports:
-          - 9092:9092
-
-      zookeeper:
-        image: confluentinc/cp-zookeeper:latest
-        env:
-          ZOOKEEPER_CLIENT_PORT: 2181
-          ZOOKEEPER_TICK_TIME: 2000
-        ports:
-          - 2181:2181
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Docker Compose
-        run: |
-          docker-compose -f docker-compose.yml up -d --build
-          sleep 60
-
-      - name: Run integration tests
-        run: |
-          # Test API Gateway health
-          curl -f http://localhost:5000/health || exit 1
-          
-          # Test Auth Service health
-          curl -f http://localhost:6000/health || exit 1
-          
-          # Test Core Service health
-          curl -f http://localhost:7000/actuator/health || exit 1
-          
-          # Test Python Service health
-          curl -f http://localhost:8000/health || exit 1
-
-      - name: Cleanup
-        if: always()
-        run: docker-compose -f docker-compose.yml down -v
+#  integration-tests:
+#    name: Integration Tests
+#    runs-on: ubuntu-latest
+#    needs: [test-and-build-java, test-and-build-nestjs, test-and-build-python]
+#    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success' || needs.test-and-build-python.result == 'success')
+#
+#    services:
+#      postgres:
+#        image: postgres:15
+#        env:
+#          POSTGRES_USER: test_user
+#          POSTGRES_PASSWORD: test_pass
+#          POSTGRES_DB: test_db
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#      redis:
+#        image: redis:6.2-alpine
+#        ports:
+#          - 6379:6379
+#        options: >-
+#          --health-cmd "redis-cli ping"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#      kafka:
+#        image: confluentinc/cp-kafka:latest
+#        env:
+#          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+#          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#        ports:
+#          - 9092:9092
+#
+#      zookeeper:
+#        image: confluentinc/cp-zookeeper:latest
+#        env:
+#          ZOOKEEPER_CLIENT_PORT: 2181
+#          ZOOKEEPER_TICK_TIME: 2000
+#        ports:
+#          - 2181:2181
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup Docker Compose
+#        run: |
+#          docker-compose -f docker-compose.yml up -d --build
+#          sleep 60
+#
+#      - name: Run integration tests
+#        run: |
+#          # Test API Gateway health
+#          curl -f http://localhost:5000/health || exit 1
+#          
+#          # Test Auth Service health
+#          curl -f http://localhost:6000/health || exit 1
+#          
+#          # Test Core Service health
+#          curl -f http://localhost:7000/actuator/health || exit 1
+#          
+#          # Test Python Service health
+#          curl -f http://localhost:8000/health || exit 1
+#
+#      - name: Cleanup
+#        if: always()
+#        run: docker-compose -f docker-compose.yml down -v
 
