@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/pagination";
 import { QuizList } from "@/components/QuizList";
 import { apiService } from "@/lib/api-service";
-import { Quiz, QuizResponse, QuizSummaryResponse } from "@/lib/types";
+import { Quiz } from "@/lib/types";
 
 export default function QuizzesPage() {
   const router = useRouter();
@@ -105,7 +105,7 @@ export default function QuizzesPage() {
           />
 
           {/* Pagination */}
-          {quizzesData.page.totalPages > limit && (
+          {quizzesData.page.totalPages > 1 && (
             <div className="flex justify-center">
               <Pagination>
                 <PaginationContent>

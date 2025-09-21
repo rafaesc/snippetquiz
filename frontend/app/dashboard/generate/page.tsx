@@ -50,10 +50,10 @@ export default function GenerateQuiz() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setCurrentQuizId } = useQuiz();
-  const [selectedBankId, setSelectedBankId] = useState<string>("");
+  const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
-  const [createQuizError, setCreateQuizError] = useState<string | null>(null);
+  const [createQuizError, setCreateQuizError] = useState<number | null>(null);
 
   const entriesPerPage = 10;
 
@@ -76,7 +76,7 @@ export default function GenerateQuiz() {
   } = useQuery({
     queryKey: ["contentEntries", selectedBankId, currentPage],
     queryFn: () =>
-      apiService.getContentEntries(selectedBankId, currentPage, entriesPerPage),
+      apiService.getContentEntries(selectedBankId!, currentPage, entriesPerPage),
     enabled: !!selectedBankId, // Only run when a bank is selected
     staleTime: 0,
   });
@@ -109,7 +109,7 @@ export default function GenerateQuiz() {
 
       // Step 1: Create the quiz using the new API endpoint
       const createdQuiz = await apiService.createQuiz({
-        bankId: parseInt(selectedBankId),
+        bankId: selectedBankId!,
       });
 
       // Step 2: If quiz creation is successful, start WebSocket generation
@@ -129,7 +129,7 @@ export default function GenerateQuiz() {
 
   // Reset pagination when bank changes
   const handleBankChange = (bankId: string) => {
-    setSelectedBankId(bankId);
+    setSelectedBankId(Number(bankId));
     queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     setCurrentPage(1);
   };
@@ -214,13 +214,13 @@ export default function GenerateQuiz() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedBankId} onValueChange={handleBankChange}>
+          <Select value={selectedBankId ? selectedBankId.toString() : undefined} onValueChange={handleBankChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose a content bank..." />
             </SelectTrigger>
             <SelectContent>
               {banks.map((bank) => (
-                <SelectItem key={bank.id} value={bank.id}>
+                <SelectItem key={bank.id} value={bank.id.toString()}>
                   <div className="flex items-center justify-between w-full">
                     <span>{bank.name}</span>
                     <Badge variant="secondary" className="ml-2">

@@ -1,7 +1,7 @@
 package ai.snippetquiz.core_service.dto.response;
 
 public record QuizInProgressDetails(
-    String quizId,
-    String bankId,
+    Long quizId,
+    Long bankId,
     String name
 ) {}

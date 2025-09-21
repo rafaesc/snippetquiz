@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record QuizResponse(
-    String id,
+    Long id,
     String name,
     LocalDateTime createdAt,
     Integer questionsCount,

@@ -1,12 +1,9 @@
 package ai.snippetquiz.core_service.service;
 
 import ai.snippetquiz.core_service.dto.request.ContentEntryDto;
-import ai.snippetquiz.core_service.dto.request.CreateQuestionRequest;
 import ai.snippetquiz.core_service.dto.request.CreateQuizDTO;
 import ai.snippetquiz.core_service.dto.request.GenerateQuizRequest;
-import ai.snippetquiz.core_service.dto.request.QuestionOptionRequest;
 import ai.snippetquiz.core_service.dto.response.CheckQuizInProgressResponse;
-import ai.snippetquiz.core_service.dto.response.CreateQuestionResponse;
 import ai.snippetquiz.core_service.dto.response.FindOneQuizResponse;
 import ai.snippetquiz.core_service.dto.response.GetContentEntriesResponse;
 import ai.snippetquiz.core_service.dto.response.QuizInProgressDetails;
@@ -18,8 +15,6 @@ import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.dto.response.UpdateQuizDateResponse;
 import ai.snippetquiz.core_service.dto.response.UpdateQuizResponse;
 import ai.snippetquiz.core_service.entity.ContentType;
-import ai.snippetquiz.core_service.entity.Question;
-import ai.snippetquiz.core_service.entity.QuestionOption;
 import ai.snippetquiz.core_service.entity.Quiz;
 import ai.snippetquiz.core_service.entity.QuizQuestion;
 import ai.snippetquiz.core_service.entity.QuizQuestionOption;
@@ -38,21 +33,25 @@ import ai.snippetquiz.core_service.repository.QuizQuestionRepository;
 import ai.snippetquiz.core_service.repository.QuizQuestionResponseRepository;
 import ai.snippetquiz.core_service.repository.QuizRepository;
 import ai.snippetquiz.core_service.repository.QuizTopicRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import static java.util.Objects.isNull;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 @Slf4j
 public class QuizService {
@@ -62,12 +61,13 @@ public class QuizService {
     private final QuizQuestionResponseRepository quizQuestionResponseRepository;
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryRepository contentEntryRepository;
-    private final QuestionRepository questionRepository;
-    private final QuestionOptionRepository questionOptionRepository;
     private final QuizQuestionOptionRepository quizQuestionOptionRepository;
     private final QuizGenerationInstructionRepository quizGenerationInstructionRepository;
     private final QuizTopicRepository quizTopicRepository;
     private final KafkaProducerService kafkaProducerService;
+
+    private final Pageable quizQuestionPageable = PageRequest.of(0, Integer.MAX_VALUE,
+            Sort.by(Sort.Direction.DESC, "id"));
 
     private String getFinalStatus(Quiz quiz) {
         String finalStatus = quiz.getStatus().getValue();
@@ -90,7 +90,7 @@ public class QuizService {
                     .toList() : List.of();
 
             return new QuizResponse(
-                    quiz.getId().toString(),
+                    quiz.getId(),
                     quiz.getBankName(),
                     quiz.getCreatedAt(),
                     quiz.getQuestionsCount(),
@@ -104,19 +104,17 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public FindOneQuizResponse findOne(UUID userId, String id) {
-        Long quizId = Long.parseLong(id);
-        Quiz quiz = quizRepository.findByIdAndUserIdWithTopics(quizId, userId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
+    public FindOneQuizResponse findOne(UUID userId, Long id) {
+        var quiz = quizRepository.findByIdAndUserIdWithTopics(id, userId)
+                .orElseThrow(() -> new NotFoundException("Quiz not found " + id));
 
         List<String> topics = quiz.getQuizTopics() != null ? quiz.getQuizTopics().stream()
-                .map(QuizTopic::getTopicName)
-                .collect(Collectors.toList()) : List.of();
+                .map(QuizTopic::getTopicName).toList() : List.of();
 
-        var questions = quizQuestionRepository.findByQuizIdWithOptions(quizId);
-        if (questions.isEmpty()) {
+        var sortedQuestions = quizQuestionRepository.findByQuizId(id, quizQuestionPageable);
+        if (sortedQuestions.isEmpty()) {
             return new FindOneQuizResponse(
-                    quiz.getId().toString(),
+                    quiz.getId(),
                     quiz.getBankName(),
                     quiz.getCreatedAt(),
                     quiz.getQuestionsCount(),
@@ -128,24 +126,24 @@ public class QuizService {
         }
 
         QuizQuestionDTOResponse currentQuestionDto = null;
-        if (quiz.getQuestionsCompleted() < questions.size()) {
-            var currentQuestion = questions.get(quiz.getQuestionsCompleted());
+        if (quiz.getQuestionsCompleted() < sortedQuestions.size()) {
+            var currentQuestion = sortedQuestions.get(quiz.getQuestionsCompleted());
             var options = currentQuestion.getQuizQuestionOptions().stream()
                     .map(option -> new QuizQuestionOptionDTOResponse(
-                            option.getId().toString(),
+                            option.getId(),
                             option.getOptionText(),
                             option.getOptionExplanation(),
                             option.getIsCorrect()))
                     .collect(Collectors.toList());
 
             currentQuestionDto = new QuizQuestionDTOResponse(
-                    currentQuestion.getId().toString(),
+                    currentQuestion.getId(),
                     currentQuestion.getQuestion(),
                     options);
         }
 
         return new FindOneQuizResponse(
-                quiz.getId().toString(),
+                quiz.getId(),
                 quiz.getBankName(),
                 quiz.getCreatedAt(),
                 quiz.getQuestionsCount(),
@@ -157,8 +155,7 @@ public class QuizService {
     }
 
     @Transactional(readOnly = true)
-    public PagedModel<QuizResponseItemDto> findQuizResponses(UUID userId, String quizIdString, Pageable pageable) {
-        var quizId = Long.valueOf(quizIdString);
+    public PagedModel<QuizResponseItemDto> findQuizResponses(UUID userId, Long quizId, Pageable pageable) {
 
         quizRepository.findByIdAndUserId(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
@@ -278,8 +275,8 @@ public class QuizService {
 
             if (QuizStatus.PREPARE.equals(quiz.getStatus()) || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
                 inProgressQuiz = new QuizInProgressDetails(
-                        quiz.getId().toString(),
-                        quiz.getContentBank() != null ? quiz.getContentBank().getId().toString() : null,
+                        quiz.getId(),
+                        quiz.getContentBank() != null ? quiz.getContentBank().getId() : null,
                         quiz.getBankName());
             }
 
@@ -300,50 +297,66 @@ public class QuizService {
     }
 
     @Transactional
-    public String createQuiz(UUID userId, CreateQuizDTO request) {
+    public Long createQuiz(UUID userId, CreateQuizDTO request) {
         var contentBank = contentBankRepository
                 .findByIdAndUserIdWithContentEntries(request.bankId(), userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or you do not have permission to access it"));
 
-        Quiz quiz;
+        var contentEntriesResponse = getContentEntriesByBankId(
+                contentBank.getId(), userId);
+        var quizRequest = contentEntriesResponse.request();
+        var entries = quizRequest.contentEntries();
+        var isReady = (Objects.isNull(entries) || entries.isEmpty());
 
-        if (Objects.nonNull(request.quizId())) {
-            quiz = quizRepository.findByIdAndUserId(Integer.valueOf(request.quizId()), userId)
-                    .orElseThrow(() -> new NotFoundException(
-                            "Quiz not found or you do not have permission to access it"));
+        Quiz quiz = new Quiz();
+        quiz.setUserId(userId);
+        quiz.setContentBank(contentBank);
+        quiz.setBankName(contentBank.getName());
+        quiz.setContentEntriesCount(0);
+        quiz.setQuestionsCount(0);
+        quiz.setQuestionsCompleted(0);
+        quiz.setStatus(isReady ? QuizStatus.READY : QuizStatus.PREPARE);
+        quiz = quizRepository.save(quiz);
 
-            quiz.setStatus(request.status());
-            quiz.setQuestionUpdatedAt(LocalDateTime.now());
-            quiz = quizRepository.save(quiz);
-        } else {
-            // Create new quiz
-            quiz = new Quiz();
-            quiz.setUserId(userId);
-            quiz.setContentBank(contentBank);
-            quiz.setBankName(contentBank.getName());
-            quiz.setContentEntriesCount(0);
-            quiz.setQuestionsCount(0);
-            quiz.setQuestionsCompleted(0);
-            quiz.setStatus(request.status());
-            quiz = quizRepository.save(quiz);
+        createQuizQuestions(quiz);
+
+        if (isReady) {
+            log.warn("No content entries found for quizId: {}, bankId: {}, userId: {}", quiz.getId(),
+                    contentBank.getId(), userId);
+            return quiz.getId();
         }
 
+        emitCreateQuizEvent(userId, quiz.getId(), contentBank.getId(), contentEntriesResponse);
+
+        return quiz.getId();
+    }
+
+    @Transactional
+    public void processNewQuizQuestions(Quiz quiz, QuizStatus status) {
+        quiz.setStatus(status);
+        quiz.setQuestionUpdatedAt(LocalDateTime.now());
+        quiz = quizRepository.save(quiz);
+
+        createQuizQuestions(quiz);
+    }
+
+    public void createQuizQuestions(Quiz quiz) {
+        var contentBank = quiz.getContentBank();
         var allQuestions = contentBank.getContentEntries().stream()
                 .flatMap(entry -> entry.getQuestions().stream())
-                .collect(Collectors.toList());
+                .toList();
+
+        if (allQuestions.isEmpty()) {
+            quiz.setQuestionsCount(0);
+            quizRepository.save(quiz);
+            return;
+        }
 
         var allTopics = contentBank.getContentEntries().stream()
                 .flatMap(entry -> entry.getTopics().stream())
                 .map(Topic::getTopic)
                 .collect(Collectors.toSet());
-
-        if (allQuestions.isEmpty()) {
-            quiz.setContentEntriesCount(contentBank.getContentEntries().size());
-            quiz.setQuestionsCount(0);
-            quizRepository.save(quiz);
-            return quiz.getId().toString();
-        }
 
         var createdQuestions = new ArrayList<QuizQuestion>();
 
@@ -389,51 +402,10 @@ public class QuizService {
         quiz.setQuestionsCount(createdQuestions.size());
         quizRepository.save(quiz);
 
-        return quiz.getId().toString();
     }
 
-    public CreateQuestionResponse createQuestion(CreateQuestionRequest request, UUID userId) {
-        var contentEntryId = request.contentEntryId();
-        var questionText = request.question();
-        var options = request.options();
-
-        var contentEntry = contentEntryRepository.findById(contentEntryId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Content entry not found or you do not have permission to access it"));
-
-        if (Objects.isNull(options) || options.isEmpty()) {
-            log.error("No options provided for question");
-            return new CreateQuestionResponse("No options provided for question", 0L);
-        }
-
-        var question = new Question();
-        question.setQuestion(questionText);
-        question.setType("single_choice");
-        question.setContentEntry(contentEntry);
-
-        var savedQuestion = questionRepository.save(question);
-        var quizQuestionOptions = new ArrayList<QuestionOption>();
-
-        for (QuestionOptionRequest optionRequest : options) {
-            QuestionOption option = new QuestionOption();
-            option.setQuestion(savedQuestion);
-            option.setOptionText(optionRequest.optionText());
-            option.setOptionExplanation(optionRequest.optionExplanation());
-            option.setIsCorrect(optionRequest.isCorrect());
-
-            quizQuestionOptions.add(questionOptionRepository.save(option));
-        }
-
-        savedQuestion.setQuestionOptions(quizQuestionOptions);
-
-        return new CreateQuestionResponse("Question created successfully", savedQuestion.getId());
-    }
-
-    public UpdateQuizResponse updateQuiz(UUID userId, String quizId, String questionOptionId) {
-        var quizIdLong = Long.parseLong(quizId);
-        var optionSelectedId = Long.parseLong(questionOptionId);
-
-        var quiz = quizRepository.findByIdAndUserIdWithQuestions(quizIdLong, userId)
+    public UpdateQuizResponse updateQuiz(UUID userId, Long quizId, Long optionSelectedId) {
+        var quiz = quizRepository.findByIdAndUserIdWithQuestions(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
 
         if (quiz.getQuestionsCompleted() >= quiz.getQuestionsCount()) {
@@ -443,9 +415,7 @@ public class QuizService {
                     false);
         }
 
-        var sortedQuestions = quiz.getQuizQuestions().stream()
-                .sorted((q1, q2) -> q1.getId().compareTo(q2.getId()))
-                .toList();
+        var sortedQuestions = quizQuestionRepository.findByQuizId(quizId, quizQuestionPageable);
 
         if (quiz.getQuestionsCompleted() >= sortedQuestions.size()) {
             return new UpdateQuizResponse(
@@ -516,25 +486,24 @@ public class QuizService {
                 true, isCompleted);
     }
 
-    public void emitCreateQuizEvent(String userId, String quizId, Long bankId) {
+    public void emitCreateQuizEvent(UUID userId, Long quizId, Long bankId,
+            GetContentEntriesResponse contentEntriesResponse) {
         try {
-            var contentEntriesResponse = getContentEntriesByBankId(
-                    bankId.longValue(), UUID.fromString(userId));
-
             var quizRequest = contentEntriesResponse.request();
             var entriesSkipped = contentEntriesResponse.entriesSkipped();
+            var entries = quizRequest.contentEntries();
 
             kafkaProducerService.emitCreateQuizEvent(
                     new GenerateQuizRequest(
                             quizRequest.instructions(),
-                            quizRequest.contentEntries().stream()
+                            entries.stream()
                                     .map(entry -> new ContentEntryDto(
                                             entry.id(),
                                             entry.pageTitle(),
                                             entry.content(),
                                             entry.wordCountAnalyzed()))
-                                    .collect(Collectors.toList())),
-                    userId,
+                                    .toList()),
+                    userId.toString(),
                     quizId,
                     bankId,
                     entriesSkipped);

@@ -48,7 +48,7 @@ export class CoreServiceProxyService {
       const response = await this.proxyRequest({
         userId: userId.toString(),
         path,
-        payload: Object.keys(payload || {}).length > 0 ? payload : undefined,
+        payload: payload && Object.keys(payload).length > 0 ? payload : undefined,
         queryParameters:
           Object.keys(queryParameters).length > 0 ? queryParameters : undefined,
         method: req.method as any,

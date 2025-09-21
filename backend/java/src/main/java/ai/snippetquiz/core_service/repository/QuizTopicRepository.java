@@ -10,10 +10,8 @@ import java.util.Optional;
 @Repository
 public interface QuizTopicRepository extends JpaRepository<QuizTopic, Long> {
     
-    // Find topics by quiz ID
     List<QuizTopic> findByQuizId(Long quizId);
     
-    // Delete topics by quiz ID
     void deleteByQuizId(Long quizId);
     
     Optional<QuizTopic> findByQuizIdAndTopicName(Long quizId, String topicName);

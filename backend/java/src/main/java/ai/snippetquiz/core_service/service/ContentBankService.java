@@ -75,8 +75,8 @@ public class ContentBankService {
     }
 
     @Transactional(readOnly = true)
-    public ContentBankResponse findOne(UUID userId, String id) {
-        var contentBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
+    public ContentBankResponse findOne(UUID userId, Long id) {
+        var contentBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));
 
@@ -91,16 +91,16 @@ public class ContentBankService {
                 (int) entryCount);
     }
 
-    public ContentBankResponse update(UUID userId, String id, UpdateContentBankRequest request) {
+    public ContentBankResponse update(UUID userId, Long id, UpdateContentBankRequest request) {
         var name = request.name();
 
-        var existingBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
+        var existingBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));
 
         if (Objects.nonNull(name) && !name.trim().isEmpty()) {
             var duplicateBank = contentBankRepository.findByUserIdAndNameAndIdNot(
-                    userId, name.trim(), Long.parseLong(id));
+                    userId, name.trim(), id);
 
             if (duplicateBank.isPresent()) {
                 throw new ConflictException("A content bank with this name already exists");
@@ -121,14 +121,14 @@ public class ContentBankService {
                 null);
     }
 
-    public void remove(UUID userId, String id) {
-        contentBankRepository.deleteByIdAndUserId(Long.parseLong(id), userId);
+    public void remove(UUID userId, Long id) {
+        contentBankRepository.deleteByIdAndUserId(id, userId);
     }
 
-    public ContentBankResponse duplicate(UUID userId, String id, DuplicateContentBankRequest request) {
+    public ContentBankResponse duplicate(UUID userId, Long id, DuplicateContentBankRequest request) {
         String newName = request.name();
 
-        var originalBank = contentBankRepository.findByIdAndUserId(Long.parseLong(id), userId)
+        var originalBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));
 

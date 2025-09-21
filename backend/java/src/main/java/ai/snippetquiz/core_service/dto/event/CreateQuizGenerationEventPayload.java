@@ -8,6 +8,6 @@ public record CreateQuizGenerationEventPayload(
             String instructions,
             List<ContentEntryDto> contentEntries,
             Integer entriesSkipped,
-            String quizId,
+            Long quizId,
             String userId,
             Long bankId) {}

@@ -12,8 +12,8 @@ public record CreateContentEntryRequest(
     @NotNull(message = "Content is required")
     String type,
     String pageTitle,
-    @NotBlank(message = "Bank ID is required")
-    String bankId,
+    @NotNull(message = "Bank ID is required")
+    Long bankId,
     String youtubeVideoId,
     Integer youtubeVideoDuration,
     String youtubeChannelId,

@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.controller;
 
 import ai.snippetquiz.core_service.dto.request.CreateContentEntryRequest;
-import ai.snippetquiz.core_service.dto.request.RemoveContentEntryRequest;
 import ai.snippetquiz.core_service.dto.response.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.dto.response.ContentEntryResponse;
 import ai.snippetquiz.core_service.service.ContentEntryService;
@@ -49,7 +48,7 @@ public class ContentEntryController {
     @GetMapping("/bank/{bankId}")
     public PagedModel<ContentEntryDTOResponse> findAll(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String bankId,
+            @PathVariable Long bankId,
             @RequestParam(required = false) String name,
             @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
@@ -61,8 +60,8 @@ public class ContentEntryController {
     @ResponseStatus(HttpStatus.CREATED)
     public ContentEntryResponse clone(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id,
-            @Valid @PathVariable @NotBlank(message = "Target bank ID is required") String targetBankId) {
+            @PathVariable Long id,
+            @PathVariable Long targetBankId) {
 
         return contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
     }
@@ -71,9 +70,8 @@ public class ContentEntryController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable String id) {
+            @PathVariable Long id) {
 
-        RemoveContentEntryRequest request = new RemoveContentEntryRequest(id);
-        contentEntryService.remove(UUID.fromString(userId), request);
+        contentEntryService.remove(UUID.fromString(userId), id);
     }
 }

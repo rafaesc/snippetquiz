@@ -1,14 +1,16 @@
-import grpc
-from concurrent import futures
-import time
 import os
 import threading
-from dotenv import load_dotenv
+import time
+from concurrent import futures
+
 import ai_generation_pb2
 import ai_generation_pb2_grpc
+import grpc
+from dotenv import load_dotenv
+
 from groq_client import GroqClient
-from openrouter_client import OpenRouterClient
 from kafka_consumer import KafkaTopicConsumer
+from openrouter_client import OpenRouterClient
 
 load_dotenv()
 

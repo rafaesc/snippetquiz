@@ -35,7 +35,7 @@ export default function ContentBanks() {
   const [currentView, setCurrentView] = useState<View>('list');
   const [selectedBank, setSelectedBank] = useState<ContentBank | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingBankId, setEditingBankId] = useState<string | null>(null);
+  const [editingBankId, setEditingBankId] = useState<number | null>(null);
   const [editingBankName, setEditingBankName] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [currentBankPage, setCurrentBankPage] = useState(1);
@@ -43,7 +43,7 @@ export default function ContentBanks() {
   const [newBankName, setNewBankName] = useState('');
   const [showCloneDialog, setShowCloneDialog] = useState(false);
   const [entryToClone, setEntryToClone] = useState<ContentEntry | null>(null);
-  const [targetBankId, setTargetBankId] = useState<string>('');
+  const [targetBankId, setTargetBankId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -100,7 +100,7 @@ export default function ContentBanks() {
 
   // Update content bank mutation
   const updateBankMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: { name: string } }) =>
       apiService.updateContentBank(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -141,7 +141,7 @@ export default function ContentBanks() {
 
   // Duplicate content bank mutation
   const duplicateBankMutation = useMutation({
-    mutationFn: ({ id, name }: { id: string; name?: string }) =>
+    mutationFn: ({ id, name }: { id: number; name?: string }) =>
       apiService.duplicateContentBank(id, name ? { name } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -181,13 +181,13 @@ export default function ContentBanks() {
 
   // Clone content entry mutation
   const cloneEntryMutation = useMutation({
-    mutationFn: ({ id, bankId }: { id: string; bankId: string }) =>
+    mutationFn: ({ id, bankId }: { id: number; bankId: number }) =>
       apiService.cloneContentEntry(id, bankId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
       setShowCloneDialog(false);
       setEntryToClone(null);
-      setTargetBankId('');
+      setTargetBankId(null);
       toast({
         title: 'Success',
         description: 'Content entry cloned successfully',
@@ -383,7 +383,7 @@ export default function ContentBanks() {
                   onClick={() => {
                     setShowCloneDialog(false);
                     setEntryToClone(null);
-                    setTargetBankId('');
+                    setTargetBankId(null);
                   }}
                 >
                   Cancel

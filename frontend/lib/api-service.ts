@@ -291,7 +291,7 @@ export const apiService = {
     return response.json();
   },
 
-  updateContentBank: async (id: string, data: UpdateContentBankRequest): Promise<ContentBank> => {
+  updateContentBank: async (id: number, data: UpdateContentBankRequest): Promise<ContentBank> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'PUT',
       headers: {
@@ -308,7 +308,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteContentBank: async (id: string): Promise<undefined> => {
+  deleteContentBank: async (id: number): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'DELETE',
     });
@@ -319,7 +319,7 @@ export const apiService = {
     }
   },
 
-  duplicateContentBank: async (id: string, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
+  duplicateContentBank: async (id: number, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}/duplicate`, {
       method: 'POST',
       headers: {
@@ -337,7 +337,7 @@ export const apiService = {
   },
 
   // Content Entry API methods
-  getContentEntries: async (bankId: string, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
+  getContentEntries: async (bankId: number, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
     const params = new URLSearchParams({
       page: (page - 1).toString(),
       size: limit.toString(),
@@ -374,7 +374,7 @@ export const apiService = {
     return response.json();
   },
 
-  cloneContentEntry: async (id: string, bankId: string): Promise<ContentEntry & { message: string }> => {
+  cloneContentEntry: async (id: number, bankId: number): Promise<ContentEntry & { message: string }> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}/clone-to/${bankId}`, {
       method: 'POST',
     });
@@ -387,7 +387,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteContentEntry: async (id: string): Promise<undefined> => {
+  deleteContentEntry: async (id: number): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
       method: 'DELETE',
     });
@@ -425,7 +425,7 @@ export const apiService = {
     return response.json();
   },
 
-  getQuizResponses: async (id: string, page = 1, limit = 10): Promise<QuizResponsesResponse> => {
+  getQuizResponses: async (id: number, page = 1, limit = 10): Promise<QuizResponsesResponse> => {
     const params = new URLSearchParams({
       page: (page - 1).toString(),
       size: limit.toString(),
@@ -441,7 +441,7 @@ export const apiService = {
     return response.json();
   },
 
-  getQuizSummary: async (id: string): Promise<QuizSummaryResponse> => {
+  getQuizSummary: async (id: number): Promise<QuizSummaryResponse> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}/summary`);
 
     if (!response.ok) {
@@ -452,7 +452,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteQuiz: async (id: string): Promise<undefined> => {
+  deleteQuiz: async (id: number): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}`, {
       method: 'DELETE',
     });
