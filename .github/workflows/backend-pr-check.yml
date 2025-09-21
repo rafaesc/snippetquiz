@@ -298,7 +298,7 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Build Docker image
-        run: docker build -t snippetquiz-python-service .
+        run: docker build -f python/Dockerfile -t snippetquiz-python-service .
 
       #- name: Test Docker image
       #  run: |
