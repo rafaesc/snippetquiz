@@ -186,7 +186,7 @@ class KafkaTopicConsumer:
                     bootstrap_servers=kafka_brokers,
                     group_id="python-consumer-group",
                     auto_offset_reset="latest",
-                    enable_auto_commit=False,  # Manual commit for better control
+                    enable_auto_commit=True,
                     max_poll_interval_ms=300000,  # 5 minutes
                     session_timeout_ms=30000,  # 30 seconds
                     heartbeat_interval_ms=10000,  # 10 seconds
