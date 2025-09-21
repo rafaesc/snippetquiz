@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
 const API_BASE_URL = process.env.API_URL || "http://localhost:5000";
+const TIMEOUT_TO_REFRESH_QUIZ = 500;
+
 
 export interface QuizGenerationStatus {
   progress?: QuizGenerationProgress;
@@ -112,7 +114,7 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
       setProgress(progressData);
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["quiz"] });
-      }, 500);
+      }, TIMEOUT_TO_REFRESH_QUIZ);
       if (progressData.completed) {
         handleQuizComplete();
       }
