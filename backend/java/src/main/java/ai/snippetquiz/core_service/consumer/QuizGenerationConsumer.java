@@ -66,6 +66,7 @@ public class QuizGenerationConsumer {
             }
 
             if (data.totalChunks() != 0) {
+                // TODO create idemptotency
                 var contentEntryId = data.contentEntry().id();
                 var contentEntry = contentEntryRepository
                         .findByIdAndUserId(contentEntryId, userId)
