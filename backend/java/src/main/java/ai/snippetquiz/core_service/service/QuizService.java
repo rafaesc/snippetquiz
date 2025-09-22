@@ -25,8 +25,6 @@ import ai.snippetquiz.core_service.entity.Topic;
 import ai.snippetquiz.core_service.exception.NotFoundException;
 import ai.snippetquiz.core_service.repository.ContentBankRepository;
 import ai.snippetquiz.core_service.repository.ContentEntryRepository;
-import ai.snippetquiz.core_service.repository.QuestionOptionRepository;
-import ai.snippetquiz.core_service.repository.QuestionRepository;
 import ai.snippetquiz.core_service.repository.QuizGenerationInstructionRepository;
 import ai.snippetquiz.core_service.repository.QuizQuestionOptionRepository;
 import ai.snippetquiz.core_service.repository.QuizQuestionRepository;
@@ -67,7 +65,7 @@ public class QuizService {
     private final KafkaProducerService kafkaProducerService;
 
     private final Pageable quizQuestionPageable = PageRequest.of(0, Integer.MAX_VALUE,
-            Sort.by(Sort.Direction.DESC, "id"));
+            Sort.by(Sort.Direction.ASC, "id"));
 
     private String getFinalStatus(Quiz quiz) {
         String finalStatus = quiz.getStatus().getValue();
@@ -372,6 +370,7 @@ public class QuizService {
             quizQuestion.setContentEntry(contentEntry);
             quizQuestion.setQuiz(quiz);
 
+            //TODO: it should be upsert
             quizQuestion = quizQuestionRepository.save(quizQuestion);
             createdQuestions.add(quizQuestion);
 

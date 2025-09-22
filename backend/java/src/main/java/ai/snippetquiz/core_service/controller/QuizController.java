@@ -8,7 +8,6 @@ import ai.snippetquiz.core_service.dto.response.FindOneQuizResponse;
 import ai.snippetquiz.core_service.dto.response.QuizResponse;
 import ai.snippetquiz.core_service.dto.response.QuizResponseItemDto;
 import ai.snippetquiz.core_service.dto.response.UpdateQuizResponse;
-import ai.snippetquiz.core_service.entity.QuizStatus;
 import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import ai.snippetquiz.core_service.service.QuizService;

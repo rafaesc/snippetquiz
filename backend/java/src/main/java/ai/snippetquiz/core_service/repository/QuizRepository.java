@@ -16,8 +16,6 @@ import java.util.UUID;
 
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
-    
-    Optional<Quiz> findByIdAndUserId(Long id, UUID userId);
 
     List<Quiz> findAllByUserIdAndStatus(UUID userId, QuizStatus status);
     
