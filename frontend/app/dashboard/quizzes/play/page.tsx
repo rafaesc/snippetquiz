@@ -20,6 +20,8 @@ export default function QuizPlayerPage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   // Add state to maintain previous question during transition
   const [displayQuestion, setDisplayQuestion] = useState<any>(null);
+  const [showAnswerFeedback, setShowAnswerFeedback] = useState(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
 
   // WebSocket hook for quiz generation
   const { 
@@ -83,35 +85,45 @@ export default function QuizPlayerPage() {
       apiService.updateQuiz(quizId, optionId),
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
-      // Start transition out
-      setIsTransitioning(true);
+      
+      // Show answer feedback for 2 seconds before transitioning
+      setShowAnswerFeedback(true);
+      
+      setTimeout(async () => {
+        // Start transition out
+        setIsTransitioning(true);
 
-      // Check if quiz is completed (no more questions)
-      if (data?.completed) {
-        // Quiz is completed, redirect to summary page
-        router.push(`/dashboard/quizzes/${currentQuizId}/summary`);
-        return;
-      }
-  
-      // Refetch the quiz data to get the next question
-      const updatedQuiz = await refetch();
-  
-      // Wait for transition animation, then update display
-      setTimeout(() => {
-        // Update display question with new data
-        if (updatedQuiz.data?.question) {
-          setDisplayQuestion(updatedQuiz.data.question);
+        // Check if quiz is completed (no more questions)
+        if (data?.completed) {
+          // Quiz is completed, redirect to summary page
+          router.push(`/dashboard/quizzes/${currentQuizId}/summary`);
+          return;
         }
-  
-        // Reset states
-        setSelectedAnswer(null);
-        setIsTransitioning(false);
-      }, 500); // Match the transition duration
+    
+        // Refetch the quiz data to get the next question
+        const updatedQuiz = await refetch();
+    
+        // Wait for transition animation, then update display
+        setTimeout(() => {
+          // Update display question with new data
+          if (updatedQuiz.data?.question) {
+            setDisplayQuestion(updatedQuiz.data.question);
+          }
+    
+          // Reset states
+          setSelectedAnswer(null);
+          setIsTransitioning(false);
+          setShowAnswerFeedback(false);
+          setIsAnswerCorrect(null);
+        }, 500); // Match the transition duration
+      }, isAnswerCorrect ? 500 : 1500); // Show feedback for 2 seconds
     },
     onError: (error) => {
       console.error("Failed to update quiz:", error);
       setSelectedAnswer(null);
       setIsTransitioning(false);
+      setShowAnswerFeedback(false);
+      setIsAnswerCorrect(null);
     },
   });
 
@@ -179,7 +191,7 @@ export default function QuizPlayerPage() {
     setSelectedAnswer(answer);
 
     try {
-      // Find the selected option to get its ID
+      // Find the selected option to get its ID and correctness
       const selectedOption = currentQuestion?.options.find(
         (option: any) => option.optionText === answer
       );
@@ -187,6 +199,9 @@ export default function QuizPlayerPage() {
       if (!selectedOption || !quiz?.id) {
         throw new Error("Invalid option or quiz ID");
       }
+
+      // Set whether the answer is correct
+      setIsAnswerCorrect(selectedOption.isCorrect);
 
       // Update the quiz with the selected option
       await updateQuizMutation.mutateAsync({
@@ -196,18 +211,35 @@ export default function QuizPlayerPage() {
     } catch (error) {
       setSelectedAnswer(null);
       setIsTransitioning(false);
+      setShowAnswerFeedback(false);
+      setIsAnswerCorrect(null);
     }
   };
 
-  const getOptionButtonClass = (option: string) => {
+  const getOptionButtonClass = (option: any) => {
     const baseClass =
-      "w-full p-4 text-left rounded-lg border-2 transition-all duration-200 hover:border-primary hover:bg-primary/5 break-words";
+      "w-full p-4 text-left rounded-lg border-2 transition-all duration-200 break-words";
 
-    if (selectedAnswer === option) {
+    // If showing answer feedback, apply correct/incorrect styling
+    if (showAnswerFeedback) {
+      if (option.isCorrect) {
+        // Correct answer - always green
+        return `${baseClass} border-green-500 bg-green-100 text-green-800 font-medium`;
+      } else if (selectedAnswer === option.optionText) {
+        // Selected wrong answer - red
+        return `${baseClass} border-red-500 bg-red-100 text-red-800 font-medium`;
+      } else {
+        // Other options - dimmed
+        return `${baseClass} border-gray-300 bg-gray-50 text-gray-500`;
+      }
+    }
+
+    // Normal state (before answer selection)
+    if (selectedAnswer === option.optionText) {
       return `${baseClass} border-primary bg-primary/10 text-primary font-medium`;
     }
 
-    return `${baseClass} border-border bg-background hover:scale-[1.02]`;
+    return `${baseClass} border-border bg-background hover:border-primary hover:bg-primary/5 hover:scale-[1.02]`;
   };
 
   return (
@@ -295,7 +327,7 @@ export default function QuizPlayerPage() {
                         <Button
                           key={option.id}
                           variant="outline"
-                          className={getOptionButtonClass(option.optionText)}
+                          className={getOptionButtonClass(option)}
                           onClick={() => handleAnswerSelect(option.optionText)}
                           disabled={!!selectedAnswer || isTransitioning}
                         >
@@ -316,11 +348,24 @@ export default function QuizPlayerPage() {
 
               {selectedAnswer ? (
                 <div className="text-center animate-fade-in">
-                  <p className="text-sm text-muted-foreground">
-                    {quiz.questionsCompleted < quiz?.totalQuestions - 1 || shouldShowWaitingMessage
-                      ? "Moving to next question..."
-                      : "Completing quiz..."}
-                  </p>
+                  {showAnswerFeedback ? (
+                    <div className="space-y-2">
+                      <p className={`text-lg font-semibold ${
+                        isAnswerCorrect ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {isAnswerCorrect ? '✓ Correct!' : '✗ Incorrect'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quiz.questionsCompleted < quiz?.totalQuestions - 1 || shouldShowWaitingMessage
+                          ? "Moving to next question..."
+                          : "Completing quiz..."}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Checking answer...
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-sm text-muted-foreground">

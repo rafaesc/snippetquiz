@@ -25,6 +25,12 @@ public class Question {
     @Column(name = "type", nullable = false)
     private String type;
 
+    @Column(name = "chunk_index")
+    private Integer chunkIndex;
+
+    @Column(name = "question_index_in_chunk")
+    private Integer questionIndexInChunk;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "content_entry_id", nullable = false)
     private ContentEntry contentEntry;
@@ -36,9 +42,11 @@ public class Question {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuestionOption> questionOptions;
 
-    public Question(String question, String type, ContentEntry contentEntry) {
+    public Question(String question, String type, Integer chunkIndex, Integer questionIndexInChunk, ContentEntry contentEntry) {
         this.question = question;
         this.type = type;
+        this.chunkIndex = chunkIndex;
+        this.questionIndexInChunk = questionIndexInChunk;
         this.contentEntry = contentEntry;
     }
 }

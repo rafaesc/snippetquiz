@@ -5,5 +5,7 @@ import java.util.List;
 public record CreateQuestionRequest(
     Long contentEntryId,
     String question,
+    Integer questionIndexInChunk,
+    Integer currentChunkIndex,
     List<QuestionOptionRequest> options
 ) {}
