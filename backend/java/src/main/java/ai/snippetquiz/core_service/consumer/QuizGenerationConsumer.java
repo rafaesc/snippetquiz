@@ -66,15 +66,15 @@ public class QuizGenerationConsumer {
             }
 
             if (data.totalChunks() != 0) {
-                // TODO create idemptotency
                 var contentEntryId = data.contentEntry().id();
                 var contentEntry = contentEntryRepository
                         .findByIdAndUserId(contentEntryId, userId)
                         .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
                 var questions = data.contentEntry().questions();
+                for (var questionIndexInChunk = 0; questionIndexInChunk < questions.size(); questionIndexInChunk++) {
+                    var question = questions.get(questionIndexInChunk);
 
-                for (var question : questions) {
                     var options = question.options().stream()
                             .map(option -> new QuestionOptionRequest(
                                     option.optionText(),
@@ -85,6 +85,8 @@ public class QuizGenerationConsumer {
                     var questionRequest = new CreateQuestionRequest(
                             contentEntryId,
                             question.question(),
+                            questionIndexInChunk,
+                            data.currentChunkIndex(),
                             options);
 
                     contentEntryService.createQuestion(questionRequest, userId);

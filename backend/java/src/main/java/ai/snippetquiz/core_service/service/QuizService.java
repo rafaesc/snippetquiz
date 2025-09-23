@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -346,10 +347,17 @@ public class QuizService {
                 .toList();
 
         if (allQuestions.isEmpty()) {
-            quiz.setQuestionsCount(0);
-            quizRepository.save(quiz);
             return;
         }
+
+        Map<Integer, Map<Integer, Map<Long, QuizQuestion>>> mapQuizQuestionByChunk = quiz.getQuizQuestions().stream()
+                .filter(q -> q.getChunkIndex() != null && q.getQuestionIndexInChunk() != null)
+                .collect(Collectors.groupingBy(
+                        QuizQuestion::getChunkIndex,
+                        Collectors.toMap(
+                                QuizQuestion::getQuestionIndexInChunk,
+                                q -> Map.of(q.getContentEntry().getId(), q),
+                                (existing, replacement) -> existing)));
 
         var allTopics = contentBank.getContentEntries().stream()
                 .flatMap(entry -> entry.getTopics().stream())
@@ -360,8 +368,19 @@ public class QuizService {
 
         for (var question : allQuestions) {
             var contentEntry = question.getContentEntry();
+            var chunkIndex = question.getChunkIndex();
+            var questionIndexInChunk = question.getQuestionIndexInChunk();
+
+            if (mapQuizQuestionByChunk.containsKey(chunkIndex)
+                    && mapQuizQuestionByChunk.get(chunkIndex).containsKey(questionIndexInChunk)
+                    && mapQuizQuestionByChunk.get(chunkIndex).get(questionIndexInChunk)
+                            .containsKey(contentEntry.getId())) {
+                continue;
+            }
 
             var quizQuestion = new QuizQuestion();
+            quizQuestion.setChunkIndex(chunkIndex);
+            quizQuestion.setQuestionIndexInChunk(questionIndexInChunk);
             quizQuestion.setQuestion(question.getQuestion());
             quizQuestion.setType(question.getType());
             quizQuestion.setContentEntryType(
@@ -370,7 +389,6 @@ public class QuizService {
             quizQuestion.setContentEntry(contentEntry);
             quizQuestion.setQuiz(quiz);
 
-            //TODO: it should be upsert
             quizQuestion = quizQuestionRepository.save(quizQuestion);
             createdQuestions.add(quizQuestion);
 
@@ -398,7 +416,7 @@ public class QuizService {
         }
 
         quiz.setContentEntriesCount(contentBank.getContentEntries().size());
-        quiz.setQuestionsCount(createdQuestions.size());
+        quiz.setQuestionsCount(quiz.getQuizQuestions().size());
         quizRepository.save(quiz);
 
     }

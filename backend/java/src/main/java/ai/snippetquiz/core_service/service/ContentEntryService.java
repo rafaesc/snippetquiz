@@ -5,7 +5,6 @@ import ai.snippetquiz.core_service.dto.request.CreateQuestionRequest;
 import ai.snippetquiz.core_service.dto.request.QuestionOptionRequest;
 import ai.snippetquiz.core_service.dto.response.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.dto.response.ContentEntryResponse;
-import ai.snippetquiz.core_service.dto.response.CreateQuestionResponse;
 import ai.snippetquiz.core_service.entity.ContentEntry;
 import ai.snippetquiz.core_service.entity.ContentEntryBank;
 import ai.snippetquiz.core_service.entity.ContentEntryTopic;
@@ -285,10 +284,12 @@ public class ContentEntryService {
         }
     }
 
-    public CreateQuestionResponse createQuestion(CreateQuestionRequest request, UUID userId) {
+    public void createQuestion(CreateQuestionRequest request, UUID userId) {
         var contentEntryId = request.contentEntryId();
         var questionText = request.question();
         var options = request.options();
+        var chunkIndex = request.currentChunkIndex();
+        var questionIndexInChunk = request.questionIndexInChunk();
 
         var contentEntry = contentEntryRepository.findById(contentEntryId)
                 .orElseThrow(() -> new NotFoundException(
@@ -296,12 +297,14 @@ public class ContentEntryService {
 
         if (Objects.isNull(options) || options.isEmpty()) {
             log.error("No options provided for question");
-            return new CreateQuestionResponse("No options provided for question", 0L);
+            throw new IllegalArgumentException("No options provided for question");
         }
 
         var question = new Question();
         question.setQuestion(questionText);
         question.setType("single_choice");
+        question.setChunkIndex(chunkIndex);
+        question.setQuestionIndexInChunk(questionIndexInChunk);
         question.setContentEntry(contentEntry);
 
         var savedQuestion = questionRepository.save(question);
@@ -318,8 +321,6 @@ public class ContentEntryService {
         }
 
         savedQuestion.setQuestionOptions(quizQuestionOptions);
-
-        return new CreateQuestionResponse("Question created successfully", savedQuestion.getId());
     }
 
     private ContentEntryResponse mapToContentEntryResponse(ContentEntry entry, List<String> topics) {

@@ -30,6 +30,12 @@ public class QuizQuestion {
     @Column(name = "content_entry_source_url")
     private String contentEntrySourceUrl;
 
+    @Column(name = "chunk_index")
+    private Integer chunkIndex;
+
+    @Column(name = "question_index_in_chunk")
+    private Integer questionIndexInChunk;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "content_entry_id")
     private ContentEntry contentEntry;
@@ -44,11 +50,14 @@ public class QuizQuestion {
     @OneToMany(mappedBy = "quizQuestion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuizQuestionResponse> quizQuestionResponses;
 
-    public QuizQuestion(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl, ContentEntry contentEntry, Quiz quiz) {
+    public QuizQuestion(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl, 
+                       Integer chunkIndex, Integer questionIndexInChunk, ContentEntry contentEntry, Quiz quiz) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;
         this.contentEntrySourceUrl = contentEntrySourceUrl;
+        this.chunkIndex = chunkIndex;
+        this.questionIndexInChunk = questionIndexInChunk;
         this.contentEntry = contentEntry;
         this.quiz = quiz;
     }

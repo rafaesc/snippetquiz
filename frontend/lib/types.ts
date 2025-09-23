@@ -141,6 +141,7 @@ export interface QuizSummaryResponse {
 type QuizQuestionOption = {
   id: number;
   optionText: string;
+  isCorrect: boolean;
 }
 
 type QuizQuestion = {
