@@ -28,14 +28,6 @@ const COOKIE_PATH = '/api';
 export class AuthServiceController {
   constructor(private readonly authClientService: AuthClientService) {}
 
-  @Get('me')
-  @SkipThrottle()
-  async getMe(@Request() req: any): Promise<{ message: string }> {
-    // Extract user ID from JWT token or request
-    const userId = req.user?.id;
-    return await firstValueFrom(this.authClientService.getMe(userId));
-  }
-
   @Post('register')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute for registration
   async register(@Body() registerDto: RegisterDto): Promise<any> {

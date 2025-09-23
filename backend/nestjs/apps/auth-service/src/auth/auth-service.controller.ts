@@ -19,11 +19,6 @@ import type {
 export class AuthServiceController {
   constructor(private readonly authServiceService: AuthServiceService) {}
 
-  @MessagePattern('auth.me')
-  async getMe(@Payload() data: UserPayload): Promise<{ message: string }> {
-    return { message: 'Hello, World!' };
-  }
-
   @MessagePattern('auth.register')
   async register(
     @Payload() registerDto: RegisterDto,
