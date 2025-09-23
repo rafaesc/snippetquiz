@@ -40,8 +40,8 @@ jobs:
       - name: Build and push Core Service
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/nestjs/apps/core-service/Dockerfile
+          context: ./backend/java
+          file: ./backend/java/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
 

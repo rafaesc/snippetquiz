@@ -50,10 +50,8 @@ services:
 
   core_service:
     build: 
-      context: ./backend/nestjs
-      dockerfile: apps/core-service/Dockerfile
-      args:
-        - POSTGRESQL_PRISMA_URL=${POSTGRESQL_PRISMA_URL}
+      context: ./backend/java
+      dockerfile: Dockerfile
     image: core-service-prod
     environment:
       <<: *common-env

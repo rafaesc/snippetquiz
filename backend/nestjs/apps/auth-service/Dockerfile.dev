@@ -4,9 +4,10 @@ WORKDIR /usr/src/backend/nestjs
 
 COPY . .
 
+# Install dependencies first
+RUN npm install
+
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/db-postgres/schema.prisma
-
-RUN npm install
 
 EXPOSE 6000
