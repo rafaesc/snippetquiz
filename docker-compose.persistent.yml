@@ -25,21 +25,6 @@ services:
     volumes: 
       - ./local/cache:/data
 
-  prisma-studio:
-    image: node:lts-alpine3.17
-    working_dir: /usr/src/app
-    volumes:
-      - ./backend/nestjs/prisma:/usr/src/app/prisma
-      - ./backend/nestjs/generated:/usr/src/app/generated
-    command: npx prisma studio --port 5555 --browser none --schema prisma/db-postgres/schema.prisma 
-    ports:
-      - "5555:5555"
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-
   broker:
     image: apache/kafka:4.0.0
     ports: 

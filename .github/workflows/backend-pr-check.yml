@@ -230,9 +230,6 @@ jobs:
       - name: Build auth-service
         run: npm run build auth-service
 
-      - name: Build core-service
-        run: npm run build core-service
-
   # Python AI Service
   test-and-build-python:
     name: Test and Build Python AI Service

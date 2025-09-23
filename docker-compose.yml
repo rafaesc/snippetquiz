@@ -28,7 +28,6 @@ x-common-environment: &common-env
     KAFKA_PORT: ${KAFKA_PORT}
 
 services:
-
   api_gateway:
     build: 
       context: ./backend
@@ -56,21 +55,14 @@ services:
       <<: *common-env
     command: sh -c "npx prisma migrate deploy --schema=prisma/db-postgres/schema.prisma || true && npm run start:dev auth-service"
 
-
   core_service:
     build: 
-      context: ./backend
-      dockerfile: nestjs/apps/core-service/Dockerfile.dev
-    volumes:
-      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
-      - ./backend/protos:/usr/src/backend/protos
+      context: ./backend/java
+      dockerfile: Dockerfile
     ports:
-      - "7000:7000"
+      - "7001:7001"
     environment:
       <<: *common-env
-    command: npm run start:dev core-service
-
 
   frontend:
     build:

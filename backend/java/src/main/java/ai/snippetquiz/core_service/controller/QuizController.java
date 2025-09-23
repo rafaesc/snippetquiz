@@ -12,7 +12,6 @@ import ai.snippetquiz.core_service.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.exception.ConflictException;
 import ai.snippetquiz.core_service.service.QuizService;
 import ai.snippetquiz.core_service.util.Constants;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
@@ -52,7 +51,7 @@ public class QuizController {
     @ResponseStatus(HttpStatus.CREATED)
     public CreateQuizResponse createQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @Valid @RequestBody CreateQuizRequest request) {
+            @RequestBody CreateQuizRequest request) {
         var checkQuizInProgressResponse = quizService.checkQuizInProgress(UUID.fromString(userId));
         if (checkQuizInProgressResponse.inProgress()) {
             throw new ConflictException("Quiz in progress");
@@ -87,7 +86,7 @@ public class QuizController {
     public UpdateQuizResponse updateQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable Long id,
-            @Valid @PathVariable @NotNull(message = "Question option ID cannot be null") Long questionOptionId) {
+            @PathVariable @NotNull(message = "Question option ID cannot be null") Long questionOptionId) {
         return quizService.updateQuiz(UUID.fromString(userId), id, questionOptionId);
     }
 
