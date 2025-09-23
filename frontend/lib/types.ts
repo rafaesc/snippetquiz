@@ -138,13 +138,12 @@ export interface QuizSummaryResponse {
   totalCorrectAnswers: number;
 }
 
-type QuizQuestionOption = {
+export type QuizQuestionOption = {
   id: number;
   optionText: string;
-  isCorrect: boolean;
 }
 
-type QuizQuestion = {
+export type QuizQuestion = {
   id: number;
   question: string;
   contentEntryType: string;
@@ -166,6 +165,7 @@ export type FindOneQuizResponse = {
 export interface UpdateQuizResponse {
   success: boolean;
   completed?: boolean;
+  correctOptionId?: number;
 }
 
 

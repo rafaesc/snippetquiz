@@ -130,9 +130,7 @@ public class QuizService {
             var options = currentQuestion.getQuizQuestionOptions().stream()
                     .map(option -> new QuizQuestionOptionDTOResponse(
                             option.getId(),
-                            option.getOptionText(),
-                            option.getOptionExplanation(),
-                            option.getIsCorrect()))
+                            option.getOptionText()))
                     .collect(Collectors.toList());
 
             currentQuestionDto = new QuizQuestionDTOResponse(
@@ -429,7 +427,8 @@ public class QuizService {
             return new UpdateQuizResponse(
                     "Quiz is already completed",
                     false,
-                    false);
+                    false,
+                    null);
         }
 
         var sortedQuestions = quizQuestionRepository.findByQuizId(quizId, quizQuestionPageable);
@@ -438,7 +437,8 @@ public class QuizService {
             return new UpdateQuizResponse(
                     "Quiz is already completed",
                     false,
-                    false);
+                    false,
+                    null);
         }
 
         var currentQuestion = sortedQuestions.get(quiz.getQuestionsCompleted());
@@ -447,7 +447,8 @@ public class QuizService {
             return new UpdateQuizResponse(
                     "No more questions available",
                     false,
-                    false);
+                    false,
+                    null);
         }
 
         var selectedOption = currentQuestion.getQuizQuestionOptions().stream()
@@ -459,7 +460,8 @@ public class QuizService {
             return new UpdateQuizResponse(
                     "Invalid question option selected",
                     false,
-                    false);
+                    false,
+                    null);
         }
 
         var correctOption = currentQuestion.getQuizQuestionOptions().stream()
@@ -472,7 +474,8 @@ public class QuizService {
             return new UpdateQuizResponse(
                     "Question configuration error",
                     false,
-                    false);
+                    false,
+                    null);
         }
 
         // Create a new QuizQuestionResponse
@@ -500,7 +503,9 @@ public class QuizService {
 
         return new UpdateQuizResponse(
                 "Quiz updated successfully",
-                true, isCompleted);
+                true, 
+                isCompleted,
+                correctOption.getId());
     }
 
     public void emitCreateQuizEvent(UUID userId, Long quizId, Long bankId,

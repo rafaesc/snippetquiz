@@ -10,6 +10,7 @@ import { useQuiz } from "@/contexts/QuizContext";
 import { apiService } from "@/lib/api-service";
 import { useQuizWebSocket } from "@/hooks/useQuizWebSocket";
 import { HorizontalQuizGenerationLoader } from "@/components/HorizontalQuizGenerationLoader";
+import { QuizQuestion, QuizQuestionOption } from "@/lib/types";
 
 export default function QuizPlayerPage() {
   const { currentQuizId } = useQuiz();
@@ -116,7 +117,7 @@ export default function QuizPlayerPage() {
           setShowAnswerFeedback(false);
           setIsAnswerCorrect(null);
         }, 500); // Match the transition duration
-      }, isAnswerCorrect ? 500 : 1500); // Show feedback for 2 seconds
+      }, isAnswerCorrect ? 500 : 1500);
     },
     onError: (error) => {
       console.error("Failed to update quiz:", error);
@@ -177,7 +178,7 @@ export default function QuizPlayerPage() {
   );
 
   // Use displayQuestion for rendering to maintain question during transition
-  const currentQuestion = displayQuestion || quiz?.question;
+  const currentQuestion = (displayQuestion || quiz?.question) as QuizQuestion | null;
 
   const progress = quiz
     ? ((quiz.questionsCompleted) / (quiz?.totalQuestions || 1)) * 100
@@ -191,7 +192,7 @@ export default function QuizPlayerPage() {
     setSelectedAnswer(answer);
 
     try {
-      // Find the selected option to get its ID and correctness
+      // Find the selected option to get its ID
       const selectedOption = currentQuestion?.options.find(
         (option: any) => option.optionText === answer
       );
@@ -200,14 +201,14 @@ export default function QuizPlayerPage() {
         throw new Error("Invalid option or quiz ID");
       }
 
-      // Set whether the answer is correct
-      setIsAnswerCorrect(selectedOption.isCorrect);
-
-      // Update the quiz with the selected option
-      await updateQuizMutation.mutateAsync({
+      // Update the quiz with the selected option and get the response
+      const response = await updateQuizMutation.mutateAsync({
         quizId: quiz.id,
         optionId: selectedOption.id,
       });
+
+      // Use the API response to determine if the answer is correct
+      setIsAnswerCorrect(response.correctOptionId === selectedOption.id);
     } catch (error) {
       setSelectedAnswer(null);
       setIsTransitioning(false);
@@ -216,30 +217,33 @@ export default function QuizPlayerPage() {
     }
   };
 
-  const getOptionButtonClass = (option: any) => {
+  const getOptionButtonClass = (option: QuizQuestionOption) => {
     const baseClass =
       "w-full p-4 text-left rounded-lg border-2 transition-all duration-200 break-words";
 
     // If showing answer feedback, apply correct/incorrect styling
     if (showAnswerFeedback) {
-      if (option.isCorrect) {
+      // Use the correctOptionId from the API response to determine correct answer
+      const isCorrectOption = updateQuizMutation.data?.correctOptionId === option.id;
+      
+      if (isCorrectOption) {
         // Correct answer - always green
-        return `${baseClass} border-green-500 bg-green-100 text-green-800 font-medium`;
+        return `${baseClass} border-green-500 bg-green-200 dark:bg-green-900/30 text-green dark:text-green-200 font-medium`;
       } else if (selectedAnswer === option.optionText) {
         // Selected wrong answer - red
-        return `${baseClass} border-red-500 bg-red-100 text-red-800 font-medium`;
+        return `${baseClass} border-red-500 bg-red-200 dark:bg-red-900/30 text-red dark:text-red-200 font-medium`;
       } else {
         // Other options - dimmed
-        return `${baseClass} border-gray-300 bg-gray-50 text-gray-500`;
+        return `${baseClass} border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400`;
       }
     }
 
     // Normal state (before answer selection)
     if (selectedAnswer === option.optionText) {
-      return `${baseClass} border-primary bg-primary/10 text-primary font-medium`;
+      return `${baseClass} border-primary bg-primary/10 dark:bg-primary/20 text-primary font-medium`;
     }
 
-    return `${baseClass} border-border bg-background hover:border-primary hover:bg-primary/5 hover:scale-[1.02]`;
+    return `${baseClass} border-border bg-background hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 hover:scale-[1.02]`;
   };
 
   return (
