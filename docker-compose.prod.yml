@@ -28,7 +28,7 @@ x-common-environment: &common-env
 
 
 services:
-  api_gateway:
+  api-gateway:
     build: 
       context: ./backend/nestjs
       dockerfile: apps/api-gateway/Dockerfile
@@ -38,7 +38,7 @@ services:
     environment:
       <<: *common-env
 
-  auth_service:
+  auth-service:
     build: 
       context: ./backend/nestjs
       dockerfile: apps/auth-service/Dockerfile
@@ -48,7 +48,7 @@ services:
     environment:
       <<: *common-env
 
-  core_service:
+  core-service:
     build: 
       context: ./backend/java
       dockerfile: Dockerfile

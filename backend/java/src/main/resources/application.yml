@@ -1,5 +1,5 @@
 server:
-    port: 7001
+    port: ${CORE_SERVICE_PORT}
     servlet:
         context-path: /api
 spring:
@@ -29,7 +29,7 @@ spring:
             port: ${REDIS_PORT:6379}
             password: ${REDIS_PASSWORD}
     kafka:
-        bootstrap-servers: ${KAFKA_HOST:localhost}:9092
+        bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
         consumer:
             group-id: core-consumer-group
             auto-offset-reset: earliest
