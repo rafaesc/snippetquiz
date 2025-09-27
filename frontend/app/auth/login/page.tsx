@@ -106,7 +106,7 @@ export default function AuthPage() {
         title: "Welcome!",
         description: "Your account has been created successfully.",
       });
-      router.push('/dashboard');
+      router.push('/auth/verify-email');
     },
     onError: (error: Error) => {
       toast({

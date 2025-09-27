@@ -77,7 +77,7 @@ export class AuthServiceService {
 
     // Check if user already exists using UsersService
     const existingUser = await this.usersService.findByEmail(email);
-    if (existingUser) {
+    if (existingUser && existingUser.verified) {
       throw new ConflictException('User already exists with this email');
     }
 
@@ -86,19 +86,25 @@ export class AuthServiceService {
       envs.emailUsername && envs.emailPassword
     );
 
-    // Create user using UsersService - auto-verify if email is disabled
-    const newUser = await this.usersService.createUser({
-      name,
-      email,
-      password,
-      verified: !emailVerificationEnabled, // Auto-verify if email is disabled
-    });
+    let user = existingUser;
+    if (!existingUser) {
+      user = await this.usersService.createUser({
+        name,
+        email,
+        password,
+        verified: !emailVerificationEnabled, // Auto-verify if email is disabled
+      });
+    }
+
+    if (!user) {
+      throw new ConflictException('Unkown error creating user');
+    }
 
     // If email verification is enabled, send verification email
     if (emailVerificationEnabled) {
       // Generate verification token
       const verificationToken = this.jwtService.sign(
-        { userId: newUser.id, email: newUser.email },
+        { userId: user.id, email: user.email },
         {
           secret: envs.jwtAuthVerificationSecret,
           expiresIn: envs.jwtAuthVerificationExpiresIn,
@@ -123,16 +129,16 @@ export class AuthServiceService {
       return {
         message:
           'User registered successfully. Please check your email to verify your account.',
-        user: newUser as UserResponseDto,
+        user: user as UserResponseDto,
       };
     } else {
       // Email verification disabled - user is automatically verified
-      const tokens = this.tokenService.generateTokens(newUser);
+      const tokens = this.tokenService.generateTokens(user);
 
       return {
         message:
           'User registered and automatically verified (email verification disabled).',
-        user: newUser as UserResponseDto,
+        user: user as UserResponseDto,
         tokens, // Provide tokens for immediate login
       };
     }
@@ -358,7 +364,7 @@ export class AuthServiceService {
     }
 
     return {
-      user
+      user,
     };
   }
 }

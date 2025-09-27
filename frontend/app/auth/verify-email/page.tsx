@@ -27,7 +27,7 @@ interface ResendVerificationResponse {
 }
 
 function VerifyEmailContent() {
-  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error' | 'expired'>('pending');
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error' | 'expired' | 'awaiting-verification'>('pending');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isResending, setIsResending] = useState(false);
   const router = useRouter();
@@ -91,8 +91,7 @@ function VerifyEmailContent() {
     if (token) {
       verifyEmailMutation.mutate(token);
     } else {
-      setVerificationStatus('error');
-      setErrorMessage('No verification token provided.');
+      setVerificationStatus('awaiting-verification');
     }
   }, [token]);
 
@@ -118,6 +117,35 @@ function VerifyEmailContent() {
                 Please wait while we verify your email address: {email}
               </CardDescription>
             </CardHeader>
+          </Card>
+        );
+
+      case 'awaiting-verification':
+        return (
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                <Mail className="h-6 w-6 text-blue-600" />
+              </div>
+              <CardTitle>Check Your Email</CardTitle>
+              <CardDescription>
+                We've sent a verification email to {email || 'your email address'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <Mail className="h-4 w-4" />
+                <AlertDescription>
+                  Please check your email inbox and click the verification link to activate your account. 
+                  <strong> Don't forget to check your spam/junk folder!</strong>
+                </AlertDescription>
+              </Alert>
+              <div className="space-y-2">
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/auth/login">Back to Login</Link>
+                </Button>
+              </div>
+            </CardContent>
           </Card>
         );
 
