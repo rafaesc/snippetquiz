@@ -59,5 +59,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile
+          build-args: |
+            API_URL=http://localhost:5000
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-frontend:latest
