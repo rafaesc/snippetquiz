@@ -3,11 +3,35 @@ on:
   push:
     paths:
       - 'backend/**'
+      - 'frontend/**'
     branches:
       - master
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      java: ${{ steps.filter.outputs.java }}
+      nestjs: ${{ steps.filter.outputs.nestjs }}
+      python: ${{ steps.filter.outputs.python }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            java:
+              - 'backend/java/**'
+            nestjs:
+              - 'backend/nestjs/**'
+            python:
+              - 'backend/python/**'
+            frontend:
+              - 'frontend/**'
+
   build-and-push:
+    needs: changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,6 +48,7 @@ jobs:
           password: ${{secrets.PACKAGE_TOKEN}}
 
       - name: Build and push API Gateway
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -32,6 +57,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/snippetquiz-api-gateway:latest
 
       - name: Build and push Auth Service
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: ./backend/nestjs
@@ -40,6 +66,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
 
       - name: Build and push Core Service
+        if: ${{ needs.changes.outputs.java == 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: ./backend/java
@@ -48,6 +75,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
 
       - name: Build and push AI Python Service
+        if: ${{ needs.changes.outputs.python == 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -56,6 +84,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-python-service:latest
 
       - name: Build and push Frontend
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
