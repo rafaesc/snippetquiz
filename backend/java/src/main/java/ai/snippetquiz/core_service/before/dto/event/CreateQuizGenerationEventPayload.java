@@ -1,0 +1,13 @@
+package ai.snippetquiz.core_service.before.dto.event;
+
+import ai.snippetquiz.core_service.before.dto.request.ContentEntryDto;
+
+import java.util.List;
+
+public record CreateQuizGenerationEventPayload(
+            String instructions,
+            List<ContentEntryDto> contentEntries,
+            Integer entriesSkipped,
+            Long quizId,
+            String userId,
+            Long bankId) {}
