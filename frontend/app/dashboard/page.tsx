@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { TrendingUp, LineChart, Target } from "lucide-react";
+import { TrendingUp, Target } from "lucide-react";
 
 function Dashboard() {
   return (

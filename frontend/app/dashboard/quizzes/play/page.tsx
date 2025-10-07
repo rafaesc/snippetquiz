@@ -31,8 +31,6 @@ export default function QuizPlayerPage() {
     isGenerating, 
     progressPercentage, 
     isComplete, 
-    error: wsError, 
-    clearError, 
   } = useQuizWebSocket();
 
   const {
