@@ -1,36 +1,29 @@
-package ai.snippetquiz.core_service.before.service;
+package ai.snippetquiz.core_service.contentbank.application.service;
 
-import ai.snippetquiz.core_service.before.dto.request.CreateContentEntryRequest;
-import ai.snippetquiz.core_service.before.dto.request.CreateQuestionRequest;
-import ai.snippetquiz.core_service.before.dto.request.QuestionOptionRequest;
-import ai.snippetquiz.core_service.before.dto.response.ContentEntryDTOResponse;
-import ai.snippetquiz.core_service.before.dto.response.ContentEntryResponse;
-import ai.snippetquiz.core_service.before.entity.ContentEntry;
-import ai.snippetquiz.core_service.before.entity.ContentEntryBank;
-import ai.snippetquiz.core_service.before.entity.ContentEntryTopic;
-import ai.snippetquiz.core_service.before.entity.ContentType;
-import ai.snippetquiz.core_service.before.entity.Question;
-import ai.snippetquiz.core_service.before.entity.QuestionOption;
-import ai.snippetquiz.core_service.before.entity.YoutubeChannel;
-import ai.snippetquiz.core_service.before.exception.NotFoundException;
-import ai.snippetquiz.core_service.before.repository.ContentEntryRepository;
-import ai.snippetquiz.core_service.before.repository.ContentBankRepository;
-import ai.snippetquiz.core_service.before.repository.ContentEntryBankRepository;
-import ai.snippetquiz.core_service.before.repository.TopicRepository;
-import ai.snippetquiz.core_service.before.repository.YoutubeChannelRepository;
-import ai.snippetquiz.core_service.before.repository.ContentEntryTopicRepository;
-import ai.snippetquiz.core_service.before.repository.QuestionOptionRepository;
-import ai.snippetquiz.core_service.before.repository.QuestionRepository;
+import ai.snippetquiz.core_service.contentbank.application.dto.request.CreateContentEntryRequest;
+import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryDTOResponse;
+import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryResponse;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
+import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
+import ai.snippetquiz.core_service.contentbank.domain.port.in.ContentEntryService;
+import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryEventPublisher;
+import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryTopicRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.out.YoutubeChannelRepository;
+import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -42,18 +35,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
-public class ContentEntryService {
+public class ContentEntryServiceImpl implements ContentEntryService {
 
     private final ContentEntryRepository contentEntryRepository;
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryBankRepository contentEntryBankRepository;
-    private final TopicRepository topicRepository;
-    private final YoutubeChannelRepository youtubeChannelRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
-    private final KafkaProducerService kafkaProducerService;
-    private final QuestionRepository questionRepository;
-    private final QuestionOptionRepository questionOptionRepository;
+    private final YoutubeChannelRepository youtubeChannelRepository;
+    private final ContentEntryEventPublisher contentEntryEventPublisher;
 
+    @Override
     public ContentEntryResponse create(UUID userId, CreateContentEntryRequest request) {
         var bankId = request.bankId();
         var contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
@@ -87,7 +78,7 @@ public class ContentEntryService {
         ContentEntry existingEntry = null;
         if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(request.sourceUrl())) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
-                    request.sourceUrl(), ContentType.FULL_HTML, bankId)
+                            request.sourceUrl(), ContentType.FULL_HTML, bankId)
                     .orElse(null);
 
             if (Objects.nonNull(existingEntry)) {
@@ -109,7 +100,7 @@ public class ContentEntryService {
         // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
         if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(request.sourceUrl())) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
-                    request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
+                            request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
                     .orElse(null);
 
             // If VIDEO_TRANSCRIPT entry already exists, return it without creating/updating
@@ -171,6 +162,7 @@ public class ContentEntryService {
         return mapToContentEntryResponse(resultEntry, null);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public ContentEntryDTOResponse findById(UUID userId, Long entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
@@ -189,10 +181,9 @@ public class ContentEntryService {
                 topics);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public PagedModel<ContentEntryDTOResponse> findAll(
-            UUID userId, Long bankId,
-            String name, Pageable pageable) {
+    public PagedModel<ContentEntryDTOResponse> findAll(UUID userId, Long bankId, String name, Pageable pageable) {
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
@@ -214,14 +205,12 @@ public class ContentEntryService {
         return new PagedModel<>(contentEntryDTOPage);
     }
 
+    @Override
     public ContentEntryResponse clone(UUID userId, Long entryId, Long cloneTargetBankId) {
-        var sourceId = entryId;
-        var targetBankId = cloneTargetBankId;
-
-        var sourceEntry = contentEntryRepository.findByIdAndUserId(sourceId, userId)
+        var sourceEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
 
-        var targetBank = contentBankRepository.findByIdAndUserId(targetBankId, userId)
+        var targetBank = contentBankRepository.findByIdAndUserId(cloneTargetBankId, userId)
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
         var clonedEntry = new ContentEntry();
@@ -244,11 +233,11 @@ public class ContentEntryService {
         association.setContentBank(targetBank);
         contentEntryBankRepository.save(association);
 
-        var sourceTopics = contentEntryTopicRepository.findByContentEntryId(sourceId);
+        var sourceTopics = contentEntryTopicRepository.findByContentEntryId(entryId);
         for (ContentEntryTopic sourceTopic : sourceTopics) {
             var clonedTopic = new ContentEntryTopic();
             clonedTopic.setContentEntry(savedClone);
-            clonedTopic.setTopic(sourceTopic.getTopic());
+            clonedTopic.setTopicId(sourceTopic.getTopicId());
             contentEntryTopicRepository.save(clonedTopic);
         }
 
@@ -259,8 +248,8 @@ public class ContentEntryService {
         return mapToContentEntryResponse(savedClone, topics);
     }
 
+    @Override
     public void remove(UUID userId, Long entryId) {
-
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
@@ -273,54 +262,15 @@ public class ContentEntryService {
     private void generateTopicsForContentEntry(UUID userId, ContentEntry contentEntry) {
         Long entryId = contentEntry.getId();
 
-        var existingTopics = topicRepository.findAllByUserId(userId).stream().map(topic -> topic.getTopic())
+        var existingTopics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entryId).stream()
                 .collect(Collectors.joining(","));
 
         try {
-            kafkaProducerService.emitGenerateTopicsEvent(userId.toString(), entryId,
+            contentEntryEventPublisher.emitGenerateTopicsEvent(userId.toString(), entryId,
                     contentEntry.getContent(), contentEntry.getPageTitle(), existingTopics);
         } catch (Exception e) {
             log.error("Failed to emit Kafka event: " + e.getMessage());
         }
-    }
-
-    public void createQuestion(CreateQuestionRequest request, UUID userId) {
-        var contentEntryId = request.contentEntryId();
-        var questionText = request.question();
-        var options = request.options();
-        var chunkIndex = request.currentChunkIndex();
-        var questionIndexInChunk = request.questionIndexInChunk();
-
-        var contentEntry = contentEntryRepository.findById(contentEntryId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Content entry not found or you do not have permission to access it"));
-
-        if (Objects.isNull(options) || options.isEmpty()) {
-            log.error("No options provided for question");
-            throw new IllegalArgumentException("No options provided for question");
-        }
-
-        var question = new Question();
-        question.setQuestion(questionText);
-        question.setType("single_choice");
-        question.setChunkIndex(chunkIndex);
-        question.setQuestionIndexInChunk(questionIndexInChunk);
-        question.setContentEntry(contentEntry);
-
-        var savedQuestion = questionRepository.save(question);
-        var quizQuestionOptions = new ArrayList<QuestionOption>();
-
-        for (QuestionOptionRequest optionRequest : options) {
-            QuestionOption option = new QuestionOption();
-            option.setQuestion(savedQuestion);
-            option.setOptionText(optionRequest.optionText());
-            option.setOptionExplanation(optionRequest.optionExplanation());
-            option.setIsCorrect(optionRequest.isCorrect());
-
-            quizQuestionOptions.add(questionOptionRepository.save(option));
-        }
-
-        savedQuestion.setQuestionOptions(quizQuestionOptions);
     }
 
     private ContentEntryResponse mapToContentEntryResponse(ContentEntry entry, List<String> topics) {
