@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
+import ai.snippetquiz.core_service.shared.domain.ContentType;
 
 public interface ContentEntryRepository {
     ContentEntry save(ContentEntry contentEntry);

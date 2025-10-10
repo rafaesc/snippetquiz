@@ -17,4 +17,6 @@ public interface JpaTopicRepository extends JpaRepository<TopicEntity, Long> {
     List<TopicEntity> findAllByUserId(UUID userId);
     
     List<TopicEntity> findByUserIdAndTopicIn(UUID userId, List<String> topics);
+
+    List<TopicEntity> findByUserIdAndIdIn(UUID userId, List<Long> ids);
 }

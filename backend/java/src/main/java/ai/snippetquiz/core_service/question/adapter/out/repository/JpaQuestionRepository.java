@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface JpaQuestionRepository extends JpaRepository<QuestionEntity, Long> {
     List<QuestionEntity> findByContentEntryId(Long contentEntryId);
+
+    List<QuestionEntity> findByContentEntryIdIn(List<Long> contentEntryId);
 }

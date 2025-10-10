@@ -45,6 +45,13 @@ public class JpaTopicRepositoryAdapter implements TopicRepository {
     }
 
     @Override
+    public List<Topic> findByUserIdAndIdIn(UUID userId, List<Long> ids) {
+        return jpaTopicRepository.findByUserIdAndIdIn(userId, ids).stream()
+                .map(topicMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Topic> findAllByIdInAndUserId(List<Long> ids, UUID userId) {
         return jpaTopicRepository.findAllByIdInAndUserId(ids, userId).stream()
                 .map(topicMapper::toDomain)

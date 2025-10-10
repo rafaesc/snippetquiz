@@ -1,7 +1,7 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.entities;
 
 import ai.snippetquiz.core_service.before.entity.YoutubeChannel;
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
+import ai.snippetquiz.core_service.shared.domain.ContentType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

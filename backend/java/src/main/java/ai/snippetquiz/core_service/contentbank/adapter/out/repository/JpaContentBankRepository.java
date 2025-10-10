@@ -19,14 +19,19 @@ public interface JpaContentBankRepository extends JpaRepository<ContentBankEntit
     Optional<ContentBankEntity> findByIdAndUserId(Long id, UUID userId);
     
     void deleteByIdAndUserId(Long id, UUID userId);
-    
+
+    @Query("SELECT cb FROM ContentBankEntity cb WHERE cb.userId = :userId " +
+            "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
     Page<ContentBankEntity> findByUserIdAndNameContainingIgnoreCase(
-            UUID userId,
-            String name,
+            @Param("userId") UUID userId,
+            @Param("name") String name,
             Pageable pageable);
     
     Optional<ContentBankEntity> findByUserIdAndNameAndIdNot(UUID userId, String name, Long excludeId);
-    
-    @Query("SELECT cb FROM ContentBankEntity cb LEFT JOIN FETCH cb.contentEntries WHERE cb.id = :id AND cb.userId = :userId")
+
+    @Query("SELECT DISTINCT cb FROM ContentBankEntity cb " +
+            "INNER JOIN FETCH cb.contentEntryBanks ceb " +
+            "INNER JOIN FETCH ceb.contentEntry ce " +
+            "WHERE cb.id = :id AND cb.userId = :userId")
     Optional<ContentBankEntity> findByIdAndUserIdWithContentEntries(@Param("id") Long id, @Param("userId") UUID userId);
 }

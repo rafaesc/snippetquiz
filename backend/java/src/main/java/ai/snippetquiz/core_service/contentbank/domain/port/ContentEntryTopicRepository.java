@@ -7,9 +7,11 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 public interface ContentEntryTopicRepository {
     ContentEntryTopic save(ContentEntryTopic contentEntryTopic);
 
-    List<ContentEntryTopic> findByContentEntryId(Long contentEntryId);
+    List<ContentEntryTopic> findByContentEntryId(Long contentEntryIds);
 
     List<ContentEntryTopic> findByTopicId(Long topicId);
+
+    List<ContentEntryTopic> findByContentEntryIdIn(List<Long> contentEntryId);
     
     void deleteByContentEntryId(Long contentEntryId);
 }

@@ -7,4 +7,5 @@ import java.util.List;
 public interface QuestionRepository  {
     Question save(Question question);
     List<Question> findByContentEntryId(Long contentEntryId);
+    List<Question> findByContentEntryIdIn(List<Long> contentEntryIds);
 }

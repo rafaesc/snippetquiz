@@ -1,7 +1,7 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.repository;
 
 import ai.snippetquiz.core_service.contentbank.adapter.out.entities.ContentEntryEntity;
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
+import ai.snippetquiz.core_service.shared.domain.ContentType;
 
 import java.util.Optional;
 import java.util.UUID;

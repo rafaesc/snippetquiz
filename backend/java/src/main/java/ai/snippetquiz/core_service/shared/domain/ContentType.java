@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.domain.model;
+package ai.snippetquiz.core_service.shared.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -12,5 +12,7 @@ public interface JpaContentEntryTopicRepository extends JpaRepository<ContentEnt
 
     List<ContentEntryTopicEntity> findByTopicId(Long topicId);
 
+    List<ContentEntryTopicEntity> findByContentEntryIdIn(List<Long> contentEntryIds);
+
     void deleteByContentEntryId(Long contentEntryId);
 }
