@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.domain.port.out;
+package ai.snippetquiz.core_service.contentbank.domain.port;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +11,8 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
 
 public interface ContentEntryRepository {
     ContentEntry save(ContentEntry contentEntry);
+
+    Optional<ContentEntry> findById(Long id);
 
     void delete(ContentEntry contentEntry);
 

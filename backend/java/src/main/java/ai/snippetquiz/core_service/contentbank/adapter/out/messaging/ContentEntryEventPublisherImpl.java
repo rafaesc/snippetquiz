@@ -1,7 +1,7 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.messaging;
 
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryEventPayload;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryEventPublisher;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

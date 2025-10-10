@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.contentbank.adapter.out.repository;
 import ai.snippetquiz.core_service.contentbank.adapter.out.entities.ContentBankEntity;
 import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.ContentBankMapper;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "content_entries")
@@ -75,7 +74,7 @@ public class ContentEntry {
     public List<Topic> getTopics() {
         return contentEntryTopics.stream()
             .map(ContentEntryTopic::getTopic)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     public ContentEntry(ContentType contentType, String content, String sourceUrl, String pageTitle) {

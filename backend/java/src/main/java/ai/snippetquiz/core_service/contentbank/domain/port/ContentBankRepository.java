@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.domain.port.out;
+package ai.snippetquiz.core_service.contentbank.domain.port;
 
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
 import org.springframework.data.domain.Page;

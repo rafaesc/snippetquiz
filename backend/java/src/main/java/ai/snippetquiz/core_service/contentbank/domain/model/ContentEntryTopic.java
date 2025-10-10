@@ -11,4 +11,9 @@ public class ContentEntryTopic {
     private Long id;
     private ContentEntry contentEntry;
     private Long topicId;
+
+    public ContentEntryTopic(ContentEntry contentEntry, Long topicId) {
+        this.contentEntry = contentEntry;
+        this.topicId = topicId;
+    }
 }
