@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.contentbank.adapter.out.repository;
 import ai.snippetquiz.core_service.contentbank.adapter.out.entities.YoutubeChannelEntity;
 import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.YoutubeChannelMapper;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.YoutubeChannelRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

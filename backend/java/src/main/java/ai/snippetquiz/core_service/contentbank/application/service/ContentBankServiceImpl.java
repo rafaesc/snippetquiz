@@ -1,13 +1,15 @@
 package ai.snippetquiz.core_service.contentbank.application.service;
 
+import ai.snippetquiz.core_service.contentbank.application.dto.request.CreateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.application.dto.request.DuplicateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.application.dto.request.UpdateContentBankRequest;
 import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankItemResponse;
 import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
-import ai.snippetquiz.core_service.contentbank.domain.port.in.ContentBankService;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.shared.exception.ConflictException;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +32,11 @@ public class ContentBankServiceImpl implements ContentBankService {
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryRepository contentEntryRepository;
     private final ContentEntryBankRepository contentEntryBankRepository;
+
     @Override
-    public ContentBankResponse create(UUID userId, String name) {
+    public ContentBankResponse create(UUID userId, CreateContentBankRequest request) {
+         var name = request.name();
+         
         // Check if user already has a content bank with this name
         var existingBank = contentBankRepository.findByUserIdAndName(userId, name.trim());
         if (existingBank.isPresent()) {
@@ -95,7 +100,9 @@ public class ContentBankServiceImpl implements ContentBankService {
     }
 
     @Override
-    public ContentBankResponse update(UUID userId, Long id, String name) {
+    public ContentBankResponse update(UUID userId, Long id, UpdateContentBankRequest request) {
+        var name = request.name();
+        
         var existingBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));
@@ -129,7 +136,9 @@ public class ContentBankServiceImpl implements ContentBankService {
     }
 
     @Override
-    public ContentBankResponse duplicate(UUID userId, Long id, String newName) {
+    public ContentBankResponse duplicate(UUID userId, Long id, DuplicateContentBankRequest request) {
+        var newName = request.name();
+
         var originalBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));

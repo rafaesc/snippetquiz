@@ -14,7 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, Integer> {
+public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, Long> {
 
     Page<ContentEntryEntity> findByContentEntryBanks_ContentBank_Id(Long contentBankId, Pageable pageable);
 

@@ -131,7 +131,7 @@ public class QuizService {
                     .map(option -> new QuizQuestionOptionDTOResponse(
                             option.getId(),
                             option.getOptionText()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             currentQuestionDto = new QuizQuestionDTOResponse(
                     currentQuestion.getId(),
@@ -182,7 +182,7 @@ public class QuizService {
 
         List<String> topics = quiz.getQuizTopics() != null ? quiz.getQuizTopics().stream()
                 .map(QuizTopic::getTopicName)
-                .collect(Collectors.toList()) : List.of();
+                .toList() : List.of();
 
         var totalCorrectAnswers = quizQuestionResponseRepository.countByQuizIdAndIsCorrect(id, true);
 

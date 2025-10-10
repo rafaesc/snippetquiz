@@ -254,7 +254,7 @@ public class ContentEntryService {
 
         var topics = sourceTopics.stream()
                 .map(ct -> ct.getTopic().getTopic())
-                .collect(Collectors.toList());
+                .toList();
 
         return mapToContentEntryResponse(savedClone, topics);
     }

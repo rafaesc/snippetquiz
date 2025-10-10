@@ -8,14 +8,15 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
-import ai.snippetquiz.core_service.contentbank.domain.port.in.ContentEntryService;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryEventPublisher;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryTopicRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.YoutubeChannelRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
+import ai.snippetquiz.core_service.topic.domain.Topic;
+import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -24,12 +25,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 @Service
 @Slf4j
@@ -43,6 +47,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final YoutubeChannelRepository youtubeChannelRepository;
     private final ContentEntryEventPublisher contentEntryEventPublisher;
+    private final TopicRepository topicRepository;
 
     @Override
     public ContentEntryResponse create(UUID userId, CreateContentEntryRequest request) {
@@ -78,7 +83,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         ContentEntry existingEntry = null;
         if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(request.sourceUrl())) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
-                            request.sourceUrl(), ContentType.FULL_HTML, bankId)
+                    request.sourceUrl(), ContentType.FULL_HTML, bankId)
                     .orElse(null);
 
             if (Objects.nonNull(existingEntry)) {
@@ -100,7 +105,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
         if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(request.sourceUrl())) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
-                            request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
+                    request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
                     .orElse(null);
 
             // If VIDEO_TRANSCRIPT entry already exists, return it without creating/updating
@@ -168,7 +173,11 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
-        var topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(contentEntry.getId());
+        var contentEntryTopicList = contentEntryTopicRepository.findByContentEntryId(contentEntry.getId());
+        var topicIds = contentEntryTopicList.stream()
+                .map(ContentEntryTopic::getTopicId)
+                .collect(Collectors.toList());
+        var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
 
         return new ContentEntryDTOResponse(
                 contentEntry.getId(),
@@ -178,7 +187,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                 contentEntry.getPageTitle(),
                 contentEntry.getCreatedAt(),
                 contentEntry.getQuestionsGenerated(),
-                topics);
+                topics.stream().map(Topic::getTopic).toList());
     }
 
     @Override
@@ -190,7 +199,11 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         var entriesPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId, pageable);
 
         var contentEntryDTOPage = entriesPage.map(entry -> {
-            var topics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entry.getId());
+            var contentEntryTopicList = contentEntryTopicRepository.findByContentEntryId(entry.getId());
+            var topicIds = contentEntryTopicList.stream()
+                    .map(ContentEntryTopic::getTopicId)
+                    .toList();
+            var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
             return new ContentEntryDTOResponse(
                     entry.getId(),
                     entry.getContentType().getValue(),
@@ -199,7 +212,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                     entry.getPageTitle(),
                     entry.getCreatedAt(),
                     entry.getQuestionsGenerated(),
-                    topics);
+                    topics.stream().map(Topic::getTopic).toList());
         });
 
         return new PagedModel<>(contentEntryDTOPage);
@@ -234,18 +247,18 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         contentEntryBankRepository.save(association);
 
         var sourceTopics = contentEntryTopicRepository.findByContentEntryId(entryId);
+        var topicIds = new ArrayList<Long>();
         for (ContentEntryTopic sourceTopic : sourceTopics) {
             var clonedTopic = new ContentEntryTopic();
             clonedTopic.setContentEntry(savedClone);
             clonedTopic.setTopicId(sourceTopic.getTopicId());
+            topicIds.add(sourceTopic.getTopicId());
             contentEntryTopicRepository.save(clonedTopic);
         }
 
-        var topics = sourceTopics.stream()
-                .map(ct -> ct.getTopic().getTopic())
-                .collect(Collectors.toList());
+        var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
 
-        return mapToContentEntryResponse(savedClone, topics);
+        return mapToContentEntryResponse(savedClone, topics.stream().map(Topic::getTopic).toList());
     }
 
     @Override
@@ -262,8 +275,8 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     private void generateTopicsForContentEntry(UUID userId, ContentEntry contentEntry) {
         Long entryId = contentEntry.getId();
 
-        var existingTopics = contentEntryTopicRepository.findTopicNamesByContentEntryId(entryId).stream()
-                .collect(Collectors.joining(","));
+        var existingTopics = topicRepository.findAllByUserId(userId).stream().map(Topic::getTopic)
+                .collect(joining(","));
 
         try {
             contentEntryEventPublisher.emitGenerateTopicsEvent(userId.toString(), entryId,

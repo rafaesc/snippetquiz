@@ -4,7 +4,7 @@ import ai.snippetquiz.core_service.contentbank.adapter.out.entities.ContentEntry
 import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.ContentEntryMapper;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
-import ai.snippetquiz.core_service.contentbank.domain.port.out.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +29,11 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     @Override
     public void delete(ContentEntry contentEntry) {
         jpaContentEntryRepository.delete(contentEntryMapper.toEntity(contentEntry));
+    }
+
+    @Override
+    public Optional<ContentEntry> findById(Long id) {
+        return jpaContentEntryRepository.findById(id).map(contentEntryMapper::toDomain);
     }
 
     @Override

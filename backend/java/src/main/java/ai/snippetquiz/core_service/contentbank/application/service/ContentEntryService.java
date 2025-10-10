@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.domain.port.in;
+package ai.snippetquiz.core_service.contentbank.application.service;
 
 import ai.snippetquiz.core_service.contentbank.application.dto.request.CreateContentEntryRequest;
 import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryDTOResponse;
