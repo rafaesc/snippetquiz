@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.domain.model;
 
+import ai.snippetquiz.core_service.shared.domain.ContentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

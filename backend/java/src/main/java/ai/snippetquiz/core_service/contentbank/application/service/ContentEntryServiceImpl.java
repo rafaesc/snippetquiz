@@ -6,7 +6,7 @@ import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentE
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentType;
+import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;

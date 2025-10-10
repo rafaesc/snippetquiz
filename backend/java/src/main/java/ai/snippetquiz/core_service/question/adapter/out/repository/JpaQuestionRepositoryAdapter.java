@@ -30,4 +30,12 @@ public class JpaQuestionRepositoryAdapter implements QuestionRepository {
                 .map(questionMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Question> findByContentEntryIdIn(List<Long> contentEntryIds) {
+        return jpaQuestionRepository.findByContentEntryIdIn(contentEntryIds)
+                .stream()
+                .map(questionMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }

@@ -38,6 +38,14 @@ public class JpaContentEntryTopicRepositoryAdapter implements ContentEntryTopicR
     }
 
     @Override
+    public List<ContentEntryTopic> findByContentEntryIdIn(List<Long> contentEntryIds) {
+        return jpaContentEntryTopicRepository.findByContentEntryIdIn(contentEntryIds)
+                .stream()
+                .map(contentEntryTopicMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void deleteByContentEntryId(Long contentEntryId) {
         jpaContentEntryTopicRepository.deleteByContentEntryId(contentEntryId);
     }

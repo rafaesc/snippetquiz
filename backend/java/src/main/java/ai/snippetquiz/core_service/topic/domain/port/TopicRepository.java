@@ -17,4 +17,6 @@ public interface TopicRepository  {
     List<Topic> findAllByUserId(UUID userId);
     
     List<Topic> findByUserIdAndTopicIn(UUID userId, List<String> topics);
+
+    List<Topic> findByUserIdAndIdIn(UUID userId, List<Long> ids);
 }
