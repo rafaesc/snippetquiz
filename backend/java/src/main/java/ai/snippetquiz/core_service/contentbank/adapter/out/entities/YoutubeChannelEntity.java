@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.entities;
 
-import ai.snippetquiz.core_service.before.entity.ContentEntry;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,7 +41,7 @@ public class YoutubeChannelEntity {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "youtubeChannel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ContentEntry> contentEntries;
+    private List<ContentEntryEntity> contentEntries;
 
     public YoutubeChannelEntity(String channelId, String channelName, String avatarUrl) {
         this.channelId = channelId;
