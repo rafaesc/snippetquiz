@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.entities;
 
-import ai.snippetquiz.core_service.before.entity.YoutubeChannel;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -71,7 +70,7 @@ public class ContentEntryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "youtube_channel_id")
-    private YoutubeChannel youtubeChannel;
+    private YoutubeChannelEntity youtubeChannel;
 
     @OneToMany(mappedBy = "contentEntry", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ContentEntryBankEntity> contentEntryBanks;

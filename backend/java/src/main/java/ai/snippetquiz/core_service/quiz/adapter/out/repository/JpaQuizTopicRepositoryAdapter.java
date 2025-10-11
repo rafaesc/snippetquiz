@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.quiz.adapter.out.repository;
 import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizTopicEntity;
 import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizTopicMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizTopic;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizTopicRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizTopicRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

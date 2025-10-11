@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.quiz.application.service;
 
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
@@ -21,17 +20,19 @@ import ai.snippetquiz.core_service.quiz.application.dto.response.QuizResponseIte
 import ai.snippetquiz.core_service.quiz.application.dto.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.quiz.application.dto.response.UpdateQuizDateResponse;
 import ai.snippetquiz.core_service.quiz.application.dto.response.UpdateQuizResponse;
+import ai.snippetquiz.core_service.quiz.domain.events.CreateQuizGenerationEventPayload;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionOption;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizTopic;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizQuestionOptionRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizQuestionRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizQuestionResponseRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizTopicRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.messaging.CreateQuizEventPublisher;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionOptionRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionResponseRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizTopicRepository;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
@@ -73,6 +74,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final TopicRepository topicRepository;
+    private final CreateQuizEventPublisher createQuizEventPublisher;
 
     private final Pageable quizQuestionPageable = PageRequest.of(0, Integer.MAX_VALUE,
             Sort.by(Sort.Direction.ASC, "id"));
@@ -90,12 +92,24 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public PagedModel<QuizResponse> findAll(UUID userId, Pageable pageable) {
+        long startTime = System.currentTimeMillis();
+        
         var quizPage = quizRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-
+        long afterQueryTime = System.currentTimeMillis();
+        log.info("Repository query execution time: {} ms", afterQueryTime - startTime);
+        
         var quizResponses = quizPage.map(quiz -> {
+            long topicStartTime = System.currentTimeMillis();
             List<String> topics = Objects.nonNull(quiz.getQuizTopics()) ? quiz.getQuizTopics().stream()
                     .map(QuizTopic::getTopicName)
                     .toList() : List.of();
+            long topicEndTime = System.currentTimeMillis();
+            log.info("Topics processing for quiz {}: {} ms", quiz.getId(), topicEndTime - topicStartTime);
+
+            long statusStartTime = System.currentTimeMillis();
+            String status = getFinalStatus(quiz);
+            long statusEndTime = System.currentTimeMillis();
+            log.info("Status calculation for quiz {}: {} ms", quiz.getId(), statusEndTime - statusStartTime);
 
             return new QuizResponse(
                     quiz.getId(),
@@ -103,12 +117,19 @@ public class QuizServiceImpl implements QuizService {
                     quiz.getCreatedAt(),
                     quiz.getQuestionsCount(),
                     quiz.getQuestionsCompleted(),
-                    getFinalStatus(quiz),
+                    status,
                     quiz.getContentEntriesCount(),
                     topics);
         });
-
-        return new PagedModel<>(quizResponses);
+        
+        long mappingEndTime = System.currentTimeMillis();
+        log.debug("Quiz mapping execution time: {} ms", mappingEndTime - afterQueryTime);
+        
+        PagedModel<QuizResponse> result = new PagedModel<>(quizResponses);
+        long totalEndTime = System.currentTimeMillis();
+        log.debug("Total findAll execution time: {} ms", totalEndTime - startTime);
+        
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -371,7 +392,8 @@ public class QuizServiceImpl implements QuizService {
                                 q -> Map.of(q.getContentEntryId(), q),
                                 (existing, replacement) -> existing)));
 
-        var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryBankList.stream().map(contentEntryBank -> contentEntryBank.getContentEntry().getId()).toList());
+        var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryBankList.stream()
+                .map(contentEntryBank -> contentEntryBank.getContentEntry().getId()).toList());
         var allTopics = topicRepository.findByUserIdAndIdIn(quiz.getUserId(), contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
                 .stream()
                 .map(Topic::getTopic)
@@ -528,16 +550,22 @@ public class QuizServiceImpl implements QuizService {
             var entriesSkipped = contentEntriesResponse.entriesSkipped();
             var entries = quizRequest.contentEntries();
 
-            kafkaProducerService.emitCreateQuizEvent(
-                    new GenerateQuizRequest(
-                            quizRequest.instructions(),
-                            entries.stream()
-                                    .map(entry -> new ContentEntryDto(
-                                            entry.id(),
-                                            entry.pageTitle(),
-                                            entry.content(),
-                                            entry.wordCountAnalyzed()))
-                                    .toList()),
+            var payload = new CreateQuizGenerationEventPayload(
+                    quizRequest.instructions(),
+                    entries.stream()
+                            .map(entry -> new CreateQuizGenerationEventPayload.ContentEntryEvent(
+                                    entry.id(),
+                                    entry.pageTitle(),
+                                    entry.content(),
+                                    entry.wordCountAnalyzed()))
+                            .toList(),
+                    entriesSkipped,
+                    quizId,
+                    userId.toString(),
+                    bankId);
+
+            createQuizEventPublisher.emitCreateQuizEvent(
+                    payload,
                     userId.toString(),
                     quizId,
                     bankId,

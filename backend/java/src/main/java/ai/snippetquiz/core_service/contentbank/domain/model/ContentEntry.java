@@ -26,6 +26,5 @@ public class ContentEntry {
     private Integer videoDuration;
     private String youtubeVideoId;
     private YoutubeChannel youtubeChannel;
-    private List<ContentEntryBank> contentEntryBanks;
     private List<ContentEntryTopic> contentEntryTopics;
 }

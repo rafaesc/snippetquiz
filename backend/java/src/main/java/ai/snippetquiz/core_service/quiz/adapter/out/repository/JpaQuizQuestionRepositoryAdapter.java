@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.quiz.adapter.out.repository;
 import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizQuestionEntity;
 import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizQuestionMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizQuestionRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;

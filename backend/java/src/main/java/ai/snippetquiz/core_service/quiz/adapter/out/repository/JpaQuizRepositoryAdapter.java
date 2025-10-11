@@ -4,8 +4,10 @@ import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizEntity;
 import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
-import ai.snippetquiz.core_service.quiz.domain.port.QuizRepository;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class JpaQuizRepositoryAdapter implements QuizRepository {
     private final JpaQuizRepository jpaQuizRepository;
@@ -49,8 +52,12 @@ public class JpaQuizRepositoryAdapter implements QuizRepository {
 
     @Override
     public Page<Quiz> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable) {
-        return jpaQuizRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+        long startTime = System.currentTimeMillis();
+        Page<Quiz> result = jpaQuizRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
                 .map(quizMapper::toDomain);
+        long endTime = System.currentTimeMillis();
+        log.info("Repository findByUserIdOrderByCreatedAtDesc execution time: {} ms", endTime - startTime);
+        return result;
     }
 
     @Override
