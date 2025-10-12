@@ -31,4 +31,17 @@ public class JpaQuizQuestionRepositoryAdapter implements QuizQuestionRepository 
                 .map(quizQuestionMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<QuizQuestion> findByQuizId(Long quizId) {
+        return jpaQuizQuestionRepository.findByQuizId(quizId)
+                .stream()
+                .map(quizQuestionMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean existsByChunkIndexAndQuestionIndexInChunk(Integer chunkIndex, Integer questionIndexInChunk) {
+        return jpaQuizQuestionRepository.existsByChunkIndexAndQuestionIndexInChunk(chunkIndex, questionIndexInChunk);
+    }
 }

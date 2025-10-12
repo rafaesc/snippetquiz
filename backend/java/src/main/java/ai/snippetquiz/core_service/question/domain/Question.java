@@ -18,7 +18,7 @@ public class Question {
     private Integer questionIndexInChunk;
     private Long contentEntryId;
     private LocalDateTime createdAt;
-    private List<QuestionOption> questionOptions;
+    private List<QuestionOption> questionOptions = List.of();
 
     public Question(String question, String type, Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId) {
         this.question = question;

@@ -26,7 +26,7 @@ public class JpaQuizQuestionResponseRepositoryAdapter implements QuizQuestionRes
 
     @Override
     public Page<QuizQuestionResponse> findByQuiz_IdAndQuiz_UserId(Long quizId, UUID userId, Pageable pageable) {
-        return jpaQuizQuestionResponseRepository.findByQuiz_IdAndQuiz_UserId(quizId, userId, pageable)
+        return jpaQuizQuestionResponseRepository.findByQuizIdAndUserId(quizId, userId, pageable)
                 .map(quizQuestionResponseMapper::toDomain);
     }
 

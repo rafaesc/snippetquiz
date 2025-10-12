@@ -142,7 +142,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                     contentEntry.setVideoDuration(request.youtubeVideoDuration());
                 }
                 if (Objects.nonNull(youtubeChannel)) {
-                    contentEntry.setYoutubeChannel(youtubeChannel);
+                    contentEntry.setYoutubeChannelId(youtubeChannel.getId());
                 }
             }
 
@@ -237,7 +237,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         clonedEntry.setWordCount(sourceEntry.getWordCount());
         clonedEntry.setVideoDuration(sourceEntry.getVideoDuration());
         clonedEntry.setYoutubeVideoId(sourceEntry.getYoutubeVideoId());
-        clonedEntry.setYoutubeChannel(sourceEntry.getYoutubeChannel());
+        clonedEntry.setYoutubeChannelId(sourceEntry.getYoutubeChannelId());
 
         var savedClone = contentEntryRepository.save(clonedEntry);
 
@@ -250,7 +250,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         var topicIds = new ArrayList<Long>();
         for (ContentEntryTopic sourceTopic : sourceTopics) {
             var clonedTopic = new ContentEntryTopic();
-            clonedTopic.setContentEntry(savedClone);
+            clonedTopic.setContentEntryId(savedClone.getId());
             clonedTopic.setTopicId(sourceTopic.getTopicId());
             topicIds.add(sourceTopic.getTopicId());
             contentEntryTopicRepository.save(clonedTopic);

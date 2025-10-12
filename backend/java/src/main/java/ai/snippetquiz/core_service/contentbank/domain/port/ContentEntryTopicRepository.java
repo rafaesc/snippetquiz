@@ -7,7 +7,7 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 public interface ContentEntryTopicRepository {
     ContentEntryTopic save(ContentEntryTopic contentEntryTopic);
 
-    List<ContentEntryTopic> findByContentEntryId(Long contentEntryIds);
+    List<ContentEntryTopic> findByContentEntryId(Long contentEntryId);
 
     List<ContentEntryTopic> findByTopicId(Long topicId);
 

@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class QuizTopic {
     private Long id;
-    private Quiz quiz;
+    private Long quizId;
     private String topicName;
 
-    public QuizTopic(Quiz quiz, String topicName) {
-        this.quiz = quiz;
+    public QuizTopic(Long quizId, String topicName) {
+        this.quizId = quizId;
         this.topicName = topicName;
     }
 }

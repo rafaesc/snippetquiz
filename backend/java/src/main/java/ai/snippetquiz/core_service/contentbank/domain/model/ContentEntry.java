@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -25,6 +24,5 @@ public class ContentEntry {
     private Integer wordCount;
     private Integer videoDuration;
     private String youtubeVideoId;
-    private YoutubeChannel youtubeChannel;
-    private List<ContentEntryTopic> contentEntryTopics;
+    private Long youtubeChannelId;
 }

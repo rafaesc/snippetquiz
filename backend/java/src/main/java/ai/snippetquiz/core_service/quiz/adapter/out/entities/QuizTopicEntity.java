@@ -2,12 +2,9 @@ package ai.snippetquiz.core_service.quiz.adapter.out.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -26,15 +23,14 @@ public class QuizTopicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
-    private QuizEntity quiz;
+    @Column(name = "quiz_id", nullable = false)
+    private Long quizId;
 
     @Column(name = "topic_name", nullable = false)
     private String topicName;
 
-    public QuizTopicEntity(QuizEntity quiz, String topicName) {
-        this.quiz = quiz;
+    public QuizTopicEntity(Long quizId, String topicName) {
+        this.quizId = quizId;
         this.topicName = topicName;
     }
 }

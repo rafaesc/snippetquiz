@@ -8,7 +8,6 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ContentEntryTopicMapper {
-    @Mapping(target = "contentEntry", ignore = true)
     ContentEntryTopic toDomain(ContentEntryTopicEntity entity);
     
     ContentEntryTopicEntity toEntity(ContentEntryTopic domain);

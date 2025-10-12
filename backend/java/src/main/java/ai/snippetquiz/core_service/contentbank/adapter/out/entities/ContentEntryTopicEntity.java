@@ -26,15 +26,14 @@ public class ContentEntryTopicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "content_entry_id", nullable = false)
-    private ContentEntryEntity contentEntry;
+    @Column(name = "content_entry_id", nullable = false)
+    private Long contentEntryId;
 
     @Column(name = "topic_id", nullable = false)
     private Long topicId;
 
-    public ContentEntryTopicEntity(ContentEntryEntity contentEntry, Long topicId) {
-        this.contentEntry = contentEntry;
+    public ContentEntryTopicEntity(Long contentEntryId, Long topicId) {
+        this.contentEntryId = contentEntryId;
         this.topicId = topicId;
     }
 }

@@ -10,4 +10,6 @@ public interface QuizQuestionRepository {
     QuizQuestion save(QuizQuestion quizQuestion);
     
     List<QuizQuestion> findByQuizId(Long quizId, Pageable pageable);
+    List<QuizQuestion> findByQuizId(Long quizId);
+    boolean existsByChunkIndexAndQuestionIndexInChunk(Integer chunkIndex, Integer questionIndexInChunk);
 }

@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface JpaQuizQuestionRepository extends JpaRepository<QuizQuestionEntity, Long> {
     List<QuizQuestionEntity> findByQuizId(Long quizId, Pageable pageable);
+    List<QuizQuestionEntity> findByQuizId(Long quizId);
+    boolean existsByChunkIndexAndQuestionIndexInChunk(Integer chunkIndex, Integer questionIndexInChunk);
 }

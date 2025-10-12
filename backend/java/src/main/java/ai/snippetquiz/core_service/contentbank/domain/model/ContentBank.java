@@ -17,5 +17,5 @@ public class ContentBank {
     private String name;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<ContentEntry> contentEntries;
+    private List<ContentEntry> contentEntries = List.of();
 }

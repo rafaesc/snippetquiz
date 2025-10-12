@@ -92,44 +92,24 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public PagedModel<QuizResponse> findAll(UUID userId, Pageable pageable) {
-        long startTime = System.currentTimeMillis();
-        
         var quizPage = quizRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-        long afterQueryTime = System.currentTimeMillis();
-        log.info("Repository query execution time: {} ms", afterQueryTime - startTime);
         
         var quizResponses = quizPage.map(quiz -> {
-            long topicStartTime = System.currentTimeMillis();
             List<String> topics = Objects.nonNull(quiz.getQuizTopics()) ? quiz.getQuizTopics().stream()
                     .map(QuizTopic::getTopicName)
                     .toList() : List.of();
-            long topicEndTime = System.currentTimeMillis();
-            log.info("Topics processing for quiz {}: {} ms", quiz.getId(), topicEndTime - topicStartTime);
-
-            long statusStartTime = System.currentTimeMillis();
-            String status = getFinalStatus(quiz);
-            long statusEndTime = System.currentTimeMillis();
-            log.info("Status calculation for quiz {}: {} ms", quiz.getId(), statusEndTime - statusStartTime);
-
             return new QuizResponse(
                     quiz.getId(),
                     quiz.getBankName(),
                     quiz.getCreatedAt(),
                     quiz.getQuestionsCount(),
                     quiz.getQuestionsCompleted(),
-                    status,
+                    getFinalStatus(quiz),
                     quiz.getContentEntriesCount(),
                     topics);
         });
         
-        long mappingEndTime = System.currentTimeMillis();
-        log.debug("Quiz mapping execution time: {} ms", mappingEndTime - afterQueryTime);
-        
-        PagedModel<QuizResponse> result = new PagedModel<>(quizResponses);
-        long totalEndTime = System.currentTimeMillis();
-        log.debug("Total findAll execution time: {} ms", totalEndTime - startTime);
-        
-        return result;
+        return new PagedModel<>(quizResponses);
     }
 
     @Transactional(readOnly = true)
@@ -157,7 +137,7 @@ public class QuizServiceImpl implements QuizService {
         QuizQuestionDTOResponse currentQuestionDto = null;
         if (quiz.getQuestionsCompleted() < sortedQuestions.size()) {
             var currentQuestion = sortedQuestions.get(quiz.getQuestionsCompleted());
-            var options = currentQuestion.getQuizQuestionOptions().stream()
+            var options = quizQuestionOptionRepository.findByQuizQuestionId(currentQuestion.getId()).stream()
                     .map(option -> new QuizQuestionOptionDTOResponse(
                             option.getId(),
                             option.getOptionText()))
@@ -383,7 +363,7 @@ public class QuizServiceImpl implements QuizService {
             return;
         }
 
-        Map<Integer, Map<Integer, Map<Long, QuizQuestion>>> mapQuizQuestionByChunk = quiz.getQuizQuestions().stream()
+        Map<Integer, Map<Integer, Map<Long, QuizQuestion>>> mapQuizQuestionByChunk = quizQuestionRepository.findByQuizId(quiz.getId()).stream()
                 .filter(q -> q.getChunkIndex() != null && q.getQuestionIndexInChunk() != null)
                 .collect(Collectors.groupingBy(
                         QuizQuestion::getChunkIndex,
@@ -421,13 +401,13 @@ public class QuizServiceImpl implements QuizService {
                     contentEntry != null ? contentEntry.getContentType() : ContentType.SELECTED_TEXT);
             quizQuestion.setContentEntrySourceUrl(contentEntry != null ? contentEntry.getSourceUrl() : null);
             quizQuestion.setContentEntryId(contentEntryId);
-            quizQuestion.setQuiz(quiz);
+            quizQuestion.setQuizId(quiz.getId());
 
             quizQuestion = quizQuestionRepository.save(quizQuestion);
 
             for (var option : question.getQuestionOptions()) {
                 var quizOption = new QuizQuestionOption();
-                quizOption.setQuizQuestion(quizQuestion);
+                quizOption.setQuizQuestionId(quizQuestion.getId());
                 quizOption.setOptionText(option.getOptionText());
                 quizOption.setOptionExplanation(option.getOptionExplanation());
                 quizOption.setIsCorrect(option.getIsCorrect());
@@ -442,14 +422,14 @@ public class QuizServiceImpl implements QuizService {
 
             if (existingTopic.isEmpty()) {
                 var quizTopic = new QuizTopic();
-                quizTopic.setQuiz(quiz);
+                quizTopic.setQuizId(quiz.getId());
                 quizTopic.setTopicName(topicName);
                 quizTopicRepository.save(quizTopic);
             }
         }
 
         quiz.setContentEntriesCount(contentEntryBankList.size());
-        quiz.setQuestionsCount(quiz.getQuizQuestions().size());
+        quiz.setQuestionsCount(quizQuestionRepository.findByQuizId(quiz.getId()).size());
         quizRepository.save(quiz);
 
     }
@@ -486,7 +466,8 @@ public class QuizServiceImpl implements QuizService {
                     null);
         }
 
-        var selectedOption = currentQuestion.getQuizQuestionOptions().stream()
+        var options = quizQuestionOptionRepository.findByQuizQuestionId(currentQuestion.getId());
+        var selectedOption = options.stream()
                 .filter(option -> option.getId().equals(optionSelectedId))
                 .findFirst()
                 .orElse(null);
@@ -499,7 +480,7 @@ public class QuizServiceImpl implements QuizService {
                     null);
         }
 
-        var correctOption = currentQuestion.getQuizQuestionOptions().stream()
+        var correctOption = options.stream()
                 .filter(QuizQuestionOption::getIsCorrect)
                 .findFirst()
                 .orElse(null);
@@ -515,7 +496,8 @@ public class QuizServiceImpl implements QuizService {
 
         // Create a new QuizQuestionResponse
         var response = new QuizQuestionResponse();
-        response.setQuiz(quiz);
+        response.setUserId(userId);
+        response.setQuizId(quiz.getId());
         response.setQuizQuestion(currentQuestion);
         response.setQuizQuestionOption(selectedOption);
         response.setIsCorrect(selectedOption.getIsCorrect());

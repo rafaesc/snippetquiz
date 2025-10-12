@@ -5,6 +5,9 @@ import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizQuestionOptionMap
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionOption;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionOptionRepository;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,5 +21,13 @@ public class JpaQuizQuestionOptionRepositoryAdapter implements QuizQuestionOptio
         QuizQuestionOptionEntity entity = quizQuestionOptionMapper.toEntity(quizQuestionOption);
         QuizQuestionOptionEntity savedEntity = jpaQuizQuestionOptionRepository.save(entity);
         return quizQuestionOptionMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public List<QuizQuestionOption> findByQuizQuestionId(Long quizQuestionId) {
+        List<QuizQuestionOptionEntity> entities = jpaQuizQuestionOptionRepository.findByQuizQuestionId(quizQuestionId);
+        return entities.stream()
+                .map(quizQuestionOptionMapper::toDomain)
+                .toList();
     }
 }

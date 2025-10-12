@@ -9,6 +9,7 @@ import ai.snippetquiz.core_service.question.domain.port.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionOptionRepository questionOptionRepository;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createQuestion(CreateQuestionRequest request, UUID userId) {
         var contentEntryId = request.contentEntryId();
         var questionText = request.question();

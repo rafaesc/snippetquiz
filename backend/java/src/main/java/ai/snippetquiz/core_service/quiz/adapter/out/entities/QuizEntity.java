@@ -63,14 +63,11 @@ public class QuizEntity {
     @Column(name = "user_id")
     private UUID userId;
 
-    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "quizId", cascade = CascadeType.ALL)
     private List<QuizTopicEntity> quizTopics;
 
-    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "quizId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuizQuestionEntity> quizQuestions;
-
-    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<QuizQuestionResponseEntity> quizQuestionResponses;
 
     public QuizEntity(Long contentBankId, String bankName, QuizStatus status, UUID userId) {
         this.contentBankId = contentBankId;
