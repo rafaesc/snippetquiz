@@ -1,24 +1,17 @@
 package ai.snippetquiz.core_service.quiz.adapter.out.entities;
 
 import ai.snippetquiz.core_service.shared.domain.ContentType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Entity
 @Table(name = "quiz_questions")
@@ -52,18 +45,11 @@ public class QuizQuestionEntity {
     @Column(name = "content_entry_id")
     private Long contentEntryId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
-    private QuizEntity quiz;
-
-    @OneToMany(mappedBy = "quizQuestion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<QuizQuestionOptionEntity> quizQuestionOptions;
-
-    @OneToMany(mappedBy = "quizQuestion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<QuizQuestionResponseEntity> quizQuestionResponses;
+    @Column(name = "quiz_id", nullable = false)
+    private Long quizId;
 
     public QuizQuestionEntity(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl,
-                              Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId, QuizEntity quiz) {
+                              Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId, Long quizId) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;
@@ -71,6 +57,6 @@ public class QuizQuestionEntity {
         this.chunkIndex = chunkIndex;
         this.questionIndexInChunk = questionIndexInChunk;
         this.contentEntryId = contentEntryId;
-        this.quiz = quiz;
+        this.quizId = quizId;
     }
 }

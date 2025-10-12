@@ -23,9 +23,7 @@ public class Quiz {
     private LocalDateTime completedAt;
     private LocalDateTime questionUpdatedAt;
     private UUID userId;
-    private List<QuizTopic> quizTopics;
-    private List<QuizQuestion> quizQuestions;
-    private List<QuizQuestionResponse> quizQuestionResponses;
+    private List<QuizTopic> quizTopics = List.of();
 
     public Quiz(Long contentBankId, String bankName, QuizStatus status, UUID userId) {
         this.contentBankId = contentBankId;

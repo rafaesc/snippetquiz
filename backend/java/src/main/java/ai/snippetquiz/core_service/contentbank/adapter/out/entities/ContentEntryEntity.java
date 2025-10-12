@@ -10,8 +10,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -68,15 +66,11 @@ public class ContentEntryEntity {
     @Column(name = "youtube_video_id")
     private String youtubeVideoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "youtube_channel_id")
-    private YoutubeChannelEntity youtubeChannel;
+    @Column(name = "youtube_channel_id")
+    private Long youtubeChannelId;
 
     @OneToMany(mappedBy = "contentEntry", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ContentEntryBankEntity> contentEntryBanks;
-
-    @OneToMany(mappedBy = "contentEntry", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ContentEntryTopicEntity> contentEntryTopics;
 
     public ContentEntryEntity(ContentType contentType, String content, String sourceUrl, String pageTitle) {
         this.contentType = contentType;

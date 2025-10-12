@@ -27,8 +27,7 @@ public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEnt
 
     @Query("SELECT ce FROM ContentEntryEntity ce " +
             "JOIN ContentEntryBankEntity ceb ON ce.id = ceb.contentEntry.id " +
-            "WHERE ce.sourceUrl = :sourceUrl AND ce.contentType = :contentType AND ceb.contentBank.id = :contentBankId "
-            +
+            "WHERE ce.sourceUrl = :sourceUrl AND ce.contentType = :contentType AND ceb.contentBank.id = :contentBankId " +
             "ORDER BY ce.createdAt DESC LIMIT 1")
     Optional<ContentEntryEntity> findBySourceUrlAndContentTypeAndContentBankId(
             @Param("sourceUrl") String sourceUrl,

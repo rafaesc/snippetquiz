@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,12 +17,10 @@ public class QuizQuestion {
     private Integer chunkIndex;
     private Integer questionIndexInChunk;
     private Long contentEntryId;
-    private Quiz quiz;
-    private List<QuizQuestionOption> quizQuestionOptions;
-    private List<QuizQuestionResponse> quizQuestionResponses;
+    private Long quizId;
 
     public QuizQuestion(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl, 
-                       Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId, Quiz quiz) {
+                       Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId, Long quizId) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;
@@ -32,6 +28,6 @@ public class QuizQuestion {
         this.chunkIndex = chunkIndex;
         this.questionIndexInChunk = questionIndexInChunk;
         this.contentEntryId = contentEntryId;
-        this.quiz = quiz;
+        this.quizId = quizId;
     }
 }

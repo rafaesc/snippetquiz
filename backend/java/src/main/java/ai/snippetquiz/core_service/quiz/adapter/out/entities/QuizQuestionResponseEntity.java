@@ -2,7 +2,6 @@ package ai.snippetquiz.core_service.quiz.adapter.out.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +11,8 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "quiz_question_responses")
@@ -23,15 +24,17 @@ public class QuizQuestionResponseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
-    private QuizEntity quiz;
+    @Column(name = "quiz_id", nullable = false)
+    private Long quizId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @ManyToOne
     @JoinColumn(name = "quiz_question_id", nullable = false)
     private QuizQuestionEntity quizQuestion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "quiz_question_option_id", nullable = false)
     private QuizQuestionOptionEntity quizQuestionOption;
 
@@ -44,9 +47,10 @@ public class QuizQuestionResponseEntity {
     @Column(name = "response_time", nullable = false)
     private String responseTime;
 
-    public QuizQuestionResponseEntity(QuizEntity quiz, QuizQuestionEntity quizQuestion, QuizQuestionOptionEntity quizQuestionOption,
+    public QuizQuestionResponseEntity(Long quizId, UUID userId, QuizQuestionEntity quizQuestion, QuizQuestionOptionEntity quizQuestionOption,
                                       Boolean isCorrect, String correctAnswer, String responseTime) {
-        this.quiz = quiz;
+        this.quizId = quizId;
+        this.userId = userId;
         this.quizQuestion = quizQuestion;
         this.quizQuestionOption = quizQuestionOption;
         this.isCorrect = isCorrect;

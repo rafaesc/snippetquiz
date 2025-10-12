@@ -53,8 +53,9 @@ public class ContentEntryConsumer {
                 .orElseThrow(() -> new NotFoundException(
                         "Content Entry not found or you do not have permission to access it"));
 
-        if (!contentEntry.getContentEntryTopics().isEmpty()) {
-            log.warn("Content entry already has topics: {}", contentEntry.getContentEntryTopics());
+        var existingTopics = contentEntryTopicRepository.findByContentEntryId(contentEntry.getId());
+        if (!existingTopics.isEmpty()) {
+            log.warn("Content entry already has topics: {}", existingTopics);
             return;
         }
 
@@ -85,7 +86,7 @@ public class ContentEntryConsumer {
 
                     if (!associationExists) {
                         // Create association between content entry and topic
-                        var contentEntryTopic = new ContentEntryTopic(contentEntry, topic.getId());
+                        var contentEntryTopic = new ContentEntryTopic(contentEntry.getId(), topic.getId());
                         contentEntryTopicRepository.save(contentEntryTopic);
                         topicsCreated++;
                     }

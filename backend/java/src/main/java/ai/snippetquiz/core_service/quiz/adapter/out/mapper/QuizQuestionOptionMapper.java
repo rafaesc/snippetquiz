@@ -6,10 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {QuizTopicMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface QuizQuestionOptionMapper {
-    @Mapping(target = "quizQuestion", ignore = true)
-    @Mapping(target = "quizQuestionResponses", ignore = true)
     QuizQuestionOption toDomain(QuizQuestionOptionEntity entity);
     
     QuizQuestionOptionEntity toEntity(QuizQuestionOption domain);

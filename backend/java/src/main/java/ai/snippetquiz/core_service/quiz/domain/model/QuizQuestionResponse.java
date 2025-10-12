@@ -4,21 +4,25 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizQuestionResponse {
     private Long id;
-    private Quiz quiz;
+    private Long quizId;
+    private UUID userId;
     private QuizQuestion quizQuestion;
     private QuizQuestionOption quizQuestionOption;
     private Boolean isCorrect;
     private String correctAnswer;
     private String responseTime;
 
-    public QuizQuestionResponse(Quiz quiz, QuizQuestion quizQuestion, QuizQuestionOption quizQuestionOption,
+    public QuizQuestionResponse(Long quizId, UUID userId, QuizQuestion quizQuestion, QuizQuestionOption quizQuestionOption,
                                 Boolean isCorrect, String correctAnswer, String responseTime) {
-        this.quiz = quiz;
+        this.quizId = quizId;
+        this.userId = userId;
         this.quizQuestion = quizQuestion;
         this.quizQuestionOption = quizQuestionOption;
         this.isCorrect = isCorrect;

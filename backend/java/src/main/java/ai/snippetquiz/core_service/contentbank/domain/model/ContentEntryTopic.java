@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ContentEntryTopic {
     private Long id;
-    private ContentEntry contentEntry;
+    private Long contentEntryId;
     private Long topicId;
 
-    public ContentEntryTopic(ContentEntry contentEntry, Long topicId) {
-        this.contentEntry = contentEntry;
+    public ContentEntryTopic(Long contentEntryId, Long topicId) {
+        this.contentEntryId = contentEntryId;
         this.topicId = topicId;
     }
 }

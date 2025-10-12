@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.entities;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,11 +24,11 @@ public class ContentEntryBankEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "content_entry_id", nullable = false)
     private ContentEntryEntity contentEntry;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "content_bank_id", nullable = false)
     private ContentBankEntity contentBank;
 
