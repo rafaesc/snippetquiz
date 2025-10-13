@@ -46,7 +46,7 @@ public class ContentBankEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "contentBank", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "contentBank")
     private List<ContentEntryBankEntity> contentEntryBanks;
 
     @ManyToMany

@@ -131,7 +131,11 @@ public class ContentBankServiceImpl implements ContentBankService {
     }
 
     @Override
+    @Transactional
     public void remove(UUID userId, Long id) {
+        contentBankRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new NotFoundException("Content bank not found or access denied"));
+        
         contentBankRepository.deleteByIdAndUserId(id, userId);
     }
 
