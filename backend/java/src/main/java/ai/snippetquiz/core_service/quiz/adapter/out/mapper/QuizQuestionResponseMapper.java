@@ -3,7 +3,6 @@ package ai.snippetquiz.core_service.quiz.adapter.out.mapper;
 import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizQuestionResponseEntity;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {QuizQuestionMapper.class, QuizQuestionOptionMapper.class})
