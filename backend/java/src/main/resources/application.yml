@@ -30,6 +30,8 @@ spring:
             password: ${REDIS_PASSWORD}
     kafka:
         bootstrap-servers: localhost:9092
+        listener:
+            ack-mode: manual_immediate
         consumer:
             group-id: core-consumer-group
             auto-offset-reset: earliest
