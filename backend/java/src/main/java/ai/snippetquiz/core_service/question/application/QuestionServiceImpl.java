@@ -49,9 +49,8 @@ public class QuestionServiceImpl implements QuestionService {
             option.setOptionExplanation(optionRequest.optionExplanation());
             option.setIsCorrect(optionRequest.isCorrect());
 
-            quizQuestionOptions.add(questionOptionRepository.save(option));
+            quizQuestionOptions.add(option);
         }
-
-        savedQuestion.setQuestionOptions(quizQuestionOptions);
+        questionOptionRepository.saveAll(quizQuestionOptions);
     }
 }
