@@ -4,7 +4,8 @@ public enum QuizStatus {
     READY("READY"),
     READY_WITH_ERROR("READY_WITH_ERROR"),
     IN_PROGRESS("IN_PROGRESS"),
-    PREPARE("PREPARE"),;
+    PREPARE("PREPARE"),
+    ERROR("ERROR");
 
     private final String value;
 
