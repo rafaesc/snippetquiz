@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.instruction.application.dto.request;
+package ai.snippetquiz.core_service.instruction.adapter.in.request;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -92,7 +92,7 @@ services:
       - connect
     volumes:
       - ./infra/connect:/scripts
-    entrypoint: ["/bin/sh", "-c", "sleep 10 && /bin/sh /scripts/register-connector.sh"]
+    entrypoint: ["/bin/sh", "-c", "sleep 30 && /bin/sh /scripts/register-connector.sh"]
   
   kafdrop:
     image: obsidiandynamics/kafdrop
