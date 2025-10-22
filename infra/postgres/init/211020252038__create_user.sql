@@ -1,0 +1,25 @@
+DO
+$$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'debezium') THEN
+      CREATE ROLE debezium WITH LOGIN REPLICATION PASSWORD 'dbz';
+   END IF;
+END
+$$;
+
+DO $$
+BEGIN
+   IF NOT EXISTS (
+      SELECT 1 FROM pg_namespace WHERE nspname = 'core'
+   ) THEN
+      EXECUTE 'CREATE SCHEMA core';
+   END IF;
+END
+$$;
+
+
+GRANT CONNECT ON DATABASE devdb TO debezium;
+GRANT USAGE ON SCHEMA core TO debezium;
+GRANT SELECT ON ALL TABLES IN SCHEMA core TO debezium;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT SELECT ON TABLES TO debezium;

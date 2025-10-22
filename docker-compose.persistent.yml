@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    build: ./infra/postgres
     environment:
       POSTGRES_USER: ${POSTGRESQL_USER}
       POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
@@ -63,6 +63,37 @@ services:
       - ./backend/python:/usr/src/app
       - ./backend/protos:/usr/src/backend/protos
 
+  connect:
+    image: debezium/connect:2.7.3.Final
+    container_name: debezium-connect
+    restart: unless-stopped
+    depends_on:
+      - broker
+      - db
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: "broker:29092"
+      GROUP_ID: "1"
+      CONFIG_STORAGE_TOPIC: "connect-configs"
+      OFFSET_STORAGE_TOPIC: "connect-offsets"
+      STATUS_STORAGE_TOPIC: "connect-status"
+      CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+    volumes:
+      - ./local/connect:/connect
+
+  init-connect:
+    image: curlimages/curl:8.4.0
+    depends_on:
+      - connect
+    volumes:
+      - ./infra/connect:/scripts
+    entrypoint: ["/bin/sh", "-c", "sleep 10 && /bin/sh /scripts/register-connector.sh"]
+  
   kafdrop:
     image: obsidiandynamics/kafdrop
     container_name: kafdrop
