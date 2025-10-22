@@ -21,7 +21,7 @@ if [ "$EXISTS_CODE" = "200" ]; then
     echo "✅ Connector updated successfully."
   else
     echo "❌ Failed to update connector. HTTP $HTTP_CODE"
-    curl -s -X PUT -H "Content-Type: application/json" --data "$CONFIG_JSON" "$CONNECT_URL/config"
+    echo "Error response: $(curl -s -X PUT -H "Content-Type: application/json" --data "$CONFIG_JSON" "$CONNECT_URL/config")"
     exit 1
   fi
 else
@@ -32,7 +32,7 @@ else
     echo "✅ Connector created successfully."
   else
     echo "❌ Failed to create connector. HTTP $HTTP_CODE"
-    curl -s -X POST -H "Content-Type: application/json" --data "$CREATE_BODY" "$CONNECT_BASE"
+    echo "Error response: $(curl -s -X POST -H "Content-Type: application/json" --data "$CREATE_BODY" "$CONNECT_BASE")"
     exit 1
   fi
 fi
