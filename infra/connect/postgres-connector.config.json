@@ -1,0 +1,18 @@
+{
+  "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+  "plugin.name": "pgoutput",
+  "database.hostname": "db",
+  "database.port": "5432",
+  "database.user": "debezium",
+  "database.password": "dbz",
+  "database.dbname": "devdb",
+  "database.server.name": "dbserver1",
+  "publication.name": "dbz_pub",
+  "topic.prefix": "postgres",
+  "transforms": "unwrap",
+  "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+  "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+  "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+  "key.converter.schemas.enable": "false",
+  "value.converter.schemas.enable": "false"
+}
