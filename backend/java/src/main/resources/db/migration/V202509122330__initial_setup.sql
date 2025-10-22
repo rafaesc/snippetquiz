@@ -90,13 +90,16 @@ CREATE TABLE "question_options" (
 
 -- CreateTable
 CREATE TABLE "quiz_generation_instructions" (
-    "id" BIGSERIAL NOT NULL,
+    "id" UUID NOT NULL,
     "instruction" TEXT NOT NULL,
     "user_id" UUID NOT NULL,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "quiz_generation_instructions_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "quiz_generation_instructions_user_id_prefix_idx"
+ON "quiz_generation_instructions" (LEFT("user_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "content_entries_bank" (
@@ -167,9 +170,6 @@ CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "topics"("user_id", "topic");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "youtube_channels"("channel_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "quiz_generation_instructions_user_id_key" ON "quiz_generation_instructions"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "content_entries_bank"("content_entry_id", "content_bank_id");

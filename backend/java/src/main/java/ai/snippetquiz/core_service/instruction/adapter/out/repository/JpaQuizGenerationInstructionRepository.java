@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface JpaQuizGenerationInstructionRepository extends JpaRepository<QuizGenerationInstructionEntity, Long> {
+public interface JpaQuizGenerationInstructionRepository extends JpaRepository<QuizGenerationInstructionEntity, UUID> {
     
     Optional<QuizGenerationInstructionEntity> findFirstByUserId(UUID userId);
 }

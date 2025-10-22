@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.instruction.application.service;
 
-import ai.snippetquiz.core_service.instruction.application.dto.request.CreateOrUpdateInstructionRequest;
-import ai.snippetquiz.core_service.instruction.application.dto.response.InstructionResponse;
+import ai.snippetquiz.core_service.instruction.application.InstructionResponse;
 import ai.snippetquiz.core_service.instruction.domain.QuizGenerationInstruction;
 import ai.snippetquiz.core_service.instruction.domain.port.QuizGenerationInstructionRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,31 +27,24 @@ public class InstructionsServiceImpl implements InstructionsService {
         );
     }
     
-    public InstructionResponse createOrUpdate(UUID userId, CreateOrUpdateInstructionRequest request) {
-        var trimmedInstruction = request.instruction().trim();
+    public void createOrUpdate(UUID userId, String instruction) {
+        var trimmedInstruction = instruction.trim();
         
         var existingInstruction = instructionRepository.findFirstByUserId(userId);
         
-        QuizGenerationInstruction result;
-        
         if (existingInstruction.isPresent()) {
             // Update existing instruction
-            var instruction = existingInstruction.get();
-            instruction.setInstruction(trimmedInstruction);
-            instruction.setUpdatedAt(LocalDateTime.now());
-            result = instructionRepository.save(instruction);
+            var quizInstruction = existingInstruction.get();
+            quizInstruction.setInstruction(trimmedInstruction);
+            quizInstruction.setUpdatedAt(LocalDateTime.now());
+            instructionRepository.save(quizInstruction);
         } else {
             // Create new instruction
             var newInstruction = new QuizGenerationInstruction();
             newInstruction.setInstruction(trimmedInstruction);
             newInstruction.setUserId(userId);
             newInstruction.setUpdatedAt(LocalDateTime.now());
-            result = instructionRepository.save(newInstruction);
+            instructionRepository.save(newInstruction);
         }
-        
-        return new InstructionResponse(
-            result.getInstruction(),
-            result.getUpdatedAt()
-        );
     }
 }
