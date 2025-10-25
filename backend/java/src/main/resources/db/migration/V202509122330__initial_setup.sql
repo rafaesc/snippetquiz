@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "content_banks" (
-    "id" BIGSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8,6 +8,9 @@ CREATE TABLE "content_banks" (
 
     CONSTRAINT "content_banks_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "content_banks_user_id_prefix_idx"
+ON "content_banks" (LEFT("user_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "topics" (
@@ -53,7 +56,7 @@ CREATE TABLE "content_entries" (
 CREATE TABLE "quizzes" (
     "id" BIGSERIAL NOT NULL,
     "user_id" UUID NOT NULL,
-    "bank_id" BIGINT,
+    "bank_id" UUID,
     "bank_name" TEXT,
     "status" VARCHAR(255),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -105,7 +108,7 @@ ON "quiz_generation_instructions" (LEFT("user_id"::text, 4));
 CREATE TABLE "content_entries_bank" (
     "id" BIGSERIAL NOT NULL,
     "content_entry_id" BIGINT NOT NULL,
-    "content_bank_id" BIGINT NOT NULL,
+    "content_bank_id" UUID NOT NULL,
 
     CONSTRAINT "content_entries_bank_pkey" PRIMARY KEY ("id")
 );
