@@ -1,22 +1,22 @@
 package ai.snippetquiz.core_service.topic.domain.port;
 
 
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface TopicRepository  {
     Topic save(Topic topic);
 
-    List<Topic> findAllByIdInAndUserId(List<Long> ids, UUID userId);
+    List<Topic> findAllByIdInAndUserId(List<Long> ids, UserId userId);
     
-    Optional<Topic> findByUserIdAndTopic(UUID userId, String topic);
+    Optional<Topic> findByUserIdAndTopic(UserId userId, String topic);
     
-    List<Topic> findAllByUserId(UUID userId);
+    List<Topic> findAllByUserId(UserId userId);
     
-    List<Topic> findByUserIdAndTopicIn(UUID userId, List<String> topics);
+    List<Topic> findByUserIdAndTopicIn(UserId userId, List<String> topics);
 
-    List<Topic> findByUserIdAndIdIn(UUID userId, List<Long> ids);
+    List<Topic> findByUserIdAndIdIn(UserId userId, List<Long> ids);
 }

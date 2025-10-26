@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.application.delete;
+package ai.snippetquiz.core_service.contentbank.application.contentbank.delete;
 
 import ai.snippetquiz.core_service.shared.domain.bus.command.Command;
 import lombok.AllArgsConstructor;

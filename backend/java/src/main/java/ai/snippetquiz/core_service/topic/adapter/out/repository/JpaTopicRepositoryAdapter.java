@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.topic.adapter.out.repository;
 
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.adapter.out.entities.TopicEntity;
 import ai.snippetquiz.core_service.topic.adapter.out.mapper.TopicMapper;
 import ai.snippetquiz.core_service.topic.domain.Topic;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,35 +25,35 @@ public class JpaTopicRepositoryAdapter implements TopicRepository {
     }
 
     @Override
-    public Optional<Topic> findByUserIdAndTopic(UUID userId, String topic) {
-        return jpaTopicRepository.findByUserIdAndTopic(userId, topic)
+    public Optional<Topic> findByUserIdAndTopic(UserId userId, String topic) {
+        return jpaTopicRepository.findByUserIdAndTopic(userId.getValue(), topic)
                 .map(topicMapper::toDomain);
     }
 
     @Override
-    public List<Topic> findAllByUserId(UUID userId) {
-        return jpaTopicRepository.findAllByUserId(userId).stream()
+    public List<Topic> findAllByUserId(UserId userId) {
+        return jpaTopicRepository.findAllByUserId(userId.getValue()).stream()
                 .map(topicMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Topic> findByUserIdAndTopicIn(UUID userId, List<String> topics) {
-        return jpaTopicRepository.findByUserIdAndTopicIn(userId, topics).stream()
+    public List<Topic> findByUserIdAndTopicIn(UserId userId, List<String> topics) {
+        return jpaTopicRepository.findByUserIdAndTopicIn(userId.getValue(), topics).stream()
                 .map(topicMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Topic> findByUserIdAndIdIn(UUID userId, List<Long> ids) {
-        return jpaTopicRepository.findByUserIdAndIdIn(userId, ids).stream()
+    public List<Topic> findByUserIdAndIdIn(UserId userId, List<Long> ids) {
+        return jpaTopicRepository.findByUserIdAndIdIn(userId.getValue(), ids).stream()
                 .map(topicMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Topic> findAllByIdInAndUserId(List<Long> ids, UUID userId) {
-        return jpaTopicRepository.findAllByIdInAndUserId(ids, userId).stream()
+    public List<Topic> findAllByIdInAndUserId(List<Long> ids, UserId userId) {
+        return jpaTopicRepository.findAllByIdInAndUserId(ids, userId.getValue()).stream()
                 .map(topicMapper::toDomain)
                 .toList();
     }

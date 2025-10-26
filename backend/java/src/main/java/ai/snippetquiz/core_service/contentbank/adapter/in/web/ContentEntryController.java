@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.adapter.in.web;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -20,29 +21,50 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import ai.snippetquiz.core_service.shared.domain.DomainError;
+import ai.snippetquiz.core_service.shared.domain.bus.command.CommandBus;
+import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandlerExecutionError;
+import ai.snippetquiz.core_service.shared.domain.bus.query.QueryBus;
+import ai.snippetquiz.core_service.shared.spring.ApiController;
 import ai.snippetquiz.core_service.shared.util.Constants;
 import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.CreateContentEntryRequest;
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
-import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
-import ai.snippetquiz.core_service.contentbank.application.service.ContentEntryService;
+import ai.snippetquiz.core_service.contentbank.application.contententry.clone.CloneContentEntryCommand;
+import ai.snippetquiz.core_service.contentbank.application.contententry.create.CreateContentEntryCommand;
+import ai.snippetquiz.core_service.contentbank.application.contententry.delete.DeleteContentEntryCommand;
+import ai.snippetquiz.core_service.contentbank.application.contententry.find.FindContentEntryQuery;
+import ai.snippetquiz.core_service.contentbank.application.contententry.findall.FindAllContentEntriesQuery;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/content-entry")
 @Validated
-@RequiredArgsConstructor
-public class ContentEntryController {
+public class ContentEntryController extends ApiController {
 
-    private final ContentEntryService contentEntryService;
+    public ContentEntryController(
+            QueryBus queryBus,
+            CommandBus commandBus) {
+        super(queryBus, commandBus);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ContentEntryResponse create(
+    public void create(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @Valid @RequestBody CreateContentEntryRequest request) {
+            @Valid @RequestBody CreateContentEntryRequest request) throws CommandHandlerExecutionError {
 
-        return contentEntryService.create(UUID.fromString(userId), request);
+        dispatch(new CreateContentEntryCommand(
+                UUID.fromString(userId),
+                request.sourceUrl(),
+                request.content(),
+                request.type(),
+                request.pageTitle(),
+                request.bankId(),
+                request.youtubeVideoId(),
+                request.youtubeVideoDuration(),
+                request.youtubeChannelId(),
+                request.youtubeChannelName(),
+                request.youtubeAvatarUrl()));
     }
 
     @GetMapping("/{id}")
@@ -50,7 +72,7 @@ public class ContentEntryController {
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable Long id) {
 
-        return contentEntryService.findById(UUID.fromString(userId), id);
+        return ask(new FindContentEntryQuery(UUID.fromString(userId), id));
     }
 
     @GetMapping("/bank/{bankId}")
@@ -60,26 +82,39 @@ public class ContentEntryController {
             @RequestParam(required = false) String name,
             @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
-        return contentEntryService.findAll(UUID.fromString(userId),
-                UUID.fromString(bankId), name, pageable);
+        return ask(new FindAllContentEntriesQuery(
+                UUID.fromString(userId),
+                UUID.fromString(bankId),
+                name,
+                pageable));
     }
 
     @PostMapping("/{id}/clone-to/{targetBankId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ContentEntryResponse clone(
+    public void clone(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable Long id,
-            @PathVariable String targetBankId) {
+            @PathVariable String targetBankId) throws CommandHandlerExecutionError {
 
-        return contentEntryService.clone(UUID.fromString(userId), id, UUID.fromString(targetBankId));
+        dispatch(new CloneContentEntryCommand(
+                UUID.fromString(userId),
+                id,
+                UUID.fromString(targetBankId)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id) {
+            @PathVariable Long id) throws CommandHandlerExecutionError {
 
-        contentEntryService.remove(UUID.fromString(userId), id);
+        dispatch(new DeleteContentEntryCommand(
+                UUID.fromString(userId),
+                id));
+    }
+
+    @Override
+    public HashMap<Class<? extends DomainError>, HttpStatus> errorMapping() {
+        return null;
     }
 }

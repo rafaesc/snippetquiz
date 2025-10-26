@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
@@ -52,29 +53,38 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     private final TopicRepository topicRepository;
 
     @Override
-    public ContentEntryResponse create(UUID userId, CreateContentEntryRequest request) {
-        var bankId = request.bankId();
-        var contentBank = contentBankRepository.findByIdAndUserId(new ContentBankId(bankId), new UserId(userId))
+    public ContentEntryResponse create(UserId userId,
+            String sourceUrl,
+            String content,
+            String contentType,
+            String pageTitle,
+            ContentBankId bankId,
+            String youtubeVideoId,
+            Integer youtubeVideoDuration,
+            String youtubeChannelId,
+            String youtubeChannelName,
+            String youtubeAvatarUrl) {
+        var contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         // Process HTML content if type is FULL_HTML
-        var processedContent = request.content();
-        var type = ContentType.fromValue(request.type());
+        var processedContent = content;
+        var type = ContentType.fromValue(contentType);
 
         if (ContentType.FULL_HTML.equals(type)) {
-            processedContent = request.content().trim();
+            processedContent = content.trim();
         }
 
         // Handle YouTube channel if provided
         YoutubeChannel youtubeChannel = null;
-        if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(request.youtubeChannelId())
-                && !request.youtubeChannelId().trim().isEmpty()) {
-            youtubeChannel = youtubeChannelRepository.findByChannelId(request.youtubeChannelId())
+        if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(youtubeChannelId)
+                && !youtubeChannelId.trim().isEmpty()) {
+            youtubeChannel = youtubeChannelRepository.findByChannelId(youtubeChannelId)
                     .orElseGet(() -> {
                         var newChannel = new YoutubeChannel(
-                                request.youtubeChannelId(),
-                                request.youtubeChannelName(),
-                                request.youtubeAvatarUrl());
+                                youtubeChannelId,
+                                youtubeChannelName,
+                                youtubeAvatarUrl);
                         return youtubeChannelRepository.save(newChannel);
                     });
         }
@@ -83,15 +93,15 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
         // Check for existing entry with same sourceUrl and type 'full_html'
         ContentEntry existingEntry = null;
-        if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(request.sourceUrl())) {
+        if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(sourceUrl)) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
-                    request.sourceUrl(), ContentType.FULL_HTML, bankId)
+                    sourceUrl, ContentType.FULL_HTML, bankId)
                     .orElse(null);
 
             if (Objects.nonNull(existingEntry)) {
                 // Update existing entry
                 existingEntry.setContent(processedContent);
-                existingEntry.setPageTitle(request.pageTitle());
+                existingEntry.setPageTitle(pageTitle);
                 existingEntry.setCreatedAt(LocalDateTime.now());
 
                 // Calculate word count for FULL_HTML
@@ -105,25 +115,25 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         }
 
         // Check for existing VIDEO_TRANSCRIPT entry with same sourceUrl in same bank
-        if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(request.sourceUrl())) {
+        if (ContentType.VIDEO_TRANSCRIPT.equals(type) && Objects.nonNull(sourceUrl)) {
             existingEntry = contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
-                    request.sourceUrl(), ContentType.VIDEO_TRANSCRIPT, bankId)
+                    sourceUrl, ContentType.VIDEO_TRANSCRIPT, bankId)
                     .orElse(null);
 
             // If VIDEO_TRANSCRIPT entry already exists, return it without creating/updating
-            if (existingEntry != null) {
+            if (Objects.nonNull(existingEntry)) {
                 resultEntry = existingEntry;
             }
         }
 
-        if (existingEntry == null) {
+        if (Objects.isNull(existingEntry)) {
             // Create new entry
             var contentEntry = new ContentEntry();
-            contentEntry.setUserId(userId);
+            contentEntry.setUserId(userId.getValue());
             contentEntry.setContentType(type);
             contentEntry.setContent(processedContent);
-            contentEntry.setSourceUrl(request.sourceUrl());
-            contentEntry.setPageTitle(request.pageTitle());
+            contentEntry.setSourceUrl(sourceUrl);
+            contentEntry.setPageTitle(pageTitle);
             contentEntry.setQuestionsGenerated(false);
 
             // Calculate word count for selected_text and full_html content types
@@ -137,11 +147,11 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
             // Add YouTube fields for VIDEO_TRANSCRIPT type
             if (ContentType.VIDEO_TRANSCRIPT.equals(type)) {
-                if (Objects.nonNull(request.youtubeVideoId())) {
-                    contentEntry.setYoutubeVideoId(request.youtubeVideoId());
+                if (Objects.nonNull(youtubeVideoId)) {
+                    contentEntry.setYoutubeVideoId(youtubeVideoId);
                 }
-                if (Objects.nonNull(request.youtubeVideoDuration())) {
-                    contentEntry.setVideoDuration(request.youtubeVideoDuration());
+                if (Objects.nonNull(youtubeVideoDuration)) {
+                    contentEntry.setVideoDuration(youtubeVideoDuration);
                 }
                 if (Objects.nonNull(youtubeChannel)) {
                     contentEntry.setYoutubeChannelId(youtubeChannel.getId());
@@ -171,7 +181,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     @Override
     @Transactional(readOnly = true)
-    public ContentEntryDTOResponse findById(UUID userId, Long entryId) {
+    public ContentEntryDTOResponse findById(UserId userId, Long entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
@@ -194,8 +204,8 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedModel<ContentEntryDTOResponse> findAll(UUID userId, UUID bankId, String name, Pageable pageable) {
-        contentBankRepository.findByIdAndUserId(new ContentBankId(bankId), new UserId(userId))
+    public PagedModelResponse<ContentEntryDTOResponse> findAll(UserId userId, ContentBankId bankId, String name, Pageable pageable) {
+        contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         var entriesPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId, pageable);
@@ -217,19 +227,19 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                     topics.stream().map(Topic::getTopic).toList());
         });
 
-        return new PagedModel<>(contentEntryDTOPage);
+        return new PagedModelResponse<>(contentEntryDTOPage);
     }
 
     @Override
-    public ContentEntryResponse clone(UUID userId, Long entryId, UUID cloneTargetBankId) {
+    public ContentEntryResponse clone(UserId userId, Long entryId, ContentBankId cloneTargetBankId) {
         var sourceEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
 
-        var targetBank = contentBankRepository.findByIdAndUserId(new ContentBankId(cloneTargetBankId), new UserId(userId))
+        var targetBank = contentBankRepository.findByIdAndUserId(cloneTargetBankId, userId)
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
         var clonedEntry = new ContentEntry();
-        clonedEntry.setUserId(userId);
+        clonedEntry.setUserId(userId.getValue());
         clonedEntry.setContentType(sourceEntry.getContentType());
         clonedEntry.setContent(sourceEntry.getContent());
         clonedEntry.setSourceUrl(sourceEntry.getSourceUrl());
@@ -264,7 +274,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     }
 
     @Override
-    public void remove(UUID userId, Long entryId) {
+    public void remove(UserId userId, Long entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
@@ -274,14 +284,14 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         contentEntryRepository.delete(contentEntry);
     }
 
-    private void generateTopicsForContentEntry(UUID userId, ContentEntry contentEntry) {
+    private void generateTopicsForContentEntry(UserId userId, ContentEntry contentEntry) {
         Long entryId = contentEntry.getId();
 
         var existingTopics = topicRepository.findAllByUserId(userId).stream().map(Topic::getTopic)
                 .collect(joining(","));
 
         try {
-            contentEntryEventPublisher.emitGenerateTopicsEvent(userId.toString(), entryId,
+            contentEntryEventPublisher.emitGenerateTopicsEvent(userId, entryId,
                     contentEntry.getContent(), contentEntry.getPageTitle(), existingTopics);
         } catch (Exception e) {
             log.error("Failed to emit Kafka event: " + e.getMessage());

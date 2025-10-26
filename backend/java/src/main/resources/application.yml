@@ -23,6 +23,9 @@ spring:
         baseline-version: 0
         validate-on-migrate: true
         schemas: core
+        locations:
+        - classpath:db/migration/app
+        - classpath:db/migration/projections
     data:
         redis:
             host: ${REDIS_HOST:localhost}

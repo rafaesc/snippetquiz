@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.application.find;
+package ai.snippetquiz.core_service.contentbank.application.contentbank.find;
 
 import ai.snippetquiz.core_service.shared.domain.bus.query.Query;
 import lombok.AllArgsConstructor;

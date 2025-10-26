@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.application.delete;
+package ai.snippetquiz.core_service.contentbank.application.contentbank.delete;
 
 import ai.snippetquiz.core_service.contentbank.application.service.ContentBankService;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
