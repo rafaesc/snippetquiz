@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.adapter.in.request;
+package ai.snippetquiz.core_service.contentbank.adapter.in.web.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

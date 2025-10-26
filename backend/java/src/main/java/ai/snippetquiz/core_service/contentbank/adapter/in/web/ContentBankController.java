@@ -1,14 +1,15 @@
 package ai.snippetquiz.core_service.contentbank.adapter.in.web;
 
-import ai.snippetquiz.core_service.contentbank.adapter.in.request.CreateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.CreateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.DuplicateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.UpdateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.application.ContentBankItemResponse;
+import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.application.create.CreateContentBankCommand;
 import ai.snippetquiz.core_service.contentbank.application.delete.DeleteContentBankCommand;
-import ai.snippetquiz.core_service.contentbank.application.dto.request.DuplicateContentBankRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.request.UpdateContentBankRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankItemResponse;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.application.duplicate.DuplicateContentBankCommand;
-import ai.snippetquiz.core_service.contentbank.application.service.ContentBankService;
+import ai.snippetquiz.core_service.contentbank.application.find.FindContentBankQuery;
+import ai.snippetquiz.core_service.contentbank.application.findall.FindAllContentBankQuery;
 import ai.snippetquiz.core_service.shared.domain.DomainError;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandBus;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandlerExecutionError;
@@ -43,14 +44,10 @@ import java.util.UUID;
 @Validated
 public class ContentBankController extends ApiController {
 
-    private final ContentBankService contentBankService;
-
     public ContentBankController(
-            ContentBankService contentBankService,
             QueryBus queryBus,
             CommandBus commandBus) {
         super(queryBus, commandBus);
-        this.contentBankService = contentBankService;
     }
 
     @PostMapping
@@ -70,14 +67,14 @@ public class ContentBankController extends ApiController {
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @RequestParam(required = false) String name,
             @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
-        return contentBankService.findAll(UUID.fromString(userId), name, pageable);
+        return ask(new FindAllContentBankQuery(UUID.fromString(userId), name, pageable));
     }
 
     @GetMapping("/{id}")
     public ContentBankResponse findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-        return contentBankService.findOne(UUID.fromString(userId), UUID.fromString(id));
+        return ask(new FindContentBankQuery(UUID.fromString(userId), UUID.fromString(id)));
     }
 
     @PutMapping("/{id}")

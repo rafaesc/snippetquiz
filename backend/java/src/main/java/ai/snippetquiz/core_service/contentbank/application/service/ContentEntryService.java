@@ -1,8 +1,9 @@
 package ai.snippetquiz.core_service.contentbank.application.service;
 
-import ai.snippetquiz.core_service.contentbank.application.dto.request.CreateContentEntryRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryDTOResponse;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryResponse;
+import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.CreateContentEntryRequest;
+import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
+import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 

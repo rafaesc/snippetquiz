@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.application.dto.response;
+package ai.snippetquiz.core_service.contentbank.application;
 
 import java.time.LocalDateTime;
 import java.util.List;
