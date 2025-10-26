@@ -4,6 +4,8 @@ import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryEventPa
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
@@ -49,7 +51,7 @@ public class ContentEntryConsumer {
                 payload.topics() != null ? payload.topics().size() : 0);
 
         var contentId = payload.contentId();
-        var contentEntry = contentEntryRepository.findById(contentId)
+        var contentEntry = contentEntryRepository.findById(new ContentEntryId(contentId))
                 .orElseThrow(() -> new NotFoundException(
                         "Content Entry not found or you do not have permission to access it"));
 
@@ -72,7 +74,7 @@ public class ContentEntryConsumer {
                 }
 
                 try {
-                    var topic = topicRepository.findByUserIdAndTopic(userId, topicName)
+                    var topic = topicRepository.findByUserIdAndTopic(new UserId(userId), topicName)
                             .orElseGet(() -> {
                                 Topic newTopic = new Topic(userId, topicName.trim());
                                 return topicRepository.save(newTopic);

@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface JpaContentEntryBankRepository extends JpaRepository<ContentEntryBankEntity, Long> {
     List<ContentEntryBankEntity> findByContentBankId(UUID contentBankId);
 
-    List<ContentEntryBankEntity> findByContentEntryId(Long contentEntryId);
+    List<ContentEntryBankEntity> findByContentEntryId(UUID contentEntryId);
 
-    void deleteByContentEntryId(Long contentEntryId);
+    void deleteByContentEntryId(UUID contentEntryId);
 }

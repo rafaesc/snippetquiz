@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.contentbank.adapter.out.messaging;
 
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryEventPayload;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,13 +22,15 @@ public class ContentEntryEventPublisherImpl implements ContentEntryEventPublishe
     private final ObjectMapper objectMapper;
 
     @Override
-    public void emitGenerateTopicsEvent(UserId userId, Long contentId, String content, String pageTitle,
+    public void emitGenerateTopicsEvent(UserId userId, ContentEntryId contentId, String content, String pageTitle,
             String existingTopics) {
         try {
+            var userIdString = userId.getValue().toString();
+            var contentIdString = contentId.getValue().toString();
             var payload = new ContentEntryEventPayload(
-                    userId.getValue().toString(), contentId, "GENERATE", content, pageTitle, existingTopics, null);
+                    userIdString, contentIdString, "GENERATE", content, pageTitle, existingTopics, null);
 
-            var key = "content-entry-" + contentId;
+            var key = "content-entry-" + contentIdString;
             var jsonPayload = objectMapper.writeValueAsString(payload);
 
             kafkaTemplate.send("content-entry-events", key, jsonPayload);

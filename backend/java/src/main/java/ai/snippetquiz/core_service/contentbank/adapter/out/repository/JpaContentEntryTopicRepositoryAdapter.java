@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.contentbank.adapter.out.entities.ContentEntry
 import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.ContentEntryTopicMapper;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,8 +23,8 @@ public class JpaContentEntryTopicRepositoryAdapter implements ContentEntryTopicR
     }
 
     @Override
-    public List<ContentEntryTopic> findByContentEntryId(Long contentEntryId) {
-        return jpaContentEntryTopicRepository.findByContentEntryId(contentEntryId)
+    public List<ContentEntryTopic> findByContentEntryId(ContentEntryId contentEntryId) {
+        return jpaContentEntryTopicRepository.findByContentEntryId(contentEntryId.getValue())
                 .stream()
                 .map(contentEntryTopicMapper::toDomain)
                 .toList();
@@ -38,15 +39,15 @@ public class JpaContentEntryTopicRepositoryAdapter implements ContentEntryTopicR
     }
 
     @Override
-    public List<ContentEntryTopic> findByContentEntryIdIn(List<Long> contentEntryIds) {
-        return jpaContentEntryTopicRepository.findByContentEntryIdIn(contentEntryIds)
+    public List<ContentEntryTopic> findByContentEntryIdIn(List<ContentEntryId> contentEntryIds) {
+        return jpaContentEntryTopicRepository.findByContentEntryIdIn(contentEntryIds.stream().map(ContentEntryId::getValue).toList())
                 .stream()
                 .map(contentEntryTopicMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public void deleteByContentEntryId(Long contentEntryId) {
-        jpaContentEntryTopicRepository.deleteByContentEntryId(contentEntryId);
+    public void deleteByContentEntryId(ContentEntryId contentEntryId) {
+        jpaContentEntryTopicRepository.deleteByContentEntryId(contentEntryId.getValue());
     }
 }

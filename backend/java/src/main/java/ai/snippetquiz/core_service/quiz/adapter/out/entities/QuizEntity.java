@@ -32,7 +32,7 @@ public class QuizEntity {
     private Long id;
 
     @Column(name = "bank_id")
-    private Long contentBankId;
+    private UUID contentBankId;
 
     @Column(name = "bank_name")
     private String bankName;
@@ -69,7 +69,7 @@ public class QuizEntity {
     @OneToMany(mappedBy = "quizId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuizQuestionEntity> quizQuestions;
 
-    public QuizEntity(Long contentBankId, String bankName, QuizStatus status, UUID userId) {
+    public QuizEntity(UUID contentBankId, String bankName, QuizStatus status, UUID userId) {
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;

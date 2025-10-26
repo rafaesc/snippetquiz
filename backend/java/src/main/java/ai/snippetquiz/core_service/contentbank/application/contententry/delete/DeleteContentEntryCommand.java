@@ -10,5 +10,5 @@ import java.util.UUID;
 @Getter
 public class DeleteContentEntryCommand implements Command {
     private final UUID userId;
-    private final Long entryId;
+    private final UUID entryId;
 }

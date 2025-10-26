@@ -1,5 +1,7 @@
 package ai.snippetquiz.core_service.quiz.adapter.out.entities;
 
+import java.util.UUID;
+
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,13 +45,13 @@ public class QuizQuestionEntity {
     private Integer questionIndexInChunk;
 
     @Column(name = "content_entry_id")
-    private Long contentEntryId;
+    private UUID contentEntryId;
 
     @Column(name = "quiz_id", nullable = false)
     private Long quizId;
 
     public QuizQuestionEntity(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl,
-                              Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId, Long quizId) {
+                              Integer chunkIndex, Integer questionIndexInChunk, UUID contentEntryId, Long quizId) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;

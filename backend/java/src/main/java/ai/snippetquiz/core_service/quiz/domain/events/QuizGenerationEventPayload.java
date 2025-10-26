@@ -4,7 +4,7 @@ import java.util.List;
 
 public record QuizGenerationEventPayload(
     Long quizId,
-    Long bankId,
+    String bankId,
     String userId,
     Integer totalContentEntries,
     Integer totalContentEntriesSkipped,
@@ -15,7 +15,7 @@ public record QuizGenerationEventPayload(
     Integer currentChunkIndex
 ) {
     public record ContentEntryDto(
-        Long id,
+        String id,
         String pageTitle,
         Integer wordCountAnalyzed,
         List<QuestionDto> questions

@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.quiz.adapter.in.messaging;
 
 
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.question.application.QuestionService;
 import ai.snippetquiz.core_service.question.application.dto.CreateQuestionRequest;
 import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
@@ -10,6 +11,7 @@ import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.SendFanoutMessageQuizLoadingEvent;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,7 +67,7 @@ public class QuizGenerationConsumer {
             if (data.totalChunks() != 0) {
                 var contentEntryId = data.contentEntry().id();
                 var contentEntry = contentEntryRepository
-                        .findByIdAndUserId(contentEntryId, userId)
+                        .findByIdAndUserId(new ContentEntryId(contentEntryId), new UserId(userId))
                         .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
                 var questions = data.contentEntry().questions();

@@ -35,7 +35,7 @@ CREATE TABLE "youtube_channels" (
 
 -- CreateTable
 CREATE TABLE "content_entries" (
-    "id" BIGSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "content_type" VARCHAR(50) NOT NULL,
     "content" TEXT,
@@ -74,11 +74,14 @@ CREATE TABLE "questions" (
     "id" BIGSERIAL NOT NULL,
     "question" TEXT NOT NULL,
     "type" TEXT NOT NULL,
-    "content_entry_id" BIGINT NOT NULL,
+    "content_entry_id" UUID NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "questions_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "questions_content_entry_id_prefix_idx"
+ON "questions" (LEFT("content_entry_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "question_options" (
@@ -107,20 +110,29 @@ ON "quiz_generation_instructions" (LEFT("user_id"::text, 4));
 -- CreateTable
 CREATE TABLE "content_entries_bank" (
     "id" BIGSERIAL NOT NULL,
-    "content_entry_id" BIGINT NOT NULL,
+    "content_entry_id" UUID NOT NULL,
     "content_bank_id" UUID NOT NULL,
 
     CONSTRAINT "content_entries_bank_pkey" PRIMARY KEY ("id")
 );
 
+CREATE INDEX "content_entries_bank_content_entry_id_prefix_idx"
+ON "content_entries_bank" (LEFT("content_entry_id"::text, 4));
+
+CREATE INDEX "content_entries_bank_content_bank_id_prefix_idx"
+ON "content_entries_bank" (LEFT("content_bank_id"::text, 4));
+
 -- CreateTable
 CREATE TABLE "content_entry_topics" (
     "id" BIGSERIAL NOT NULL,
-    "content_entry_id" BIGINT NOT NULL,
+    "content_entry_id" UUID NOT NULL,
     "topic_id" BIGINT NOT NULL,
 
     CONSTRAINT "content_entry_topics_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "content_entry_topics_content_entry_id_prefix_idx"
+ON "content_entry_topics" (LEFT("content_entry_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "quiz_topics" (
@@ -138,11 +150,14 @@ CREATE TABLE "quiz_questions" (
     "type" TEXT NOT NULL,
     "content_entry_type" TEXT NOT NULL,
     "content_entry_source_url" TEXT,
-    "content_entry_id" BIGINT,
+    "content_entry_id" UUID,
     "quiz_id" BIGINT NOT NULL,
 
     CONSTRAINT "quiz_questions_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "quiz_questions_content_entry_id_prefix_idx"
+ON "quiz_questions" (LEFT("content_entry_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "quiz_question_options" (
@@ -175,10 +190,10 @@ CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "topics"("user_id", "topic");
 CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "youtube_channels"("channel_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "content_entries_bank"("content_entry_id", "content_bank_id");
+CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" ON "content_entries_bank"(LEFT("content_entry_id"::text, 4), LEFT("content_bank_id"::text, 4));
 
 -- CreateIndex
-CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "content_entry_topics"("content_entry_id", "topic_id");
+CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "content_entry_topics"(LEFT("content_entry_id"::text, 4), "topic_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "quiz_topics"("quiz_id", "topic_name");

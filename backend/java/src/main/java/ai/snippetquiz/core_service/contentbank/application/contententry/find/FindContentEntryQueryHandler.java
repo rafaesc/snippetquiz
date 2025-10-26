@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.contentbank.application.contententry.find;
 
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.contentbank.application.service.ContentEntryService;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.bus.query.QueryHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,9 @@ public class FindContentEntryQueryHandler implements QueryHandler<FindContentEnt
 
     @Override
     public ContentEntryDTOResponse handle(FindContentEntryQuery query) {
-        return contentEntryService.findById(new UserId(query.getUserId()), query.getId());
+        return contentEntryService.findById(
+                new UserId(query.getUserId()),
+                new ContentEntryId(query.getId())
+        );
     }
 }

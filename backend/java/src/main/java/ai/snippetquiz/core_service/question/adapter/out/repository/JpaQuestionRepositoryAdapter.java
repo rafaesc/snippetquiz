@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.question.adapter.out.repository;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.question.adapter.out.entities.QuestionEntity;
 import ai.snippetquiz.core_service.question.adapter.out.mapper.QuestionMapper;
 import ai.snippetquiz.core_service.question.domain.Question;
@@ -24,16 +25,16 @@ public class JpaQuestionRepositoryAdapter implements QuestionRepository {
     }
 
     @Override
-    public List<Question> findByContentEntryId(Long contentEntryId) {
-        return jpaQuestionRepository.findByContentEntryId(contentEntryId)
+    public List<Question> findByContentEntryId(ContentEntryId contentEntryId) {
+        return jpaQuestionRepository.findByContentEntryId(contentEntryId.getValue())
                 .stream()
                 .map(questionMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Question> findByContentEntryIdIn(List<Long> contentEntryIds) {
-        return jpaQuestionRepository.findByContentEntryIdIn(contentEntryIds)
+    public List<Question> findByContentEntryIdIn(List<ContentEntryId> contentEntryIds) {
+        return jpaQuestionRepository.findByContentEntryIdIn(contentEntryIds.stream().map(ContentEntryId::getValue).toList())
                 .stream()
                 .map(questionMapper::toDomain)
                 .collect(Collectors.toList());

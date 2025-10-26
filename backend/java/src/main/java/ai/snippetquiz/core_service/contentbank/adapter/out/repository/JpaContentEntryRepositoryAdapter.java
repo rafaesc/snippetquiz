@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,8 +34,8 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
-    public Optional<ContentEntry> findById(Long id) {
-        return jpaContentEntryRepository.findById(id).map(contentEntryMapper::toDomain);
+    public Optional<ContentEntry> findById(ContentEntryId id) {
+        return jpaContentEntryRepository.findById(id.getValue()).map(contentEntryMapper::toDomain);
     }
 
     @Override
@@ -43,8 +44,8 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
-    public Optional<ContentEntry> findByIdAndUserId(Long id, UserId userId) {
-        return jpaContentEntryRepository.findByIdAndUserId(id, userId.getValue()).map(contentEntryMapper::toDomain);
+    public Optional<ContentEntry> findByIdAndUserId(ContentEntryId id, UserId userId) {
+        return jpaContentEntryRepository.findByIdAndUserId(id.getValue(), userId.getValue()).map(contentEntryMapper::toDomain);
     }
 
     @Override

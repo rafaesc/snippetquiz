@@ -12,7 +12,7 @@ public record GetContentEntriesResponse(
     ) {}
     
     public record ContentEntryDto(
-        Long id,
+        String id,
         String pageTitle,
         String content,
         Integer wordCountAnalyzed

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record ContentEntryResponse(
-    Long id,
+    String id,
     String contentType,
     String content,
     String sourceUrl,

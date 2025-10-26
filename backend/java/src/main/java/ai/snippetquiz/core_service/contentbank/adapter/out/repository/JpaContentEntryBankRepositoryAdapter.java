@@ -4,11 +4,12 @@ import ai.snippetquiz.core_service.contentbank.adapter.out.entities.ContentEntry
 import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.ContentEntryBankMapper;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -23,23 +24,23 @@ public class JpaContentEntryBankRepositoryAdapter implements ContentEntryBankRep
     }
 
     @Override
-    public List<ContentEntryBank> findByContentBankId(UUID contentBankId) {
-        return jpaContentEntryBankRepository.findByContentBankId(contentBankId)
+    public List<ContentEntryBank> findByContentBankId(ContentBankId contentBankId) {
+        return jpaContentEntryBankRepository.findByContentBankId(contentBankId.getValue())
                 .stream()
                 .map(contentEntryBankMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<ContentEntryBank> findByContentEntryId(Long contentEntryId) {
-        return jpaContentEntryBankRepository.findByContentEntryId(contentEntryId)
+    public List<ContentEntryBank> findByContentEntryId(ContentEntryId contentEntryId) {
+        return jpaContentEntryBankRepository.findByContentEntryId(contentEntryId.getValue())
                 .stream()
                 .map(contentEntryBankMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public void deleteByContentEntryId(Long contentEntryId) {
-        jpaContentEntryBankRepository.deleteByContentEntryId(contentEntryId);
+    public void deleteByContentEntryId(ContentEntryId contentEntryId) {
+        jpaContentEntryBankRepository.deleteByContentEntryId(contentEntryId.getValue());
     }
 }
