@@ -3,7 +3,6 @@ package ai.snippetquiz.core_service.quiz.application.service;
 import ai.snippetquiz.core_service.quiz.application.dto.request.CreateQuizDTO;
 import ai.snippetquiz.core_service.quiz.application.dto.response.CheckQuizInProgressResponse;
 import ai.snippetquiz.core_service.quiz.application.dto.response.FindOneQuizResponse;
-import ai.snippetquiz.core_service.quiz.application.dto.response.GetContentEntriesResponse;
 import ai.snippetquiz.core_service.quiz.application.dto.response.QuizResponse;
 import ai.snippetquiz.core_service.quiz.application.dto.response.QuizResponseItemDto;
 import ai.snippetquiz.core_service.quiz.application.dto.response.QuizSummaryResponseDto;

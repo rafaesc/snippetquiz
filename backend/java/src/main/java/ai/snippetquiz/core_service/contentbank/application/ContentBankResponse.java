@@ -1,13 +1,13 @@
-package ai.snippetquiz.core_service.contentbank.application.dto.response;
+package ai.snippetquiz.core_service.contentbank.application;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ContentBankItemResponse(
+public record ContentBankResponse(
     UUID id,
     String name,
     String userId,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    Integer contentEntries
+    Integer entryCount
 ) {}

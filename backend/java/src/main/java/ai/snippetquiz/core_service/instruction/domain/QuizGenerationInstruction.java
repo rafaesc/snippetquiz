@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.instruction.domain;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import ai.snippetquiz.core_service.instruction.domain.valueobject.InstructionId;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;

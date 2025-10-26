@@ -3,7 +3,6 @@ package ai.snippetquiz.core_service.contentbank.domain.port;
 import java.util.Optional;
 import java.util.UUID;
 
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

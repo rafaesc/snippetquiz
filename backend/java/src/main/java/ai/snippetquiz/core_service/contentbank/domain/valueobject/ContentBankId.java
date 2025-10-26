@@ -8,4 +8,8 @@ public class ContentBankId extends BaseId<UUID> {
     public ContentBankId(UUID value) {
         super(value);
     }
+
+    public static ContentBankId create() {
+        return new ContentBankId(UUID.randomUUID());
+    }
 }

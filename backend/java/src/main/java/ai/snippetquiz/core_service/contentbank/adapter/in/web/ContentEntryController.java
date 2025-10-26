@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import ai.snippetquiz.core_service.shared.util.Constants;
-import ai.snippetquiz.core_service.contentbank.application.dto.request.CreateContentEntryRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryDTOResponse;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentEntryResponse;
+import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.CreateContentEntryRequest;
+import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
+import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
 import ai.snippetquiz.core_service.contentbank.application.service.ContentEntryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

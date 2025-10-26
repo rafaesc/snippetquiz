@@ -1,21 +1,20 @@
 package ai.snippetquiz.core_service.contentbank.application.service;
 
-import ai.snippetquiz.core_service.contentbank.application.dto.request.DuplicateContentBankRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankItemResponse;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankResponse;
+import ai.snippetquiz.core_service.contentbank.application.ContentBankItemResponse;
+import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.ConflictException;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +58,7 @@ public class ContentBankServiceImpl implements ContentBankService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedModel<ContentBankItemResponse> findAll(UserId userId, String name, Pageable pageable) {
+    public PagedModelResponse<ContentBankItemResponse> findAll(UserId userId, String name, Pageable pageable) {
         var contentBanksPage = contentBankRepository.findByUserIdAndNameContainingIgnoreCase(
                 userId, name, pageable);
 
@@ -74,7 +73,7 @@ public class ContentBankServiceImpl implements ContentBankService {
                     (int) entryCount);
         });
 
-        return new PagedModel<>(contentBankItems);
+        return new PagedModelResponse<>(contentBankItems);
     }
 
     @Override
@@ -93,27 +92,6 @@ public class ContentBankServiceImpl implements ContentBankService {
                 contentBank.getCreatedAt(),
                 contentBank.getUpdatedAt(),
                 (int) entryCount);
-    }
-
-    @Override
-    public void update(UserId userId, ContentBankId id, String name) {
-        var existingBank = contentBankRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Content bank not found or does not belong to user"));
-
-        if (Objects.nonNull(name) && !name.trim().isEmpty()) {
-            var duplicateBank = contentBankRepository.findByUserIdAndNameAndIdNot(
-                    userId, name.trim(), id);
-
-            if (duplicateBank.isPresent()) {
-                throw new ConflictException("A content bank with this name already exists");
-            }
-
-            existingBank.setName(name.trim());
-        }
-
-        existingBank.setUpdatedAt(LocalDateTime.now());
-        contentBankRepository.save(existingBank);
     }
 
     @Override
@@ -146,12 +124,7 @@ public class ContentBankServiceImpl implements ContentBankService {
     }
 
     private void duplicateContentBankWithEntries(ContentBank originalBank, UserId userId, String newName) {
-        var newBank = new ContentBank();
-        newBank.setUserId(userId);
-        newBank.setName(newName);
-        newBank.setCreatedAt(LocalDateTime.now());
-        newBank.setUpdatedAt(LocalDateTime.now());
-
+        var newBank = ContentBank.create(ContentBankId.create(), userId, newName);
         newBank = contentBankRepository.save(newBank);
 
         var contentEntryAssociations = contentEntryBankRepository
