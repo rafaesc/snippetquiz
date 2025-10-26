@@ -1,16 +1,17 @@
 package ai.snippetquiz.core_service.contentbank.domain.port;
 
 import java.util.List;
-import java.util.UUID;
 
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 
 public interface ContentEntryBankRepository {
     ContentEntryBank save(ContentEntryBank contentEntryBank);
 
-    List<ContentEntryBank> findByContentBankId(UUID contentBankId);
+    List<ContentEntryBank> findByContentBankId(ContentBankId contentBankId);
 
-    List<ContentEntryBank> findByContentEntryId(Long contentEntryId);
+    List<ContentEntryBank> findByContentEntryId(ContentEntryId contentEntryId);
 
-    void deleteByContentEntryId(Long contentEntryId);
+    void deleteByContentEntryId(ContentEntryId contentEntryId);
 }

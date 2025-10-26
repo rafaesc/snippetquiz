@@ -16,6 +16,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "questions")
@@ -40,7 +41,7 @@ public class QuestionEntity {
     private Integer questionIndexInChunk;
 
     @Column(name = "content_entry_id", nullable = false)
-    private Long contentEntryId;
+    private UUID contentEntryId;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
@@ -49,7 +50,7 @@ public class QuestionEntity {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuestionOptionEntity> questionOptions;
 
-    public QuestionEntity(String question, String type, Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId) {
+    public QuestionEntity(String question, String type, Integer chunkIndex, Integer questionIndexInChunk, UUID contentEntryId) {
         this.question = question;
         this.type = type;
         this.chunkIndex = chunkIndex;

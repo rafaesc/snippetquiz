@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.contentbank.application.contententry.delete;
 
 import ai.snippetquiz.core_service.contentbank.application.service.ContentEntryService;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,9 @@ public class DeleteContentEntryCommandHandler implements CommandHandler<DeleteCo
 
     @Override
     public void handle(DeleteContentEntryCommand command) {
-        contentEntryService.remove(new UserId(command.getUserId()), command.getEntryId());
+        contentEntryService.remove(
+                new UserId(command.getUserId()),
+                new ContentEntryId(command.getEntryId())
+        );
     }
 }

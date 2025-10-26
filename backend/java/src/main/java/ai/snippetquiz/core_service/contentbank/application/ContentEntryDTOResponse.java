@@ -11,7 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class ContentEntryDTOResponse implements Response {
-    private Long id;
+    private String id;
     private String contentType;
     private String content; // truncated to 300 chars
     private String sourceUrl;

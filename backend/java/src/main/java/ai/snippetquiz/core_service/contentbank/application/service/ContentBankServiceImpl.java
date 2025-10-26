@@ -86,7 +86,7 @@ public class ContentBankServiceImpl implements ContentBankService {
         var entryCount = contentEntryRepository.countByContentBankId(contentBank.getId());
 
         return new ContentBankResponse(
-                contentBank.getId().getValue(),
+                contentBank.getId().getValue().toString(),
                 contentBank.getName(),
                 contentBank.getUserId().toString(),
                 contentBank.getCreatedAt(),
@@ -128,7 +128,7 @@ public class ContentBankServiceImpl implements ContentBankService {
         newBank = contentBankRepository.save(newBank);
 
         var contentEntryAssociations = contentEntryBankRepository
-                .findByContentBankId(originalBank.getId().getValue());
+                .findByContentBankId(originalBank.getId());
 
         for (ContentEntryBank association : contentEntryAssociations) {
             var newAssociation = new ContentEntryBank();

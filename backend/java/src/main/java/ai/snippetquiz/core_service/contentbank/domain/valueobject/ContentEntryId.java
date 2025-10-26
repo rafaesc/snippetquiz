@@ -8,8 +8,7 @@ public class ContentEntryId extends BaseId<UUID> {
     public ContentEntryId(UUID value) {
         super(value);
     }
-
-    public static ContentEntryId create() {
-        return new ContentEntryId(UUID.randomUUID());
-    }   
+    public ContentEntryId(String value) {
+        super(UUID.fromString(value));
+    }
 }

@@ -14,11 +14,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, Long> {
+public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, UUID> {
 
     Page<ContentEntryEntity> findByContentEntryBanks_ContentBank_Id(UUID contentBankId, Pageable pageable);
 
-    Optional<ContentEntryEntity> findByIdAndUserId(Long id, UUID userId);
+    Optional<ContentEntryEntity> findByIdAndUserId(UUID id, UUID userId);
 
     @Query("SELECT COUNT(ce) FROM ContentEntryEntity ce " +
             "JOIN ContentEntryBankEntity ceb ON ce.id = ceb.contentEntry.id " +

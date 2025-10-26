@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.application.service;
 
-import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.CreateContentEntryRequest;
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
@@ -17,13 +16,13 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepositor
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +32,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -128,13 +126,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
         if (Objects.isNull(existingEntry)) {
             // Create new entry
-            var contentEntry = new ContentEntry();
-            contentEntry.setUserId(userId.getValue());
-            contentEntry.setContentType(type);
-            contentEntry.setContent(processedContent);
-            contentEntry.setSourceUrl(sourceUrl);
-            contentEntry.setPageTitle(pageTitle);
-            contentEntry.setQuestionsGenerated(false);
+            var contentEntry = ContentEntry.create(userId, type, processedContent, sourceUrl, pageTitle);
 
             // Calculate word count for selected_text and full_html content types
             if ((ContentType.SELECTED_TEXT.equals(type) || ContentType.FULL_HTML.equals(type))
@@ -181,7 +173,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     @Override
     @Transactional(readOnly = true)
-    public ContentEntryDTOResponse findById(UserId userId, Long entryId) {
+    public ContentEntryDTOResponse findById(UserId userId, ContentEntryId entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
@@ -192,7 +184,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
 
         return new ContentEntryDTOResponse(
-                contentEntry.getId(),
+                contentEntry.getId().toString(),
                 contentEntry.getContentType().getValue(),
                 truncateContent(contentEntry.getContent(), 200),
                 contentEntry.getSourceUrl(),
@@ -217,7 +209,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                     .toList();
             var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
             return new ContentEntryDTOResponse(
-                    entry.getId(),
+                    entry.getId().toString(),
                     entry.getContentType().getValue(),
                     truncateContent(entry.getContent(), 200),
                     entry.getSourceUrl(),
@@ -231,7 +223,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     }
 
     @Override
-    public ContentEntryResponse clone(UserId userId, Long entryId, ContentBankId cloneTargetBankId) {
+    public ContentEntryResponse clone(UserId userId, ContentEntryId entryId, ContentBankId cloneTargetBankId) {
         var sourceEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
 
@@ -239,7 +231,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
         var clonedEntry = new ContentEntry();
-        clonedEntry.setUserId(userId.getValue());
+        clonedEntry.setUserId(userId);
         clonedEntry.setContentType(sourceEntry.getContentType());
         clonedEntry.setContent(sourceEntry.getContent());
         clonedEntry.setSourceUrl(sourceEntry.getSourceUrl());
@@ -274,7 +266,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     }
 
     @Override
-    public void remove(UserId userId, Long entryId) {
+    public void remove(UserId userId, ContentEntryId entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
@@ -285,7 +277,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     }
 
     private void generateTopicsForContentEntry(UserId userId, ContentEntry contentEntry) {
-        Long entryId = contentEntry.getId();
+        var entryId = contentEntry.getId();
 
         var existingTopics = topicRepository.findAllByUserId(userId).stream().map(Topic::getTopic)
                 .collect(joining(","));
@@ -300,7 +292,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     private ContentEntryResponse mapToContentEntryResponse(ContentEntry entry, List<String> topics) {
         return new ContentEntryResponse(
-                entry.getId(),
+                entry.getId().toString(),
                 entry.getContentType().getValue(),
                 entry.getContent(),
                 entry.getSourceUrl(),

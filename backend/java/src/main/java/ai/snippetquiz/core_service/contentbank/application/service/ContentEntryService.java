@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.application.service;
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 
@@ -21,11 +22,11 @@ public interface ContentEntryService {
             String youtubeChannelName,
             String youtubeAvatarUrl);
 
-    ContentEntryDTOResponse findById(UserId userId, Long entryId);
+    ContentEntryDTOResponse findById(UserId userId, ContentEntryId entryId);
 
     PagedModelResponse<ContentEntryDTOResponse> findAll(UserId userId, ContentBankId bankId, String name, Pageable pageable);
 
-    ContentEntryResponse clone(UserId userId, Long entryId, ContentBankId cloneTargetBankId);
+    ContentEntryResponse clone(UserId userId, ContentEntryId entryId, ContentBankId cloneTargetBankId);
 
-    void remove(UserId userId, Long entryId);
+    void remove(UserId userId, ContentEntryId entryId);
 }

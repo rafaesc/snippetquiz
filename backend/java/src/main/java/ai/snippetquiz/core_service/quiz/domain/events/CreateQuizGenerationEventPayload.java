@@ -11,7 +11,7 @@ public record CreateQuizGenerationEventPayload(
             String userId,
             UUID bankId) {
     public record ContentEntryEvent(
-            Long id,
+            String id,
             String pageTitle,
             String content,
             Integer wordCountAnalyzed

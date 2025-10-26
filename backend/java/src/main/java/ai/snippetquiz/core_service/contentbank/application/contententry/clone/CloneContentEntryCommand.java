@@ -10,6 +10,6 @@ import java.util.UUID;
 @Getter
 public class CloneContentEntryCommand implements Command {
     private final UUID userId;
-    private final Long entryId;
+    private final UUID entryId;
     private final UUID targetBankId;
 }

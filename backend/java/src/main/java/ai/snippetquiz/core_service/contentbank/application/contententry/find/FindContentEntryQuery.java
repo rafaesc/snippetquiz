@@ -10,5 +10,5 @@ import java.util.UUID;
 @Getter
 public class FindContentEntryQuery implements Query {
     private final UUID userId;
-    private final Long id;
+    private final UUID id;
 }

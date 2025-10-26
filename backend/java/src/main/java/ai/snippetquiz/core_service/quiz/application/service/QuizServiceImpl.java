@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepos
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.instruction.domain.port.QuizGenerationInstructionRepository;
 import ai.snippetquiz.core_service.question.domain.port.QuestionRepository;
 import ai.snippetquiz.core_service.quiz.application.dto.request.CreateQuizDTO;
@@ -212,7 +213,7 @@ public class QuizServiceImpl implements QuizService {
 
             log.info("Content bank {} validated for user {}", bankId, userId);
 
-            var contentEntryPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId.getValue(),
+            var contentEntryPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId,
                     PageRequest.of(0, Integer.MAX_VALUE));
             var contentEntries = contentEntryPage.getContent();
 
@@ -231,7 +232,7 @@ public class QuizServiceImpl implements QuizService {
                     continue;
                 }
                 mappedEntries.add(new GetContentEntriesResponse.ContentEntryDto(
-                        entry.getId(),
+                        entry.getId().toString(),
                         entry.getPageTitle() != null ? entry.getPageTitle() : "",
                         entry.getContent() != null ? entry.getContent() : "",
                         entry.getWordCount() != null ? entry.getWordCount() : 0));
@@ -357,7 +358,7 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public void createQuizQuestions(Quiz quiz) {
         var contentBankId = quiz.getContentBankId();
-        var contentEntryBankList = contentEntryBankRepository.findByContentBankId(contentBankId.getValue());
+        var contentEntryBankList = contentEntryBankRepository.findByContentBankId(contentBankId);
         var contentEntryMap = contentEntryBankList.stream()
                 .collect(toMap(
                         ceb -> ceb.getContentEntry().getId(),
@@ -370,7 +371,7 @@ public class QuizServiceImpl implements QuizService {
             return;
         }
 
-        Map<Integer, Map<Integer, Map<Long, QuizQuestion>>> mapQuizQuestionByChunk = quizQuestionRepository.findByQuizId(quiz.getId()).stream()
+        Map<Integer, Map<Integer, Map<ContentEntryId, QuizQuestion>>> mapQuizQuestionByChunk = quizQuestionRepository.findByQuizId(quiz.getId()).stream()
                 .filter(q -> q.getChunkIndex() != null && q.getQuestionIndexInChunk() != null)
                 .collect(Collectors.groupingBy(
                         QuizQuestion::getChunkIndex,
@@ -381,7 +382,7 @@ public class QuizServiceImpl implements QuizService {
 
         var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryBankList.stream()
                 .map(contentEntryBank -> contentEntryBank.getContentEntry().getId()).toList());
-        var allTopics = topicRepository.findByUserIdAndIdIn(quiz.getUserId(), contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
+        var allTopics = topicRepository.findByUserIdAndIdIn(new UserId(quiz.getUserId()), contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
                 .stream()
                 .map(Topic::getTopic)
                 .toList();

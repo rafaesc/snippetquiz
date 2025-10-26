@@ -70,9 +70,9 @@ public class ContentEntryController extends ApiController {
     @GetMapping("/{id}")
     public ContentEntryDTOResponse findById(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id) {
+            @PathVariable String id) {
 
-        return ask(new FindContentEntryQuery(UUID.fromString(userId), id));
+        return ask(new FindContentEntryQuery(UUID.fromString(userId), UUID.fromString(id)));
     }
 
     @GetMapping("/bank/{bankId}")
@@ -93,12 +93,12 @@ public class ContentEntryController extends ApiController {
     @ResponseStatus(HttpStatus.CREATED)
     public void clone(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id,
+            @PathVariable String id,
             @PathVariable String targetBankId) throws CommandHandlerExecutionError {
 
         dispatch(new CloneContentEntryCommand(
                 UUID.fromString(userId),
-                id,
+                UUID.fromString(id),
                 UUID.fromString(targetBankId)));
     }
 
@@ -106,11 +106,11 @@ public class ContentEntryController extends ApiController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id) throws CommandHandlerExecutionError {
+            @PathVariable String id) throws CommandHandlerExecutionError {
 
         dispatch(new DeleteContentEntryCommand(
                 UUID.fromString(userId),
-                id));
+                UUID.fromString(id)));
     }
 
     @Override

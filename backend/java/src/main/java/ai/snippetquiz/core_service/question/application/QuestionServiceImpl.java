@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.question.application;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.question.application.dto.CreateQuestionRequest;
 import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
 import ai.snippetquiz.core_service.question.domain.Question;
@@ -37,7 +38,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setType("single_choice");
         question.setChunkIndex(chunkIndex);
         question.setQuestionIndexInChunk(questionIndexInChunk);
-        question.setContentEntryId(contentEntryId);
+        question.setContentEntryId(new ContentEntryId(contentEntryId));
 
         var savedQuestion = questionRepository.save(question);
         var quizQuestionOptions = new ArrayList<QuestionOption>();

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,11 +18,11 @@ public class Question {
     private String type;
     private Integer chunkIndex;
     private Integer questionIndexInChunk;
-    private Long contentEntryId;
+    private ContentEntryId contentEntryId;
     private LocalDateTime createdAt;
     private List<QuestionOption> questionOptions = List.of();
 
-    public Question(String question, String type, Integer chunkIndex, Integer questionIndexInChunk, Long contentEntryId) {
+    public Question(String question, String type, Integer chunkIndex, Integer questionIndexInChunk, ContentEntryId contentEntryId) {
         this.question = question;
         this.type = type;
         this.chunkIndex = chunkIndex;

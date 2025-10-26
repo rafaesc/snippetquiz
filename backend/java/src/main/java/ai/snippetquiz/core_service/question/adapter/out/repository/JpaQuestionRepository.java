@@ -5,10 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface JpaQuestionRepository extends JpaRepository<QuestionEntity, Long> {
-    List<QuestionEntity> findByContentEntryId(Long contentEntryId);
+    List<QuestionEntity> findByContentEntryId(UUID contentEntryId);
 
-    List<QuestionEntity> findByContentEntryIdIn(List<Long> contentEntryId);
+    List<QuestionEntity> findByContentEntryIdIn(List<UUID> contentEntryIds);
 }

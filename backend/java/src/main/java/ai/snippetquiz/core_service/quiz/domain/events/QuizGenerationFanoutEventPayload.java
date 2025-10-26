@@ -24,7 +24,7 @@ public class QuizGenerationFanoutEventPayload {
     @JsonSerialize
     public static class Progress {
         private Long quizId;
-        private Long bankId;
+        private String bankId;
         private Integer totalContentEntries;
         private Integer totalContentEntriesSkipped;
         private Integer currentContentEntryIndex;
@@ -37,7 +37,7 @@ public class QuizGenerationFanoutEventPayload {
         @Builder
         @JsonSerialize
         public static class ContentEntry {
-            private Long id;
+            private String id;
             private String name;
             private Integer wordCountAnalyzed;
         }
