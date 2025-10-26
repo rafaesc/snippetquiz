@@ -1,7 +1,21 @@
 package ai.snippetquiz.core_service.contentbank.adapter.in.web;
 
-import java.util.UUID;
-
+import ai.snippetquiz.core_service.contentbank.adapter.in.request.CreateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.application.create.CreateContentBankCommand;
+import ai.snippetquiz.core_service.contentbank.application.delete.DeleteContentBankCommand;
+import ai.snippetquiz.core_service.contentbank.application.dto.request.DuplicateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.application.dto.request.UpdateContentBankRequest;
+import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankItemResponse;
+import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankResponse;
+import ai.snippetquiz.core_service.contentbank.application.duplicate.DuplicateContentBankCommand;
+import ai.snippetquiz.core_service.contentbank.application.service.ContentBankService;
+import ai.snippetquiz.core_service.shared.domain.DomainError;
+import ai.snippetquiz.core_service.shared.domain.bus.command.CommandBus;
+import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandlerExecutionError;
+import ai.snippetquiz.core_service.shared.domain.bus.query.QueryBus;
+import ai.snippetquiz.core_service.shared.spring.ApiController;
+import ai.snippetquiz.core_service.shared.util.Constants;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -21,30 +35,34 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import ai.snippetquiz.core_service.shared.util.Constants;
-import ai.snippetquiz.core_service.contentbank.application.dto.request.CreateContentBankRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.request.DuplicateContentBankRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.request.UpdateContentBankRequest;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankItemResponse;
-import ai.snippetquiz.core_service.contentbank.application.dto.response.ContentBankResponse;
-import ai.snippetquiz.core_service.contentbank.application.service.ContentBankService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.util.HashMap;
+import java.util.UUID;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/content-bank")
 @Validated
-public class ContentBankController {
+public class ContentBankController extends ApiController {
 
     private final ContentBankService contentBankService;
 
+    public ContentBankController(
+            ContentBankService contentBankService,
+            QueryBus queryBus,
+            CommandBus commandBus) {
+        super(queryBus, commandBus);
+        this.contentBankService = contentBankService;
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ContentBankResponse create(
+    public void create(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @Valid @RequestBody CreateContentBankRequest request) {
-        return contentBankService.create(UUID.fromString(userId), request);
+            @Valid @RequestBody CreateContentBankRequest request) throws CommandHandlerExecutionError {
+        var id = UUID.randomUUID();
+        dispatch(new CreateContentBankCommand(
+                id,
+                request.name(),
+                UUID.fromString(userId)));
     }
 
     @GetMapping
@@ -58,33 +76,46 @@ public class ContentBankController {
     @GetMapping("/{id}")
     public ContentBankResponse findOne(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id) {
-        return contentBankService.findOne(UUID.fromString(userId), id);
+            @PathVariable String id) {
+        return contentBankService.findOne(UUID.fromString(userId), UUID.fromString(id));
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ContentBankResponse update(
+    public void update(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody UpdateContentBankRequest request) {
-        return contentBankService.update(UUID.fromString(userId), id, request);
+        dispatch(new CreateContentBankCommand(
+                UUID.fromString(id),
+                request.name(),
+                UUID.fromString(userId)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id) {
-        contentBankService.remove(UUID.fromString(userId), id);
+            @PathVariable String id) {
+        dispatch(new DeleteContentBankCommand(
+                UUID.fromString(id),
+                UUID.fromString(userId)));
     }
 
     @PostMapping("/{id}/duplicate")
     @ResponseStatus(HttpStatus.CREATED)
-    public ContentBankResponse duplicate(
+    public void duplicate(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody DuplicateContentBankRequest request) {
-        return contentBankService.duplicate(UUID.fromString(userId), id, request);
+        dispatch(new DuplicateContentBankCommand(
+                request.name(),
+                UUID.fromString(id),
+                UUID.fromString(userId)));
+    }
+
+    @Override
+    public HashMap<Class<? extends DomainError>, HttpStatus> errorMapping() {
+        return null;
     }
 }

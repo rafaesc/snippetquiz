@@ -16,14 +16,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, Long> {
 
-    Page<ContentEntryEntity> findByContentEntryBanks_ContentBank_Id(Long contentBankId, Pageable pageable);
+    Page<ContentEntryEntity> findByContentEntryBanks_ContentBank_Id(UUID contentBankId, Pageable pageable);
 
     Optional<ContentEntryEntity> findByIdAndUserId(Long id, UUID userId);
 
     @Query("SELECT COUNT(ce) FROM ContentEntryEntity ce " +
             "JOIN ContentEntryBankEntity ceb ON ce.id = ceb.contentEntry.id " +
             "WHERE ceb.contentBank.id = :contentBankId")
-    long countByContentBankId(@Param("contentBankId") Long contentBankId);
+    long countByContentBankId(@Param("contentBankId") UUID contentBankId);
 
     @Query("SELECT ce FROM ContentEntryEntity ce " +
             "JOIN ContentEntryBankEntity ceb ON ce.id = ceb.contentEntry.id " +
@@ -32,5 +32,5 @@ public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEnt
     Optional<ContentEntryEntity> findBySourceUrlAndContentTypeAndContentBankId(
             @Param("sourceUrl") String sourceUrl,
             @Param("contentType") ContentType contentType,
-            @Param("contentBankId") Long contentBankId);
+            @Param("contentBankId") UUID contentBankId);
 }

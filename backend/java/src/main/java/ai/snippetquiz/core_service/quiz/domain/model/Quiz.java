@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Quiz {
     private Long id;
-    private Long contentBankId;
+    private ContentBankId contentBankId;
     private String bankName;
     private QuizStatus status;
     private LocalDateTime createdAt;
@@ -25,7 +26,7 @@ public class Quiz {
     private UUID userId;
     private List<QuizTopic> quizTopics = List.of();
 
-    public Quiz(Long contentBankId, String bankName, QuizStatus status, UUID userId) {
+    public Quiz(ContentBankId contentBankId, String bankName, QuizStatus status, UUID userId) {
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;

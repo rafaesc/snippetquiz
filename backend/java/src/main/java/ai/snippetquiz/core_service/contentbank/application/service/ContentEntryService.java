@@ -13,9 +13,9 @@ public interface ContentEntryService {
 
     ContentEntryDTOResponse findById(UUID userId, Long entryId);
     
-    PagedModel<ContentEntryDTOResponse> findAll(UUID userId, Long bankId, String name, Pageable pageable);
+    PagedModel<ContentEntryDTOResponse> findAll(UUID userId, UUID bankId, String name, Pageable pageable);
 
-    ContentEntryResponse clone(UUID userId, Long entryId, Long cloneTargetBankId);
+    ContentEntryResponse clone(UUID userId, Long entryId, UUID cloneTargetBankId);
     
     void remove(UUID userId, Long entryId);
 }

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -22,7 +23,7 @@ public class JpaContentEntryBankRepositoryAdapter implements ContentEntryBankRep
     }
 
     @Override
-    public List<ContentEntryBank> findByContentBankId(Long contentBankId) {
+    public List<ContentEntryBank> findByContentBankId(UUID contentBankId) {
         return jpaContentEntryBankRepository.findByContentBankId(contentBankId)
                 .stream()
                 .map(contentEntryBankMapper::toDomain)
@@ -35,11 +36,6 @@ public class JpaContentEntryBankRepositoryAdapter implements ContentEntryBankRep
                 .stream()
                 .map(contentEntryBankMapper::toDomain)
                 .toList();
-    }
-
-    @Override
-    public void deleteByContentBankId(Long contentBankId) {
-        jpaContentEntryBankRepository.deleteByContentBankId(contentBankId);
     }
 
     @Override

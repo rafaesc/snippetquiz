@@ -12,13 +12,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface JpaContentBankRepository extends JpaRepository<ContentBankEntity, Long> {
+public interface JpaContentBankRepository extends JpaRepository<ContentBankEntity, UUID> {
     
     Optional<ContentBankEntity> findByUserIdAndName(UUID userId, String name);
     
-    Optional<ContentBankEntity> findByIdAndUserId(Long id, UUID userId);
+    Optional<ContentBankEntity> findByIdAndUserId(UUID id, UUID userId);
     
-    void deleteByIdAndUserId(Long id, UUID userId);
+    void deleteByIdAndUserId(UUID id, UUID userId);
 
     @Query("SELECT cb FROM ContentBankEntity cb WHERE cb.userId = :userId " +
             "AND (LOWER(cb.name) LIKE LOWER(CONCAT('%', :name, '%')) OR :name IS NULL)")
@@ -27,11 +27,11 @@ public interface JpaContentBankRepository extends JpaRepository<ContentBankEntit
             @Param("name") String name,
             Pageable pageable);
     
-    Optional<ContentBankEntity> findByUserIdAndNameAndIdNot(UUID userId, String name, Long excludeId);
+    Optional<ContentBankEntity> findByUserIdAndNameAndIdNot(UUID userId, String name, UUID excludeId);
 
     @Query("SELECT DISTINCT cb FROM ContentBankEntity cb " +
             "INNER JOIN FETCH cb.contentEntryBanks ceb " +
             "INNER JOIN FETCH ceb.contentEntry ce " +
             "WHERE cb.id = :id AND cb.userId = :userId")
-    Optional<ContentBankEntity> findByIdAndUserIdWithContentEntries(@Param("id") Long id, @Param("userId") UUID userId);
+    Optional<ContentBankEntity> findByIdAndUserIdWithContentEntries(@Param("id") UUID id, @Param("userId") UUID userId);
 }

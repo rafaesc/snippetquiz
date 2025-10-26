@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.quiz.domain.events;
 
 import java.util.List;
+import java.util.UUID;
 
 public record CreateQuizGenerationEventPayload(
             String instructions,
@@ -8,7 +9,7 @@ public record CreateQuizGenerationEventPayload(
             Integer entriesSkipped,
             Long quizId,
             String userId,
-            Long bankId) {
+            UUID bankId) {
     public record ContentEntryEvent(
             Long id,
             String pageTitle,

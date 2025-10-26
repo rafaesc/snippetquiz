@@ -1,7 +1,9 @@
 package ai.snippetquiz.core_service.quiz.application.dto.response;
 
+import java.util.UUID;
+
 public record QuizInProgressDetails(
     Long quizId,
-    Long bankId,
+    UUID bankId,
     String name
 ) {}
