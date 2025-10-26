@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.contentbank.adapter.out.messaging;
 
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryEventPayload;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,11 +21,11 @@ public class ContentEntryEventPublisherImpl implements ContentEntryEventPublishe
     private final ObjectMapper objectMapper;
 
     @Override
-    public void emitGenerateTopicsEvent(String userId, Long contentId, String content, String pageTitle,
+    public void emitGenerateTopicsEvent(UserId userId, Long contentId, String content, String pageTitle,
             String existingTopics) {
         try {
             var payload = new ContentEntryEventPayload(
-                    userId, contentId, "GENERATE", content, pageTitle, existingTopics, null);
+                    userId.getValue().toString(), contentId, "GENERATE", content, pageTitle, existingTopics, null);
 
             var key = "content-entry-" + contentId;
             var jsonPayload = objectMapper.writeValueAsString(payload);

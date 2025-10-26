@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.application.findall;
+package ai.snippetquiz.core_service.contentbank.application.contentbank.findall;
 
 import org.springframework.stereotype.Service;
 

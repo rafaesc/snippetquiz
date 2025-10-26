@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.application.duplicate;
+package ai.snippetquiz.core_service.contentbank.application.contentbank.duplicate;
 
 import ai.snippetquiz.core_service.contentbank.application.service.ContentBankService;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;

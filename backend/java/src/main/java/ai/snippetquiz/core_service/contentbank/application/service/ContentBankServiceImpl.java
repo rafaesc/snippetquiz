@@ -63,7 +63,7 @@ public class ContentBankServiceImpl implements ContentBankService {
                 userId, name, pageable);
 
         var contentBankItems = contentBanksPage.map(bank -> {
-            long entryCount = contentEntryRepository.countByContentBankId(bank.getId().getValue());
+            long entryCount = contentEntryRepository.countByContentBankId(bank.getId());
             return new ContentBankItemResponse(
                     bank.getId().getValue(),
                     bank.getName(),
@@ -83,7 +83,7 @@ public class ContentBankServiceImpl implements ContentBankService {
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));
 
-        var entryCount = contentEntryRepository.countByContentBankId(contentBank.getId().getValue());
+        var entryCount = contentEntryRepository.countByContentBankId(contentBank.getId());
 
         return new ContentBankResponse(
                 contentBank.getId().getValue(),

@@ -5,11 +5,11 @@ import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.DuplicateC
 import ai.snippetquiz.core_service.contentbank.adapter.in.web.request.UpdateContentBankRequest;
 import ai.snippetquiz.core_service.contentbank.application.ContentBankItemResponse;
 import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
-import ai.snippetquiz.core_service.contentbank.application.create.CreateContentBankCommand;
-import ai.snippetquiz.core_service.contentbank.application.delete.DeleteContentBankCommand;
-import ai.snippetquiz.core_service.contentbank.application.duplicate.DuplicateContentBankCommand;
-import ai.snippetquiz.core_service.contentbank.application.find.FindContentBankQuery;
-import ai.snippetquiz.core_service.contentbank.application.findall.FindAllContentBankQuery;
+import ai.snippetquiz.core_service.contentbank.application.contentbank.create.CreateContentBankCommand;
+import ai.snippetquiz.core_service.contentbank.application.contentbank.delete.DeleteContentBankCommand;
+import ai.snippetquiz.core_service.contentbank.application.contentbank.duplicate.DuplicateContentBankCommand;
+import ai.snippetquiz.core_service.contentbank.application.contentbank.find.FindContentBankQuery;
+import ai.snippetquiz.core_service.contentbank.application.contentbank.findall.FindAllContentBankQuery;
 import ai.snippetquiz.core_service.shared.domain.DomainError;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandBus;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandlerExecutionError;
