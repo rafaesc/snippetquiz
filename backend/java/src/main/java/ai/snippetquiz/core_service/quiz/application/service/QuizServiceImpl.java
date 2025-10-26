@@ -6,6 +6,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.instruction.domain.port.QuizGenerationInstructionRepository;
 import ai.snippetquiz.core_service.question.domain.port.QuestionRepository;
 import ai.snippetquiz.core_service.quiz.application.dto.request.CreateQuizDTO;
@@ -34,6 +35,7 @@ import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionRespo
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizTopicRepository;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
@@ -202,15 +204,15 @@ public class QuizServiceImpl implements QuizService {
                 totalCorrectAnswers);
     }
 
-    public GetContentEntriesResponse getContentEntriesByBankId(Long bankId, UUID userId) {
+    private GetContentEntriesResponse getContentEntriesByBankId(ContentBankId bankId, UUID userId) {
         try {
-            contentBankRepository.findByIdAndUserId(bankId, userId)
+            contentBankRepository.findByIdAndUserId(bankId, new UserId(userId))
                     .orElseThrow(() -> new RuntimeException(
                             "Content bank not found or access denied for user " + userId));
 
             log.info("Content bank {} validated for user {}", bankId, userId);
 
-            var contentEntryPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId,
+            var contentEntryPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId.getValue(),
                     PageRequest.of(0, Integer.MAX_VALUE));
             var contentEntries = contentEntryPage.getContent();
 
@@ -249,6 +251,7 @@ public class QuizServiceImpl implements QuizService {
         }
     }
 
+    @Override
     public UpdateQuizDateResponse updateQuizDate(Long quizId) {
         try {
             var quiz = quizRepository.findById(quizId)
@@ -266,6 +269,7 @@ public class QuizServiceImpl implements QuizService {
         }
     }
 
+    @Override
     @Transactional(readOnly = true)
     public CheckQuizInProgressResponse checkQuizInProgress(UUID userId) {
         var inProgressQuizzes = quizRepository.findAllByUserIdAndStatus(userId,
@@ -283,7 +287,7 @@ public class QuizServiceImpl implements QuizService {
             if (QuizStatus.PREPARE.equals(quiz.getStatus()) || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
                 inProgressQuiz = new QuizInProgressDetails(
                         quiz.getId(),
-                        quiz.getContentBankId() != null ? quiz.getContentBankId() : null,
+                        quiz.getContentBankId() != null ? quiz.getContentBankId().getValue() : null,
                         quiz.getBankName());
             }
 
@@ -303,15 +307,16 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.delete(quiz);
     }
 
+    @Override
     @Transactional
     public Long createQuiz(UUID userId, CreateQuizDTO request) {
         var contentBank = contentBankRepository
-                .findByIdAndUserIdWithContentEntries(request.bankId(), userId)
+                .findByIdAndUserIdWithContentEntries(new ContentBankId(request.bankId()), new UserId(userId))
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or you do not have permission to access it"));
 
         var contentEntriesResponse = getContentEntriesByBankId(
-                contentBank.getId(), userId);
+                 contentBank.getId(), userId);
         var quizRequest = contentEntriesResponse.request();
         var entries = quizRequest.contentEntries();
         var isReady = (isNull(entries) || entries.isEmpty());
@@ -339,6 +344,7 @@ public class QuizServiceImpl implements QuizService {
         return quiz.getId();
     }
 
+    @Override
     @Transactional
     public void processNewQuizQuestions(Quiz quiz, QuizStatus status) {
         quiz.setStatus(status);
@@ -348,9 +354,10 @@ public class QuizServiceImpl implements QuizService {
         createQuizQuestions(quiz);
     }
 
+    @Override
     public void createQuizQuestions(Quiz quiz) {
         var contentBankId = quiz.getContentBankId();
-        var contentEntryBankList = contentEntryBankRepository.findByContentBankId(contentBankId);
+        var contentEntryBankList = contentEntryBankRepository.findByContentBankId(contentBankId.getValue());
         var contentEntryMap = contentEntryBankList.stream()
                 .collect(toMap(
                         ceb -> ceb.getContentEntry().getId(),
@@ -434,6 +441,7 @@ public class QuizServiceImpl implements QuizService {
 
     }
 
+    @Override
     public UpdateQuizResponse updateQuiz(UUID userId, Long quizId, Long optionSelectedId) {
         var quiz = quizRepository.findByIdAndUserIdWithQuestions(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
@@ -525,7 +533,7 @@ public class QuizServiceImpl implements QuizService {
                 correctOption.getId());
     }
 
-    public void emitCreateQuizEvent(UUID userId, Long quizId, Long bankId,
+    private void emitCreateQuizEvent(UUID userId, Long quizId, ContentBankId bankId,
                                     GetContentEntriesResponse contentEntriesResponse) {
         try {
             var quizRequest = contentEntriesResponse.request();
@@ -544,13 +552,13 @@ public class QuizServiceImpl implements QuizService {
                     entriesSkipped,
                     quizId,
                     userId.toString(),
-                    bankId);
+                    bankId.getValue());
 
             createQuizEventPublisher.emitCreateQuizEvent(
                     payload,
                     userId.toString(),
                     quizId,
-                    bankId,
+                    bankId.getValue(),
                     entriesSkipped);
 
             log.info("Create quiz event emitted for quizId: {}, bankId: {}, userId: {}", quizId, bankId, userId);

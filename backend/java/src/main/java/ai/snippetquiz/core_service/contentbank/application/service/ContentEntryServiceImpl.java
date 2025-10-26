@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
@@ -14,6 +15,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPubl
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
@@ -52,7 +54,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     @Override
     public ContentEntryResponse create(UUID userId, CreateContentEntryRequest request) {
         var bankId = request.bankId();
-        var contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
+        var contentBank = contentBankRepository.findByIdAndUserId(new ContentBankId(bankId), new UserId(userId))
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         // Process HTML content if type is FULL_HTML
@@ -192,8 +194,8 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedModel<ContentEntryDTOResponse> findAll(UUID userId, Long bankId, String name, Pageable pageable) {
-        contentBankRepository.findByIdAndUserId(bankId, userId)
+    public PagedModel<ContentEntryDTOResponse> findAll(UUID userId, UUID bankId, String name, Pageable pageable) {
+        contentBankRepository.findByIdAndUserId(new ContentBankId(bankId), new UserId(userId))
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
         var entriesPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId, pageable);
@@ -219,11 +221,11 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     }
 
     @Override
-    public ContentEntryResponse clone(UUID userId, Long entryId, Long cloneTargetBankId) {
+    public ContentEntryResponse clone(UUID userId, Long entryId, UUID cloneTargetBankId) {
         var sourceEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
 
-        var targetBank = contentBankRepository.findByIdAndUserId(cloneTargetBankId, userId)
+        var targetBank = contentBankRepository.findByIdAndUserId(new ContentBankId(cloneTargetBankId), new UserId(userId))
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
         var clonedEntry = new ContentEntry();

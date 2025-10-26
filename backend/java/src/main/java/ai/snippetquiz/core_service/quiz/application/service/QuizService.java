@@ -25,8 +25,6 @@ public interface QuizService {
 
     QuizSummaryResponseDto findQuizSummary(Long id, UUID userId);
 
-    GetContentEntriesResponse getContentEntriesByBankId(Long bankId, UUID userId);
-
     UpdateQuizDateResponse updateQuizDate(Long quizId);
 
     CheckQuizInProgressResponse checkQuizInProgress(UUID userId);
@@ -40,8 +38,5 @@ public interface QuizService {
     void createQuizQuestions(Quiz quiz);
 
     UpdateQuizResponse updateQuiz(UUID userId, Long quizId, Long optionSelectedId);
-
-    void emitCreateQuizEvent(UUID userId, Long quizId, Long bankId,
-            GetContentEntriesResponse contentEntriesResponse);
 
 }

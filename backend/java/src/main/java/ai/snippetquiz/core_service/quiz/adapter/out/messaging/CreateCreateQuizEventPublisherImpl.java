@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ public class CreateCreateQuizEventPublisherImpl implements CreateQuizEventPublis
 
     @Override
     public void emitCreateQuizEvent(
-            CreateQuizGenerationEventPayload payload, String userId, Long quizId, Long bankId, Integer entriesSkipped) {
+            CreateQuizGenerationEventPayload payload, String userId, Long quizId, UUID bankId, Integer entriesSkipped) {
         try {
             var key = "user-" + userId;
             var jsonPayload = objectMapper.writeValueAsString(payload);

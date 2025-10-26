@@ -56,12 +56,12 @@ public class ContentEntryController {
     @GetMapping("/bank/{bankId}")
     public PagedModel<ContentEntryDTOResponse> findAll(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
-            @PathVariable Long bankId,
+            @PathVariable String bankId,
             @RequestParam(required = false) String name,
             @PageableDefault(size = Constants.DEFAULT_LIMIT) @SortDefault(sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
 
         return contentEntryService.findAll(UUID.fromString(userId),
-                bankId, name, pageable);
+                UUID.fromString(bankId), name, pageable);
     }
 
     @PostMapping("/{id}/clone-to/{targetBankId}")
@@ -69,9 +69,9 @@ public class ContentEntryController {
     public ContentEntryResponse clone(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable Long id,
-            @PathVariable Long targetBankId) {
+            @PathVariable String targetBankId) {
 
-        return contentEntryService.clone(UUID.fromString(userId), id, targetBankId);
+        return contentEntryService.clone(UUID.fromString(userId), id, UUID.fromString(targetBankId));
     }
 
     @DeleteMapping("/{id}")

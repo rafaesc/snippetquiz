@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.instruction.application.service;
 import ai.snippetquiz.core_service.instruction.application.InstructionResponse;
 import ai.snippetquiz.core_service.instruction.domain.QuizGenerationInstruction;
 import ai.snippetquiz.core_service.instruction.domain.port.QuizGenerationInstructionRepository;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,7 @@ public class InstructionsServiceImpl implements InstructionsService {
             // Create new instruction
             var newInstruction = new QuizGenerationInstruction();
             newInstruction.setInstruction(trimmedInstruction);
-            newInstruction.setUserId(userId);
+            newInstruction.setUserId(new UserId(userId));
             newInstruction.setUpdatedAt(LocalDateTime.now());
             instructionRepository.save(newInstruction);
         }

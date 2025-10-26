@@ -58,7 +58,7 @@ public class QuizController {
         }
 
         var createQuizDto = new CreateQuizDTO(
-                request.bankId(),
+                UUID.fromString(request.bankId()),
                 request.quizId());
 
         var quizId = quizService.createQuiz(UUID.fromString(userId), createQuizDto);

@@ -1,5 +1,9 @@
 package ai.snippetquiz.core_service.instruction.adapter.in;
 
+import ai.snippetquiz.core_service.instruction.adapter.in.request.CreateOrUpdateInstructionRequest;
+import ai.snippetquiz.core_service.instruction.application.InstructionResponse;
+import ai.snippetquiz.core_service.instruction.application.find.FindInstructionQuery;
+import ai.snippetquiz.core_service.instruction.application.update.UpdateInstructionCommand;
 import ai.snippetquiz.core_service.shared.domain.DomainError;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandBus;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandlerExecutionError;
@@ -7,11 +11,6 @@ import ai.snippetquiz.core_service.shared.domain.bus.query.QueryBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.QueryHandlerExecutionError;
 import ai.snippetquiz.core_service.shared.spring.ApiController;
 import ai.snippetquiz.core_service.shared.util.Constants;
-import ai.snippetquiz.core_service.instruction.adapter.in.request.CreateOrUpdateInstructionRequest;
-import ai.snippetquiz.core_service.instruction.application.InstructionResponse;
-import ai.snippetquiz.core_service.instruction.application.find.FindInstructionQuery;
-import ai.snippetquiz.core_service.instruction.application.service.InstructionsService;
-import ai.snippetquiz.core_service.instruction.application.update.UpdateInstructionCommand;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,8 +29,7 @@ import java.util.UUID;
 public class InstructionsController extends ApiController {
     public InstructionsController(
             QueryBus queryBus,
-            CommandBus commandBus,
-            InstructionsService instructionsService) {
+            CommandBus commandBus) {
         super(queryBus, commandBus);
     }
 

@@ -37,7 +37,7 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
-    public Page<ContentEntry> findByContentEntryBanks_ContentBank_Id(Long contentBankId, Pageable pageable) {
+    public Page<ContentEntry> findByContentEntryBanks_ContentBank_Id(UUID contentBankId, Pageable pageable) {
         return jpaContentEntryRepository.findByContentEntryBanks_ContentBank_Id(contentBankId, pageable).map(contentEntryMapper::toDomain);
     }
 
@@ -47,12 +47,12 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
-    public long countByContentBankId(Long contentBankId) {
+    public long countByContentBankId(UUID contentBankId) {
         return jpaContentEntryRepository.countByContentBankId(contentBankId);
     }
 
     @Override
-    public Optional<ContentEntry> findBySourceUrlAndContentTypeAndContentBankId(String sourceUrl, ContentType contentType, Long contentBankId) {
+    public Optional<ContentEntry> findBySourceUrlAndContentTypeAndContentBankId(String sourceUrl, ContentType contentType, UUID contentBankId) {
         return jpaContentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(sourceUrl, contentType, contentBankId).map(contentEntryMapper::toDomain);
     }
 }
