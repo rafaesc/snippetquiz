@@ -13,13 +13,13 @@ import { getYouTubeTranscriptFromTab } from '../lib/content-script-service';
 import { isYouTubeTab, extractVideoId } from '../lib/youtube-service';
 
 function Dashboard() {
-    const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
+    const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
     const [currentBank, setCurrentBank] = useState<ContentBank | null>(null);
     const [isContentExpanded, setIsContentExpanded] = useState(false);
     const [showBankSelector, setShowBankSelector] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [bankPage, setBankPage] = useState(1);
-    const [editingBank, setEditingBank] = useState<number | null>(null);
+    const [editingBank, setEditingBank] = useState<string | null>(null);
     const [editingName, setEditingName] = useState('');
     const [newBankName, setNewBankName] = useState('');
     const [showCreateBank, setShowCreateBank] = useState(false);
@@ -31,7 +31,7 @@ function Dashboard() {
     const itemsPerPage = 5;
     const banksPerPage = 5;
 
-    const startEditing = (bankId: number, currentName: string) => {
+    const startEditing = (bankId: string, currentName: string) => {
         setEditingBank(bankId);
         setEditingName(currentName);
     };
@@ -105,7 +105,7 @@ function Dashboard() {
     });
 
     const updateBankMutation = useMutation({
-        mutationFn: ({ id, name }: { id: number; name: string }) =>
+        mutationFn: ({ id, name }: { id: string; name: string }) =>
             apiService.contentBank.update(id, { name }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
@@ -115,7 +115,7 @@ function Dashboard() {
     });
 
     const deleteBankMutation = useMutation({
-        mutationFn: (id: number) => apiService.contentBank.delete(id),
+        mutationFn: (id: string) => apiService.contentBank.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentBanks'] });
             // If deleted bank was selected, reset to first available bank
@@ -127,14 +127,14 @@ function Dashboard() {
     });
 
     const deleteEntryMutation = useMutation({
-        mutationFn: (id: number) => apiService.contentEntry.delete(id),
+        mutationFn: (id: string) => apiService.contentEntry.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
         },
     });
 
     const createContentEntryMutation = useMutation({
-        mutationFn: (data: { bankId: number; type: 'full_html' | 'selected_text' | 'video_transcript'; content?: string; sourceUrl?: string; pageTitle?: string }) =>
+        mutationFn: (data: { bankId: string; type: 'full_html' | 'selected_text' | 'video_transcript'; content?: string; sourceUrl?: string; pageTitle?: string }) =>
             apiService.contentEntry.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
@@ -230,7 +230,7 @@ function Dashboard() {
         }
     };
 
-    const saveEdit = (bankId: number) => {
+    const saveEdit = (bankId: string) => {
         if (editingName.trim()) {
             updateBankMutation.mutate({ id: bankId, name: editingName.trim() });
         }
@@ -242,13 +242,13 @@ function Dashboard() {
         }
     };
 
-    const handleDeleteBank = (bankId: number) => {
+    const handleDeleteBank = (bankId: string) => {
         if (contentBanks?.content && contentBanks.content.length > 1) {
             deleteBankMutation.mutate(bankId);
         }
     };
 
-    const handleDeleteEntry = (entryId: number) => {
+    const handleDeleteEntry = (entryId: string) => {
         deleteEntryMutation.mutate(entryId);
     };
 
@@ -270,7 +270,7 @@ function Dashboard() {
             if (!contentBanks?.content?.length) return;
 
             try {
-                const storage = await chromeStorage.local.get<{ selectedBankId?: number }>(['selectedBankId']);
+                const storage = await chromeStorage.local.get<{ selectedBankId?: string }>(['selectedBankId']);
 
                 if (!storage.selectedBankId) {
                     const firstBankId = contentBanks.content[0].id;
@@ -319,7 +319,7 @@ function Dashboard() {
         setBankPage(page);
     };
 
-    const handleBankSelect = async (bankId: number) => {
+    const handleBankSelect = async (bankId: string) => {
         try {
             const bank = await apiService.contentBank.get(bankId);
             setSelectedBankId(bankId);

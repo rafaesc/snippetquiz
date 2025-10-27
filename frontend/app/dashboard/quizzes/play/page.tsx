@@ -82,7 +82,7 @@ export default function QuizPlayerPage() {
 
   // Add mutation for updating quiz
   const updateQuizMutation = useMutation({
-    mutationFn: ({ quizId, optionId }: { quizId: number; optionId: number }) =>
+    mutationFn: ({ quizId, optionId }: { quizId: string; optionId: number }) =>
       apiService.updateQuiz(quizId, optionId),
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
