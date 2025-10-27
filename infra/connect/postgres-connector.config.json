@@ -8,7 +8,7 @@
   "database.dbname": "devdb",
   "database.server.name": "dbserver1",
   "publication.name": "dbz_pub",
-  "table.include.list": "core.quiz_generation_instructions",
+  "table.include.list": "core.content_banks,core.content_entries,core.content_entry_topics,core.content_entries_bank,core.youtube_channels,core.questions,core.quizzes,core.quiz_topics",
   "topic.prefix": "postgres",
   "snapshot.mode": "initial",
   "signal.data.collection": "core.debezium_signals",
