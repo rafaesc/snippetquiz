@@ -43,7 +43,7 @@ import { useQuiz } from "@/contexts/QuizContext";
 interface QuizListProps {
   quizzesData: QuizzesResponse;
   onViewSummary: (quiz: Quiz) => void;
-  onDelete?: (quizId: number) => Promise<void>;
+  onDelete?: (quizId: string) => Promise<void>;
   onPageChange?: (page: number) => void;
 }
 
@@ -54,7 +54,7 @@ export const QuizList: React.FC<QuizListProps> = ({
 }) => {
   const { setCurrentQuizId } = useQuiz();
   const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const { content: quizzes } = quizzesData;
 

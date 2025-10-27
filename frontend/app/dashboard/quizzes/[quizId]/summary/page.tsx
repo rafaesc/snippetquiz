@@ -13,7 +13,7 @@ import { apiService } from "@/lib/api-service";
 export default function QuizSummaryPage() {
   const params = useParams();
   const router = useRouter();
-  const quizId = Number(params.quizId);
+  const quizId = params.quizId as string;
 
   // Fetch quiz summary data
   const {

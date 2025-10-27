@@ -144,7 +144,7 @@ export interface UserProfile {
 
 // Content Bank Types
 export interface ContentBank {
-  id: number;
+  id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
@@ -171,7 +171,7 @@ export interface UpdateContentBankRequest {
 
 // Content Entry Types
 export interface ContentEntry {
-  id: number;
+  id: string;
   contentType: 'full_html' | 'selected_text' | 'video_transcript';
   content?: string;
   sourceUrl?: string;
@@ -195,7 +195,7 @@ export interface CreateContentEntryRequest {
   content?: string;
   type: 'full_html' | 'selected_text' | 'video_transcript';
   pageTitle?: string;
-  bankId: number;
+  bankId: string;
 
   youtubeVideoId?: string;
   youtubeVideoDuration?: number;
@@ -314,7 +314,7 @@ export const apiService = {
     },
 
     // Create a new content bank
-    create: async (data: CreateContentBankRequest): Promise<ContentBank> => {
+    create: async (data: CreateContentBankRequest): Promise<void> => {
       const response = await makeAuthenticatedRequest('/api/core/content-bank', {
         method: 'POST',
         headers: {
@@ -328,11 +328,11 @@ export const apiService = {
         throw new Error(error.error || 'Failed to create content bank');
       }
 
-      return response.json();
+      return;
     },
 
     // Update/rename a content bank
-    update: async (id: number, data: UpdateContentBankRequest): Promise<ContentBank> => {
+    update: async (id: string, data: UpdateContentBankRequest): Promise<void> => {
       const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
         method: 'PUT',
         headers: {
@@ -346,11 +346,11 @@ export const apiService = {
         throw new Error(error.error || 'Failed to update content bank');
       }
 
-      return response.json();
+      return;
     },
 
     // Delete a content bank
-    delete: async (id: number): Promise<undefined> => {
+    delete: async (id: string): Promise<void> => {
       const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
         method: 'DELETE',
       });
@@ -359,10 +359,12 @@ export const apiService = {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete content bank');
       }
+
+      return;
     },
 
     // Get all content banks for the user
-    get: async (id?: number): Promise<ContentBank> => {
+    get: async (id: string): Promise<ContentBank> => {
       const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`);
 
       if (!response.ok) {
@@ -377,7 +379,7 @@ export const apiService = {
   // Content Entry CRUD operations
   contentEntry: {
     // Get all content entries for a specific bank
-    getByBank: async (bankId: number, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
+    getByBank: async (bankId: string, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
       const params = new URLSearchParams({
         page: (page - 1).toString(),
         size: limit.toString(),
@@ -416,7 +418,7 @@ export const apiService = {
     },
 
     // Delete a content entry
-    delete: async (id: number): Promise<undefined> => {
+    delete: async (id: string): Promise<void> => {
       const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
         method: 'DELETE',
       });
@@ -425,6 +427,8 @@ export const apiService = {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete content entry');
       }
+
+      return;
     },
   },
 };

@@ -50,10 +50,10 @@ export default function GenerateQuiz() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setCurrentQuizId } = useQuiz();
-  const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
+  const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
-  const [createQuizError, setCreateQuizError] = useState<number | null>(null);
+  const [createQuizError, setCreateQuizError] = useState<string | null>(null);
 
   const entriesPerPage = 10;
 
@@ -114,7 +114,7 @@ export default function GenerateQuiz() {
 
       // Step 2: If quiz creation is successful, start WebSocket generation
       if (createdQuiz.quizId) {
-        setCurrentQuizId(Number(createdQuiz.quizId));
+        setCurrentQuizId(createdQuiz.quizId);
         router.push("/dashboard/quizzes/play");
       } else {
         setIsCreatingQuiz(false);
@@ -129,7 +129,7 @@ export default function GenerateQuiz() {
 
   // Reset pagination when bank changes
   const handleBankChange = (bankId: string) => {
-    setSelectedBankId(Number(bankId));
+    setSelectedBankId(bankId);
     queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     setCurrentPage(1);
   };

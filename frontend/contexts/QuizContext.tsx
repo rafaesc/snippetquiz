@@ -3,8 +3,8 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
 interface QuizContextType {
-    currentQuizId: number | null;
-    setCurrentQuizId: (quizId: number | null) => void;
+    currentQuizId: string | null;
+    setCurrentQuizId: (quizId: string | null) => void;
 }
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
@@ -22,7 +22,7 @@ interface QuizProviderProps {
 }
 
 export function QuizProvider({ children }: QuizProviderProps) {
-    const [currentQuizId, setCurrentQuizId] = useState<number | null>(null);
+    const [currentQuizId, setCurrentQuizId] = useState<string | null>(null);
 
     const value: QuizContextType = {
         currentQuizId,

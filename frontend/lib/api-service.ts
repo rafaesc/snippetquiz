@@ -235,7 +235,7 @@ export const apiService = {
   },
 
   // Update quiz generation instructions
-  updateInstructions: async (instruction: string): Promise<UpdateInstructionsResponse> => {
+  updateInstructions: async (instruction: string): Promise<void> => {
     const response = await makeAuthenticatedRequest('/api/core/instructions', {
       method: 'PUT',
       headers: {
@@ -249,7 +249,7 @@ export const apiService = {
       throw new Error(error.error || 'Failed to update quiz generation instructions');
     }
 
-    return response.json();
+    return;
   },
 
   // Content Bank API methods
@@ -273,7 +273,7 @@ export const apiService = {
     return response.json();
   },
 
-  createContentBank: async (data: CreateContentBankRequest): Promise<ContentBank> => {
+  createContentBank: async (data: CreateContentBankRequest): Promise<void> => {
     const response = await makeAuthenticatedRequest('/api/core/content-bank', {
       method: 'POST',
       headers: {
@@ -287,10 +287,10 @@ export const apiService = {
       throw new Error(error.error || 'Failed to create content bank');
     }
 
-    return response.json();
+    return;
   },
 
-  updateContentBank: async (id: number, data: UpdateContentBankRequest): Promise<ContentBank> => {
+  updateContentBank: async (id: string, data: UpdateContentBankRequest): Promise<void> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'PUT',
       headers: {
@@ -304,10 +304,10 @@ export const apiService = {
       throw new Error(error.error || 'Failed to update content bank');
     }
 
-    return response.json();
+    return;
   },
 
-  deleteContentBank: async (id: number): Promise<undefined> => {
+  deleteContentBank: async (id: string): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}`, {
       method: 'DELETE',
     });
@@ -318,7 +318,7 @@ export const apiService = {
     }
   },
 
-  duplicateContentBank: async (id: number, data?: DuplicateContentBankRequest): Promise<ContentBank> => {
+  duplicateContentBank: async (id: string, data?: DuplicateContentBankRequest): Promise<void> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-bank/${id}/duplicate`, {
       method: 'POST',
       headers: {
@@ -332,11 +332,11 @@ export const apiService = {
       throw new Error(error.error || 'Failed to duplicate content bank');
     }
 
-    return response.json();
+    return;
   },
 
   // Content Entry API methods
-  getContentEntries: async (bankId: number, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
+  getContentEntries: async (bankId: string, page = 1, limit = 10, name?: string): Promise<ContentEntriesResponse> => {
     const params = new URLSearchParams({
       page: (page - 1).toString(),
       size: limit.toString(),
@@ -356,7 +356,7 @@ export const apiService = {
     return response.json();
   },
 
-  createContentEntry: async (data: CreateContentEntryRequest): Promise<ContentEntry> => {
+  createContentEntry: async (data: CreateContentEntryRequest): Promise<void> => {
     const response = await makeAuthenticatedRequest('/api/core/content-entry', {
       method: 'POST',
       headers: {
@@ -370,10 +370,10 @@ export const apiService = {
       throw new Error(error.error || 'Failed to create content entry');
     }
 
-    return response.json();
+    return;
   },
 
-  cloneContentEntry: async (id: number, bankId: number): Promise<ContentEntry & { message: string }> => {
+  cloneContentEntry: async (id: string, bankId: string): Promise<void> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}/clone-to/${bankId}`, {
       method: 'POST',
     });
@@ -383,10 +383,10 @@ export const apiService = {
       throw new Error(error.error || 'Failed to clone content entry');
     }
 
-    return response.json();
+    return;
   },
 
-  deleteContentEntry: async (id: number): Promise<undefined> => {
+  deleteContentEntry: async (id: string): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/content-entry/${id}`, {
       method: 'DELETE',
     });
@@ -414,7 +414,7 @@ export const apiService = {
     return response.json();
   },
 
-  getQuiz: async (id: number): Promise<FindOneQuizResponse> => {
+  getQuiz: async (id: string): Promise<FindOneQuizResponse> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}`);
     if (!response.ok) {
       const error = await response.json();
@@ -424,7 +424,7 @@ export const apiService = {
     return response.json();
   },
 
-  getQuizResponses: async (id: number, page = 1, limit = 10): Promise<QuizResponsesResponse> => {
+  getQuizResponses: async (id: string, page = 1, limit = 10): Promise<QuizResponsesResponse> => {
     const params = new URLSearchParams({
       page: (page - 1).toString(),
       size: limit.toString(),
@@ -440,7 +440,7 @@ export const apiService = {
     return response.json();
   },
 
-  getQuizSummary: async (id: number): Promise<QuizSummaryResponse> => {
+  getQuizSummary: async (id: string): Promise<QuizSummaryResponse> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}/summary`);
 
     if (!response.ok) {
@@ -451,7 +451,7 @@ export const apiService = {
     return response.json();
   },
 
-  deleteQuiz: async (id: number): Promise<undefined> => {
+  deleteQuiz: async (id: string): Promise<undefined> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${id}`, {
       method: 'DELETE',
     });
@@ -462,7 +462,7 @@ export const apiService = {
     }
   },
 
-  updateQuiz: async (quizId: number, optionId: number): Promise<UpdateQuizResponse> => {
+  updateQuiz: async (quizId: string, optionId: number): Promise<UpdateQuizResponse> => {
     const response = await makeAuthenticatedRequest(`/api/core/quiz/${quizId}/option/${optionId}`, {
       method: 'PUT',
     });
