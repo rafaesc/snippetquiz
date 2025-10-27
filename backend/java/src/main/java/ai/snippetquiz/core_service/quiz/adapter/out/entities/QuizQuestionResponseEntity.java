@@ -25,7 +25,7 @@ public class QuizQuestionResponseEntity {
     private Long id;
 
     @Column(name = "quiz_id", nullable = false)
-    private Long quizId;
+    private UUID quizId;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -47,7 +47,7 @@ public class QuizQuestionResponseEntity {
     @Column(name = "response_time", nullable = false)
     private String responseTime;
 
-    public QuizQuestionResponseEntity(Long quizId, UUID userId, QuizQuestionEntity quizQuestion, QuizQuestionOptionEntity quizQuestionOption,
+    public QuizQuestionResponseEntity(UUID quizId, UUID userId, QuizQuestionEntity quizQuestion, QuizQuestionOptionEntity quizQuestionOption,
                                       Boolean isCorrect, String correctAnswer, String responseTime) {
         this.quizId = quizId;
         this.userId = userId;

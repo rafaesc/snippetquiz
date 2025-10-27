@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizTopicEntity;
 import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizTopicMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizTopic;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizTopicRepository;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,21 +26,21 @@ public class JpaQuizTopicRepositoryAdapter implements QuizTopicRepository {
     }
 
     @Override
-    public List<QuizTopic> findByQuizId(Long quizId) {
-        return jpaQuizTopicRepository.findByQuizId(quizId)
+    public List<QuizTopic> findByQuizId(QuizId quizId) {
+        return jpaQuizTopicRepository.findByQuizId(quizId.getValue())
                 .stream()
                 .map(quizTopicMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void deleteByQuizId(Long quizId) {
-        jpaQuizTopicRepository.deleteByQuizId(quizId);
+    public void deleteByQuizId(QuizId quizId) {
+        jpaQuizTopicRepository.deleteByQuizId(quizId.getValue());
     }
 
     @Override
-    public Optional<QuizTopic> findByQuizIdAndTopicName(Long quizId, String topicName) {
-        return jpaQuizTopicRepository.findByQuizIdAndTopicName(quizId, topicName)
+    public Optional<QuizTopic> findByQuizIdAndTopicName(QuizId quizId, String topicName) {
+        return jpaQuizTopicRepository.findByQuizIdAndTopicName(quizId.getValue(), topicName)
                 .map(quizTopicMapper::toDomain);
     }
 }

@@ -8,7 +8,7 @@ public class ContentEntryId extends BaseId<UUID> {
     public ContentEntryId(UUID value) {
         super(value);
     }
-    public ContentEntryId(String value) {
-        super(UUID.fromString(value));
+    public static ContentEntryId map(String value) {
+        return new ContentEntryId(UUID.fromString(value));
     }
 }

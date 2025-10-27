@@ -28,8 +28,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class QuizEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "bank_id")
     private UUID contentBankId;

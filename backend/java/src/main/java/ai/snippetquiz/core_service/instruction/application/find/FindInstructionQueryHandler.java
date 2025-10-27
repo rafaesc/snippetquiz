@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ai.snippetquiz.core_service.instruction.application.InstructionResponse;
 import ai.snippetquiz.core_service.instruction.application.service.InstructionsService;
 import ai.snippetquiz.core_service.shared.domain.bus.query.QueryHandler;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -14,7 +15,7 @@ public class FindInstructionQueryHandler implements QueryHandler<FindInstruction
 
     @Override
     public InstructionResponse handle(FindInstructionQuery query) {
-        return instructionsService.findByUserId(query.getUserId());
+        return instructionsService.findByUserId(new UserId(query.getUserId()));
     }
     
 }

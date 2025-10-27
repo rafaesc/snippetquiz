@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import ai.snippetquiz.core_service.instruction.application.service.InstructionsService;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandHandler;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -14,7 +15,7 @@ public class UpdateInstructionCommandHandler implements CommandHandler<UpdateIns
     @Override
     public void handle(UpdateInstructionCommand command) {
         instructionsService.createOrUpdate(
-                command.getUserId(),
+                new UserId(command.getUserId()),
                 command.getInstruction());
     }
 }

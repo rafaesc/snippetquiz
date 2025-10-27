@@ -4,11 +4,11 @@ import ai.snippetquiz.core_service.instruction.adapter.out.entities.QuizGenerati
 import ai.snippetquiz.core_service.instruction.adapter.out.mapper.QuizGenerationInstructionMapper;
 import ai.snippetquiz.core_service.instruction.domain.QuizGenerationInstruction;
 import ai.snippetquiz.core_service.instruction.domain.port.QuizGenerationInstructionRepository;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,8 +25,8 @@ public class JpaQuizGenerationInstructionRepositoryAdapter implements QuizGenera
     }
 
     @Override
-    public Optional<QuizGenerationInstruction> findFirstByUserId(UUID userId) {
-        return jpaQuizGenerationInstructionRepository.findFirstByUserId(userId)
+    public Optional<QuizGenerationInstruction> findFirstByUserId(UserId userId) {
+        return jpaQuizGenerationInstructionRepository.findFirstByUserId(userId.getValue())
                 .map(quizGenerationInstructionMapper::toDomain);
     }
 }

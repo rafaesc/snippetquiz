@@ -4,12 +4,12 @@ import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizQuestionRespons
 import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizQuestionResponseMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionResponseRepository;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,13 +25,13 @@ public class JpaQuizQuestionResponseRepositoryAdapter implements QuizQuestionRes
     }
 
     @Override
-    public Page<QuizQuestionResponse> findByQuiz_IdAndQuiz_UserId(Long quizId, UUID userId, Pageable pageable) {
-        return jpaQuizQuestionResponseRepository.findByQuizIdAndUserId(quizId, userId, pageable)
+    public Page<QuizQuestionResponse> findByQuiz_IdAndQuiz_UserId(QuizId quizId, UserId userId, Pageable pageable) {
+        return jpaQuizQuestionResponseRepository.findByQuizIdAndUserId(quizId.getValue(), userId.getValue(), pageable)
                 .map(quizQuestionResponseMapper::toDomain);
     }
 
     @Override
-    public Integer countByQuizIdAndIsCorrect(Long quizId, Boolean isCorrect) {
-        return jpaQuizQuestionResponseRepository.countByQuizIdAndIsCorrect(quizId, isCorrect);
+    public Integer countByQuizIdAndIsCorrect(QuizId quizId, Boolean isCorrect) {
+        return jpaQuizQuestionResponseRepository.countByQuizIdAndIsCorrect(quizId.getValue(), isCorrect);
     }
 }

@@ -12,8 +12,8 @@ import java.util.UUID;
 
 @Repository
 public interface JpaQuizQuestionResponseRepository extends JpaRepository<QuizQuestionResponseEntity, Long> {
-    Page<QuizQuestionResponseEntity> findByQuizIdAndUserId(Long quizId, UUID userId, Pageable pageable);
+    Page<QuizQuestionResponseEntity> findByQuizIdAndUserId(UUID quizId, UUID userId, Pageable pageable);
 
     @Query("SELECT COUNT(qr) FROM QuizQuestionResponseEntity qr WHERE qr.quizId = :quizId AND qr.isCorrect = :isCorrect")
-    Integer countByQuizIdAndIsCorrect(@Param("quizId") Long quizId, @Param("isCorrect") Boolean isCorrect);
+    Integer countByQuizIdAndIsCorrect(@Param("quizId") UUID quizId, @Param("isCorrect") Boolean isCorrect);
 }

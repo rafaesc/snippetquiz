@@ -51,7 +51,7 @@ public class ContentEntryConsumer {
                 payload.topics() != null ? payload.topics().size() : 0);
 
         var contentId = payload.contentId();
-        var contentEntry = contentEntryRepository.findById(new ContentEntryId(contentId))
+        var contentEntry = contentEntryRepository.findById(ContentEntryId.map(contentId))
                 .orElseThrow(() -> new NotFoundException(
                         "Content Entry not found or you do not have permission to access it"));
 

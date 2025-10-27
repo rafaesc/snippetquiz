@@ -1,4 +1,6 @@
-package ai.snippetquiz.core_service.quiz.application.dto.response;
+package ai.snippetquiz.core_service.quiz.application.response;
+
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 
 import java.util.List;
 

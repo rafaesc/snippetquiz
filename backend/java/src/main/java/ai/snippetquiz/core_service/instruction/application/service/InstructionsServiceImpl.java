@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +18,7 @@ public class InstructionsServiceImpl implements InstructionsService {
     private final QuizGenerationInstructionRepository instructionRepository;
     
     @Transactional(readOnly = true)
-    public InstructionResponse findByUserId(UUID userId) {
+    public InstructionResponse findByUserId(UserId userId) {
         var instruction = instructionRepository.findFirstByUserId(userId);
         
         return new InstructionResponse(
@@ -28,7 +27,7 @@ public class InstructionsServiceImpl implements InstructionsService {
         );
     }
     
-    public void createOrUpdate(UUID userId, String instruction) {
+    public void createOrUpdate(UserId userId, String instruction) {
         var trimmedInstruction = instruction.trim();
         
         var existingInstruction = instructionRepository.findFirstByUserId(userId);
@@ -43,7 +42,7 @@ public class InstructionsServiceImpl implements InstructionsService {
             // Create new instruction
             var newInstruction = new QuizGenerationInstruction();
             newInstruction.setInstruction(trimmedInstruction);
-            newInstruction.setUserId(new UserId(userId));
+            newInstruction.setUserId(userId);
             newInstruction.setUpdatedAt(LocalDateTime.now());
             instructionRepository.save(newInstruction);
         }

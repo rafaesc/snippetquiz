@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,10 +19,10 @@ public class QuizQuestion {
     private Integer chunkIndex;
     private Integer questionIndexInChunk;
     private ContentEntryId contentEntryId;
-    private Long quizId;
+    private QuizId quizId;
 
     public QuizQuestion(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl, 
-                       Integer chunkIndex, Integer questionIndexInChunk, ContentEntryId contentEntryId, Long quizId) {
+                       Integer chunkIndex, Integer questionIndexInChunk, ContentEntryId contentEntryId, QuizId quizId) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;

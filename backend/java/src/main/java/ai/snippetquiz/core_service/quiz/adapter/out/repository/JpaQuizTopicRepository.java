@@ -6,12 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface JpaQuizTopicRepository extends JpaRepository<QuizTopicEntity, Long> {
-    List<QuizTopicEntity> findByQuizId(Long quizId);
+    List<QuizTopicEntity> findByQuizId(UUID quizId);
     
-    void deleteByQuizId(Long quizId);
+    void deleteByQuizId(UUID quizId);
     
-    Optional<QuizTopicEntity> findByQuizIdAndTopicName(Long quizId, String topicName);
+    Optional<QuizTopicEntity> findByQuizIdAndTopicName(UUID quizId, String topicName);
 }
