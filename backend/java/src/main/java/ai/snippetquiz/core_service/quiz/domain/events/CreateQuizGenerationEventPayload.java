@@ -7,7 +7,7 @@ public record CreateQuizGenerationEventPayload(
             String instructions,
             List<ContentEntryEvent> contentEntries,
             Integer entriesSkipped,
-            Long quizId,
+            String quizId,
             String userId,
             UUID bankId) {
     public record ContentEntryEvent(

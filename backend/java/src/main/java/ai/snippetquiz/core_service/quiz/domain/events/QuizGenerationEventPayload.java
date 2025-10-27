@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.quiz.domain.events;
 import java.util.List;
 
 public record QuizGenerationEventPayload(
-    Long quizId,
+    String quizId,
     String bankId,
     String userId,
     Integer totalContentEntries,

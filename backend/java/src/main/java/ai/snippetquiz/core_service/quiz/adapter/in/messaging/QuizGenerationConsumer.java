@@ -11,6 +11,7 @@ import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.SendFanoutMessageQuizLoadingEvent;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -55,7 +56,7 @@ public class QuizGenerationConsumer {
         try {
             var userId = UUID.fromString(data.userId());
             var quizId = data.quizId();
-            var quiz = quizRepository.findById(quizId)
+            var quiz = quizRepository.findById(QuizId.map(quizId))
                     .orElseThrow(() -> new NotFoundException(
                             "Quiz not found or you do not have permission to access it"));
 
@@ -67,7 +68,7 @@ public class QuizGenerationConsumer {
             if (data.totalChunks() != 0) {
                 var contentEntryId = data.contentEntry().id();
                 var contentEntry = contentEntryRepository
-                        .findByIdAndUserId(new ContentEntryId(contentEntryId), new UserId(userId))
+                        .findByIdAndUserId(ContentEntryId.map(contentEntryId), new UserId(userId))
                         .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
                 var questions = data.contentEntry().questions();

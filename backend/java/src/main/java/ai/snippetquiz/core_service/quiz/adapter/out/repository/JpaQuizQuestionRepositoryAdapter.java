@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.quiz.adapter.out.entities.QuizQuestionEntity;
 import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizQuestionMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionRepository;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -25,16 +26,16 @@ public class JpaQuizQuestionRepositoryAdapter implements QuizQuestionRepository 
     }
 
     @Override
-    public List<QuizQuestion> findByQuizId(Long quizId, Pageable pageable) {
-        return jpaQuizQuestionRepository.findByQuizId(quizId, pageable)
+    public List<QuizQuestion> findByQuizId(QuizId quizId, Pageable pageable) {
+        return jpaQuizQuestionRepository.findByQuizId(quizId.getValue(), pageable)
                 .stream()
                 .map(quizQuestionMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<QuizQuestion> findByQuizId(Long quizId) {
-        return jpaQuizQuestionRepository.findByQuizId(quizId)
+    public List<QuizQuestion> findByQuizId(QuizId quizId) {
+        return jpaQuizQuestionRepository.findByQuizId(quizId.getValue())
                 .stream()
                 .map(quizQuestionMapper::toDomain)
                 .collect(Collectors.toList());

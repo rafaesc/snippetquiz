@@ -1,5 +1,7 @@
 package ai.snippetquiz.core_service.quiz.adapter.out.entities;
 
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,12 +26,12 @@ public class QuizTopicEntity {
     private Long id;
 
     @Column(name = "quiz_id", nullable = false)
-    private Long quizId;
+    private UUID quizId;
 
     @Column(name = "topic_name", nullable = false)
     private String topicName;
 
-    public QuizTopicEntity(Long quizId, String topicName) {
+    public QuizTopicEntity(UUID quizId, String topicName) {
         this.quizId = quizId;
         this.topicName = topicName;
     }

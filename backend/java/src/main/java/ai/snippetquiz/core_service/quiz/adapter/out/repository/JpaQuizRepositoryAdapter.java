@@ -5,6 +5,8 @@ import ai.snippetquiz.core_service.quiz.adapter.out.mapper.QuizMapper;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,23 +38,23 @@ public class JpaQuizRepositoryAdapter implements QuizRepository {
     }
 
     @Override
-    public Optional<Quiz> findById(Long id) {
-        return jpaQuizRepository.findById(id)
+    public Optional<Quiz> findById(QuizId id) {
+        return jpaQuizRepository.findById(id.getValue())
                 .map(quizMapper::toDomain);
     }
 
     @Override
-    public List<Quiz> findAllByUserIdAndStatus(UUID userId, QuizStatus status) {
-        return jpaQuizRepository.findAllByUserIdAndStatus(userId, status)
+    public List<Quiz> findAllByUserIdAndStatus(UserId userId, QuizStatus status) {
+        return jpaQuizRepository.findAllByUserIdAndStatus(userId.getValue(), status)
                 .stream()
                 .map(quizMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Page<Quiz> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable) {
+    public Page<Quiz> findByUserIdOrderByCreatedAtDesc(UserId userId, Pageable pageable) {
         long startTime = System.currentTimeMillis();
-        Page<Quiz> result = jpaQuizRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+        Page<Quiz> result = jpaQuizRepository.findByUserIdOrderByCreatedAtDesc(userId.getValue(), pageable)
                 .map(quizMapper::toDomain);
         long endTime = System.currentTimeMillis();
         log.info("Repository findByUserIdOrderByCreatedAtDesc execution time: {} ms", endTime - startTime);
@@ -61,20 +62,20 @@ public class JpaQuizRepositoryAdapter implements QuizRepository {
     }
 
     @Override
-    public Optional<Quiz> findByIdAndUserIdWithTopics(Long id, UUID userId) {
-        return jpaQuizRepository.findByIdAndUserIdWithTopics(id, userId)
+    public Optional<Quiz> findByIdAndUserIdWithTopics(QuizId id, UserId userId) {
+        return jpaQuizRepository.findByIdAndUserIdWithTopics(id.getValue(), userId.getValue())
                 .map(quizMapper::toDomain);
     }
 
     @Override
-    public Optional<Quiz> findByIdAndUserIdWithQuestions(Long id, UUID userId) {
-        return jpaQuizRepository.findByIdAndUserIdWithQuestions(id, userId)
+    public Optional<Quiz> findByIdAndUserIdWithQuestions(QuizId id, UserId userId) {
+        return jpaQuizRepository.findByIdAndUserIdWithQuestions(id.getValue(), userId.getValue())
                 .map(quizMapper::toDomain);
     }
 
     @Override
-    public Optional<Quiz> findByIdAndUserId(Long id, UUID userId) {
-        return jpaQuizRepository.findByIdAndUserId(id, userId)
+    public Optional<Quiz> findByIdAndUserId(QuizId id, UserId userId) {
+        return jpaQuizRepository.findByIdAndUserId(id.getValue(), userId.getValue())
                 .map(quizMapper::toDomain);
     }
 }

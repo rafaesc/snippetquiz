@@ -6,4 +6,7 @@ public class UserId extends BaseId<UUID> {
     public UserId(UUID value) {
         super(value);
     }
+    public static UserId map(String value) {
+        return new UserId(UUID.fromString(value));
+    }
 }

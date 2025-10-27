@@ -54,7 +54,7 @@ CREATE TABLE "content_entries" (
 
 -- CreateTable
 CREATE TABLE "quizzes" (
-    "id" BIGSERIAL NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "bank_id" UUID,
     "bank_name" TEXT,
@@ -137,11 +137,14 @@ ON "content_entry_topics" (LEFT("content_entry_id"::text, 4));
 -- CreateTable
 CREATE TABLE "quiz_topics" (
     "id" BIGSERIAL NOT NULL,
-    "quiz_id" BIGINT NOT NULL,
+    "quiz_id" UUID NOT NULL,
     "topic_name" TEXT NOT NULL,
 
     CONSTRAINT "quiz_topics_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "quiz_topics_quiz_id_prefix_idx"
+ON "quiz_topics" (LEFT("quiz_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "quiz_questions" (
@@ -151,13 +154,16 @@ CREATE TABLE "quiz_questions" (
     "content_entry_type" TEXT NOT NULL,
     "content_entry_source_url" TEXT,
     "content_entry_id" UUID,
-    "quiz_id" BIGINT NOT NULL,
+    "quiz_id" UUID NOT NULL,
 
     CONSTRAINT "quiz_questions_pkey" PRIMARY KEY ("id")
 );
 
 CREATE INDEX "quiz_questions_content_entry_id_prefix_idx"
 ON "quiz_questions" (LEFT("content_entry_id"::text, 4));
+
+CREATE INDEX "quiz_questions_quiz_id_prefix_idx"
+ON "quiz_questions" (LEFT("quiz_id"::text, 4));
 
 -- CreateTable
 CREATE TABLE "quiz_question_options" (
@@ -173,7 +179,7 @@ CREATE TABLE "quiz_question_options" (
 -- CreateTable
 CREATE TABLE "quiz_question_responses" (
     "id" BIGSERIAL NOT NULL,
-    "quiz_id" BIGINT NOT NULL,
+    "quiz_id" UUID NOT NULL,
     "quiz_question_id" BIGINT NOT NULL,
     "quiz_question_option_id" BIGINT NOT NULL,
     "is_correct" BOOLEAN NOT NULL,
@@ -182,6 +188,9 @@ CREATE TABLE "quiz_question_responses" (
 
     CONSTRAINT "quiz_question_responses_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "quiz_question_responses_quiz_id_prefix_idx"
+ON "quiz_question_responses" (LEFT("quiz_id"::text, 4));
 
 -- CreateIndex
 CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "topics"("user_id", "topic");
@@ -196,7 +205,7 @@ CREATE UNIQUE INDEX "content_entries_bank_content_entry_id_content_bank_id_key" 
 CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "content_entry_topics"(LEFT("content_entry_id"::text, 4), "topic_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "quiz_topics"("quiz_id", "topic_name");
+CREATE UNIQUE INDEX "quiz_topics_quiz_id_topic_name_key" ON "quiz_topics"(LEFT("quiz_id"::text, 4), "topic_name");
 
 -- AddForeignKey
 ALTER TABLE "content_entries" ADD CONSTRAINT "content_entries_youtube_channel_id_fkey" FOREIGN KEY ("youtube_channel_id") REFERENCES "youtube_channels"("id") ON DELETE SET NULL ON UPDATE CASCADE;

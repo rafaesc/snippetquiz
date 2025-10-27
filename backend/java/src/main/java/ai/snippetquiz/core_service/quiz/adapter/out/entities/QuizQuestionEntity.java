@@ -48,10 +48,10 @@ public class QuizQuestionEntity {
     private UUID contentEntryId;
 
     @Column(name = "quiz_id", nullable = false)
-    private Long quizId;
+    private UUID quizId;
 
     public QuizQuestionEntity(String question, String type, ContentType contentEntryType, String contentEntrySourceUrl,
-                              Integer chunkIndex, Integer questionIndexInChunk, UUID contentEntryId, Long quizId) {
+                              Integer chunkIndex, Integer questionIndexInChunk, UUID contentEntryId, UUID quizId) {
         this.question = question;
         this.type = type;
         this.contentEntryType = contentEntryType;

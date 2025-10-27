@@ -38,7 +38,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setType("single_choice");
         question.setChunkIndex(chunkIndex);
         question.setQuestionIndexInChunk(questionIndexInChunk);
-        question.setContentEntryId(new ContentEntryId(contentEntryId));
+        question.setContentEntryId(ContentEntryId.map(contentEntryId));
 
         var savedQuestion = questionRepository.save(question);
         var quizQuestionOptions = new ArrayList<QuestionOption>();

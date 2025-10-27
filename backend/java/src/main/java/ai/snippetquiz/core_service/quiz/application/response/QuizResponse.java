@@ -1,10 +1,10 @@
-package ai.snippetquiz.core_service.quiz.application.dto.response;
+package ai.snippetquiz.core_service.quiz.application.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public record QuizResponse(
-    Long id,
+    String id,
     String name,
     LocalDateTime createdAt,
     Integer questionsCount,

@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.quiz.application.dto.request;
+package ai.snippetquiz.core_service.quiz.adapter.in.web.request;
 
 import java.util.UUID;
 

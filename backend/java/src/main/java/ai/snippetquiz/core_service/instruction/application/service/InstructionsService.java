@@ -1,11 +1,10 @@
 package ai.snippetquiz.core_service.instruction.application.service;
 
-import java.util.UUID;
-
 import ai.snippetquiz.core_service.instruction.application.InstructionResponse;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 
 public interface InstructionsService {
-    InstructionResponse findByUserId(UUID userId);
+    InstructionResponse findByUserId(UserId userId);
     
-    void createOrUpdate(UUID userId, String instruction);
+    void createOrUpdate(UserId userId, String instruction);
 }
