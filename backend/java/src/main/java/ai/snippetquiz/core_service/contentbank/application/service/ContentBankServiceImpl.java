@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.application.service;
 import ai.snippetquiz.core_service.contentbank.application.ContentBankItemResponse;
 import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
@@ -18,7 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -46,12 +48,10 @@ public class ContentBankServiceImpl implements ContentBankService {
                 throw new ConflictException("Content bank ID belongs to another user");
             }
             contentBank = existingById.get();
+            contentBank.rename(name);
         } else {
             contentBank = ContentBank.create(id, userId, name);
         }
-
-        contentBank.setName(name.trim());
-        contentBank.setUpdatedAt(LocalDateTime.now());
 
         contentBankRepository.save(contentBank);
     }
@@ -97,9 +97,9 @@ public class ContentBankServiceImpl implements ContentBankService {
     @Override
     @Transactional
     public void remove(UserId userId, ContentBankId id) {
-        contentBankRepository.findByIdAndUserId(id, userId)
+        var contentBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or access denied"));
-        
+        contentBank.delete();
         contentBankRepository.deleteByIdAndUserId(id, userId);
     }
 
@@ -130,11 +130,16 @@ public class ContentBankServiceImpl implements ContentBankService {
         var contentEntryAssociations = contentEntryBankRepository
                 .findByContentBankId(originalBank.getId());
 
+        List<ContentEntryBank> newAssociations = new ArrayList<>();
+        List<ContentEntry> newContentEntries = new ArrayList<>();
         for (ContentEntryBank association : contentEntryAssociations) {
             var newAssociation = new ContentEntryBank();
             newAssociation.setContentEntry(association.getContentEntry());
             newAssociation.setContentBank(newBank);
-            contentEntryBankRepository.save(newAssociation);
+            newAssociations.add(newAssociation);
+            newContentEntries.add(association.getContentEntry());
         }
+        newBank.updatedContentEntries(newContentEntries);
+        contentEntryBankRepository.saveAll(newAssociations);
     }
 }

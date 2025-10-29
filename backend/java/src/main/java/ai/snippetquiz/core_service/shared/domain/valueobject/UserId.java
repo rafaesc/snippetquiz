@@ -9,4 +9,9 @@ public class UserId extends BaseId<UUID> {
     public static UserId map(String value) {
         return new UserId(UUID.fromString(value));
     }
+
+    @Override
+    public String toString() {
+        return getValue().toString();
+    }
 }
