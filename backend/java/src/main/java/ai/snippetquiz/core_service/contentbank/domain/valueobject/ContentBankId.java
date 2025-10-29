@@ -12,4 +12,9 @@ public class ContentBankId extends BaseId<UUID> {
     public static ContentBankId create() {
         return new ContentBankId(UUID.randomUUID());
     }
+    
+    @Override
+    public String toString() {
+        return getValue().toString();
+    }
 }

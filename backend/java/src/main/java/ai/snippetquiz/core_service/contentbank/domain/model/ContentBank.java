@@ -7,9 +7,15 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankCreatedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankDeletedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankEntriesUpdatedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankRenamedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 
 @Data
@@ -17,7 +23,6 @@ import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContentBank extends AggregateRoot<ContentBankId> {
-    private ContentBankId id;
     private UserId userId;
     private String name;
     private LocalDateTime createdAt;
@@ -32,6 +37,45 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
         contentBank.setName(name);
         contentBank.setCreatedAt(now);
         contentBank.setUpdatedAt(now);
+
+        contentBank.record(new ContentBankCreatedDomainEvent(
+            id.toString(),
+            userId.toString(),
+            name,
+            Utils.dateToString(now)));
+
         return contentBank;
+    }
+
+    public void delete() {
+        record(new ContentBankDeletedDomainEvent(
+            getId().toString(),
+            userId.toString()));
+    }
+
+    public void rename(String name) {
+        this.name = name;
+        this.updatedAt = LocalDateTime.now();
+        record(new ContentBankRenamedDomainEvent(
+            getId().toString(),
+            userId.toString(),
+            name,
+            Utils.dateToString(updatedAt)));
+    }
+
+    public void updatedContentEntries(List<ContentEntry> contentEntries) {
+        this.updatedAt = LocalDateTime.now();
+        record(new ContentBankEntriesUpdatedDomainEvent(
+            getId().toString(),
+            userId.toString(),
+            ContentEntry.toJson(new HashSet<>(contentEntries)),
+            Utils.dateToString(updatedAt)));
+    }
+
+    public void addContentEntry(ContentEntry contentEntry) {
+        var contentEntries = this.getContentEntries();
+        contentEntries.add(contentEntry);
+
+        updatedContentEntries(contentEntries);
     }
 }

@@ -43,4 +43,14 @@ public class JpaContentEntryBankRepositoryAdapter implements ContentEntryBankRep
     public void deleteByContentEntryId(ContentEntryId contentEntryId) {
         jpaContentEntryBankRepository.deleteByContentEntryId(contentEntryId.getValue());
     }
+
+    @Override
+    public List<ContentEntryBank> saveAll(List<ContentEntryBank> contentEntryBanks) {
+        return jpaContentEntryBankRepository.saveAll(contentEntryBanks.stream()
+                .map(contentEntryBankMapper::toEntity)
+                .toList())
+                .stream()
+                .map(contentEntryBankMapper::toDomain)
+                .toList();
+    }
 }

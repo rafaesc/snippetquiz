@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.application.service;
 
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
-import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
@@ -10,7 +9,7 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.springframework.data.domain.Pageable;
 
 public interface ContentEntryService {
-    ContentEntryResponse create(UserId userId,
+    void create(UserId userId,
             String sourceUrl,
             String content,
             String type,
@@ -26,7 +25,7 @@ public interface ContentEntryService {
 
     PagedModelResponse<ContentEntryDTOResponse> findAll(UserId userId, ContentBankId bankId, String name, Pageable pageable);
 
-    ContentEntryResponse clone(UserId userId, ContentEntryId entryId, ContentBankId cloneTargetBankId);
+    void clone(UserId userId, ContentEntryId entryId, ContentBankId cloneTargetBankId);
 
     void remove(UserId userId, ContentEntryId entryId);
 }

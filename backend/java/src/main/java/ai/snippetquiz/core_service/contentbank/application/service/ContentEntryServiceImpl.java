@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.application.service;
 
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
-import ai.snippetquiz.core_service.contentbank.application.ContentEntryResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
@@ -26,10 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,7 +47,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     private final TopicRepository topicRepository;
 
     @Override
-    public ContentEntryResponse create(UserId userId,
+    public void create(UserId userId,
             String sourceUrl,
             String content,
             String contentType,
@@ -98,17 +94,9 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
             if (Objects.nonNull(existingEntry)) {
                 // Update existing entry
-                existingEntry.setContent(processedContent);
-                existingEntry.setPageTitle(pageTitle);
-                existingEntry.setCreatedAt(LocalDateTime.now());
-
-                // Calculate word count for FULL_HTML
-                if (Objects.nonNull(processedContent) && !processedContent.trim().isEmpty()) {
-                    int wordCount = processedContent.trim().split("\\s+").length;
-                    existingEntry.setWordCount(wordCount);
-                }
-
+                existingEntry.update(processedContent, pageTitle);
                 resultEntry = contentEntryRepository.save(existingEntry);
+                return;
             }
         }
 
@@ -124,42 +112,21 @@ public class ContentEntryServiceImpl implements ContentEntryService {
             }
         }
 
-        if (Objects.isNull(existingEntry)) {
-            // Create new entry
-            var contentEntry = ContentEntry.create(userId, type, processedContent, sourceUrl, pageTitle);
+        // Create new entry
+        var contentEntry = ContentEntry.create(userId, type, processedContent, sourceUrl, pageTitle,
+                youtubeVideoDuration, youtubeVideoId, youtubeChannel);
+        var savedEntry = contentEntryRepository.save(contentEntry);
 
-            // Calculate word count for selected_text and full_html content types
-            if ((ContentType.SELECTED_TEXT.equals(type) || ContentType.FULL_HTML.equals(type))
-                    && Objects.nonNull(processedContent)
-                    && !processedContent.trim().isEmpty()) {
-                var words = processedContent.trim().split("\\s+");
-                var wordCount = (int) Arrays.stream(words).filter(word -> !word.isEmpty()).count();
-                contentEntry.setWordCount(wordCount);
-            }
+        // Create association with content bank
+        var association = new ContentEntryBank();
+        association.setContentEntry(savedEntry);
+        association.setContentBank(contentBank);
 
-            // Add YouTube fields for VIDEO_TRANSCRIPT type
-            if (ContentType.VIDEO_TRANSCRIPT.equals(type)) {
-                if (Objects.nonNull(youtubeVideoId)) {
-                    contentEntry.setYoutubeVideoId(youtubeVideoId);
-                }
-                if (Objects.nonNull(youtubeVideoDuration)) {
-                    contentEntry.setVideoDuration(youtubeVideoDuration);
-                }
-                if (Objects.nonNull(youtubeChannel)) {
-                    contentEntry.setYoutubeChannelId(youtubeChannel.getId());
-                }
-            }
+        contentBank.addContentEntry(savedEntry);
 
-            var savedEntry = contentEntryRepository.save(contentEntry);
+        contentEntryBankRepository.save(association);
 
-            // Create association with content bank
-            var association = new ContentEntryBank();
-            association.setContentEntry(savedEntry);
-            association.setContentBank(contentBank);
-            contentEntryBankRepository.save(association);
-
-            resultEntry = savedEntry;
-        }
+        resultEntry = savedEntry;
 
         try {
             this.generateTopicsForContentEntry(userId, resultEntry);
@@ -167,8 +134,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
             log.error("Failed to generate topics for content entry {}: {}",
                     Optional.ofNullable(resultEntry).map(ContentEntry::getId).orElse(null), error.getMessage(), error);
         }
-
-        return mapToContentEntryResponse(resultEntry, null);
     }
 
     @Override
@@ -196,7 +161,8 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedModelResponse<ContentEntryDTOResponse> findAll(UserId userId, ContentBankId bankId, String name, Pageable pageable) {
+    public PagedModelResponse<ContentEntryDTOResponse> findAll(UserId userId, ContentBankId bankId, String name,
+            Pageable pageable) {
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
@@ -223,31 +189,31 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     }
 
     @Override
-    public ContentEntryResponse clone(UserId userId, ContentEntryId entryId, ContentBankId cloneTargetBankId) {
+    public void clone(UserId userId, ContentEntryId entryId, ContentBankId cloneTargetBankId) {
         var sourceEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Source content entry not found or access denied"));
 
         var targetBank = contentBankRepository.findByIdAndUserId(cloneTargetBankId, userId)
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
-        var clonedEntry = new ContentEntry();
-        clonedEntry.setUserId(userId);
-        clonedEntry.setContentType(sourceEntry.getContentType());
-        clonedEntry.setContent(sourceEntry.getContent());
-        clonedEntry.setSourceUrl(sourceEntry.getSourceUrl());
-        clonedEntry.setPageTitle(sourceEntry.getPageTitle());
-        clonedEntry.setPromptSummary(sourceEntry.getPromptSummary());
-        clonedEntry.setQuestionsGenerated(false);
-        clonedEntry.setWordCount(sourceEntry.getWordCount());
-        clonedEntry.setVideoDuration(sourceEntry.getVideoDuration());
-        clonedEntry.setYoutubeVideoId(sourceEntry.getYoutubeVideoId());
-        clonedEntry.setYoutubeChannelId(sourceEntry.getYoutubeChannelId());
+        YoutubeChannel youtubeChannel = null;
+        if (Objects.nonNull(sourceEntry.getYoutubeChannelId())) {
+            youtubeChannel = youtubeChannelRepository.findById(sourceEntry.getYoutubeChannelId()).orElse(null);
+        }
+
+        var clonedEntry = ContentEntry.create(userId, sourceEntry.getContentType(), sourceEntry.getContent(),
+                sourceEntry.getSourceUrl(), sourceEntry.getPageTitle(), sourceEntry.getVideoDuration(),
+                sourceEntry.getYoutubeVideoId(),
+                youtubeChannel);
 
         var savedClone = contentEntryRepository.save(clonedEntry);
 
         var association = new ContentEntryBank();
         association.setContentEntry(savedClone);
         association.setContentBank(targetBank);
+
+        targetBank.addContentEntry(savedClone);
+
         contentEntryBankRepository.save(association);
 
         var sourceTopics = contentEntryTopicRepository.findByContentEntryId(entryId);
@@ -261,8 +227,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         }
 
         var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
-
-        return mapToContentEntryResponse(savedClone, topics.stream().map(Topic::getTopic).toList());
+        savedClone.updatedTopics(topics);
     }
 
     @Override
@@ -288,20 +253,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         } catch (Exception e) {
             log.error("Failed to emit Kafka event: " + e.getMessage());
         }
-    }
-
-    private ContentEntryResponse mapToContentEntryResponse(ContentEntry entry, List<String> topics) {
-        return new ContentEntryResponse(
-                entry.getId().toString(),
-                entry.getContentType().getValue(),
-                entry.getContent(),
-                entry.getSourceUrl(),
-                entry.getPageTitle(),
-                entry.getCreatedAt(),
-                entry.getQuestionsGenerated(),
-                entry.getPromptSummary(),
-                topics,
-                null);
     }
 
     private String truncateContent(String content, int maxLength) {

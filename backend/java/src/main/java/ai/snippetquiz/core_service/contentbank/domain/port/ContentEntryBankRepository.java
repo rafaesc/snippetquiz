@@ -7,6 +7,8 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 
 public interface ContentEntryBankRepository {
+    List<ContentEntryBank> saveAll(List<ContentEntryBank> contentEntryBanks);
+
     ContentEntryBank save(ContentEntryBank contentEntryBank);
 
     List<ContentEntryBank> findByContentBankId(ContentBankId contentBankId);

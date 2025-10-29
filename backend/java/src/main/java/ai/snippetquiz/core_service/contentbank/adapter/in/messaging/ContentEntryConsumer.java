@@ -17,6 +17,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,6 +68,7 @@ public class ContentEntryConsumer {
             var topicsCreated = 0;
 
             var userId = UUID.fromString(payload.userId());
+            List<Topic> topics = new ArrayList<>();
 
             for (var topicName : generatedTopics) {
                 if (topicName == null || topicName.trim().isEmpty()) {
@@ -91,12 +93,15 @@ public class ContentEntryConsumer {
                         var contentEntryTopic = new ContentEntryTopic(contentEntry.getId(), topic.getId());
                         contentEntryTopicRepository.save(contentEntryTopic);
                         topicsCreated++;
+                        topics.add(topic);
                     }
 
                 } catch (Exception e) {
                     log.error("Error creating topic \"{}\": ", topicName, e);
                 }
             }
+
+            contentEntry.updatedTopics(topics);
 
             log.info("Successfully created and linked {} topics to content entry {}",
                     topicsCreated, payload.contentId());
