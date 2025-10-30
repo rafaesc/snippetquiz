@@ -75,10 +75,17 @@ CREATE TABLE "questions" (
     "question" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "content_entry_id" UUID NOT NULL,
+    "chunk_index" INTEGER NOT NULL,
+    "question_index_in_chunk" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "questions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "questions_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT questions_content_entry_chunk_question_unique
+        UNIQUE (content_entry_id, chunk_index, question_index_in_chunk)
 );
+
+CREATE INDEX "idx_questions_chunk_index" ON "questions"("chunk_index");
+CREATE INDEX "idx_questions_question_index_in_chunk" ON "questions"("question_index_in_chunk");
 
 CREATE INDEX "questions_content_entry_id_prefix_idx"
 ON "questions" (LEFT("content_entry_id"::text, 4));
@@ -155,9 +162,14 @@ CREATE TABLE "quiz_questions" (
     "content_entry_source_url" TEXT,
     "content_entry_id" UUID,
     "quiz_id" UUID NOT NULL,
+    "chunk_index" INTEGER NOT NULL,
+    "question_index_in_chunk" INTEGER NOT NULL,
 
     CONSTRAINT "quiz_questions_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "idx_quiz_questions_chunk_index" ON "quiz_questions"("chunk_index");
+CREATE INDEX "idx_quiz_questions_question_index_in_chunk" ON "quiz_questions"("question_index_in_chunk");
 
 CREATE INDEX "quiz_questions_content_entry_id_prefix_idx"
 ON "quiz_questions" (LEFT("content_entry_id"::text, 4));
@@ -179,6 +191,7 @@ CREATE TABLE "quiz_question_options" (
 -- CreateTable
 CREATE TABLE "quiz_question_responses" (
     "id" BIGSERIAL NOT NULL,
+    "user_id" UUID NOT NULL,
     "quiz_id" UUID NOT NULL,
     "quiz_question_id" BIGINT NOT NULL,
     "quiz_question_option_id" BIGINT NOT NULL,
@@ -188,6 +201,8 @@ CREATE TABLE "quiz_question_responses" (
 
     CONSTRAINT "quiz_question_responses_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX "idx_quiz_question_responses_user_id_quiz_id" ON "quiz_question_responses" ("user_id", LEFT("quiz_id"::text, 4));
 
 CREATE INDEX "quiz_question_responses_quiz_id_prefix_idx"
 ON "quiz_question_responses" (LEFT("quiz_id"::text, 4));
