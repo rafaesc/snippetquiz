@@ -19,6 +19,7 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
+import ai.snippetquiz.core_service.topic.domain.valueobject.TopicId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -217,7 +218,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         contentEntryBankRepository.save(association);
 
         var sourceTopics = contentEntryTopicRepository.findByContentEntryId(entryId);
-        var topicIds = new ArrayList<Long>();
+        var topicIds = new ArrayList<TopicId>();
         for (ContentEntryTopic sourceTopic : sourceTopics) {
             var clonedTopic = new ContentEntryTopic();
             clonedTopic.setContentEntryId(savedClone.getId());

@@ -1,30 +1,33 @@
 package ai.snippetquiz.core_service.topic.domain;
 
+import ai.snippetquiz.core_service.shared.domain.entity.BaseEntity;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
+import ai.snippetquiz.core_service.topic.domain.valueobject.TopicId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonSerialize
-public class Topic {
-    private Long id;
-    private UUID userId;
+public class Topic extends BaseEntity<TopicId> {
+    private UserId userId;
     private String topic;
     private LocalDateTime createdAt;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public Topic(UUID userId, String topic) {
+    public Topic(UserId userId, String topic) {
         this.userId = userId;
         this.topic = topic;
     }

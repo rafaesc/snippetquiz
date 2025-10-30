@@ -5,6 +5,7 @@ import ai.snippetquiz.core_service.topic.adapter.out.entities.TopicEntity;
 import ai.snippetquiz.core_service.topic.adapter.out.mapper.TopicMapper;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
+import ai.snippetquiz.core_service.topic.domain.valueobject.TopicId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -45,15 +46,15 @@ public class JpaTopicRepositoryAdapter implements TopicRepository {
     }
 
     @Override
-    public List<Topic> findByUserIdAndIdIn(UserId userId, List<Long> ids) {
-        return jpaTopicRepository.findByUserIdAndIdIn(userId.getValue(), ids).stream()
+    public List<Topic> findByUserIdAndIdIn(UserId userId, List<TopicId> ids) {
+        return jpaTopicRepository.findByUserIdAndIdIn(userId.getValue(), ids.stream().map(TopicId::getValue).toList()).stream()
                 .map(topicMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Topic> findAllByIdInAndUserId(List<Long> ids, UserId userId) {
-        return jpaTopicRepository.findAllByIdInAndUserId(ids, userId.getValue()).stream()
+    public List<Topic> findAllByIdInAndUserId(List<TopicId> ids, UserId userId) {
+        return jpaTopicRepository.findAllByIdInAndUserId(ids.stream().map(TopicId::getValue).toList(), userId.getValue()).stream()
                 .map(topicMapper::toDomain)
                 .toList();
     }
