@@ -1,23 +1,19 @@
 package ai.snippetquiz.core_service.question.domain;
 
+import ai.snippetquiz.core_service.question.domain.valueobject.QuestionOptionId;
+import ai.snippetquiz.core_service.shared.domain.entity.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuestionOption {
-    private Long id;
+public class QuestionOption extends BaseEntity<QuestionOptionId> {
     private Question question;
     private String optionText;
     private String optionExplanation;
     private Boolean isCorrect = false;
-
-    public QuestionOption(Question question, String optionText, String optionExplanation, Boolean isCorrect) {
-        this.question = question;
-        this.optionText = optionText;
-        this.optionExplanation = optionExplanation;
-        this.isCorrect = isCorrect;
-    }
 }

@@ -5,6 +5,7 @@ import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.ContentEntryTo
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.topic.domain.valueobject.TopicId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -31,8 +32,8 @@ public class JpaContentEntryTopicRepositoryAdapter implements ContentEntryTopicR
     }
 
     @Override
-    public List<ContentEntryTopic> findByTopicId(Long topicId) {
-        return jpaContentEntryTopicRepository.findByTopicId(topicId)
+    public List<ContentEntryTopic> findByTopicId(TopicId topicId) {
+        return jpaContentEntryTopicRepository.findByTopicId(topicId.getValue())
                 .stream()
                 .map(contentEntryTopicMapper::toDomain)
                 .toList();

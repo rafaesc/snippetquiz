@@ -78,7 +78,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 contentEntry.setVideoDuration(youtubeVideoDuration);
             }
             if (Objects.nonNull(youtubeChannel)) {
-                contentEntry.setYoutubeChannelId(youtubeChannel.getId());
+                contentEntry.setYoutubeChannelId(youtubeChannel.getId().getValue());
             }
         }
 

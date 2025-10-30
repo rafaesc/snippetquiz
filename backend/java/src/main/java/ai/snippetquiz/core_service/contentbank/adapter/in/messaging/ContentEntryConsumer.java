@@ -67,7 +67,7 @@ public class ContentEntryConsumer {
 
             var topicsCreated = 0;
 
-            var userId = UUID.fromString(payload.userId());
+            var userId = new UserId(UUID.fromString(payload.userId()));
             List<Topic> topics = new ArrayList<>();
 
             for (var topicName : generatedTopics) {
@@ -76,7 +76,7 @@ public class ContentEntryConsumer {
                 }
 
                 try {
-                    var topic = topicRepository.findByUserIdAndTopic(new UserId(userId), topicName)
+                    var topic = topicRepository.findByUserIdAndTopic(userId, topicName)
                             .orElseGet(() -> {
                                 Topic newTopic = new Topic(userId, topicName.trim());
                                 return topicRepository.save(newTopic);

@@ -8,6 +8,7 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface QuestionMapper {
+    @Mapping(target = "id.value", source = "entity.id")
     @Mapping(target = "contentEntryId.value", source = "entity.contentEntryId")
     Question toDomain(QuestionEntity entity);
 }

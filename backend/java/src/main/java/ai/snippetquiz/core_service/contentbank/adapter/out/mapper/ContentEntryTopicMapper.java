@@ -8,9 +8,13 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ContentEntryTopicMapper {
+    @Mapping(target = "id.value", source = "entity.id")
     @Mapping(target = "contentEntryId.value", source = "entity.contentEntryId")
+    @Mapping(target = "topicId.value", source = "entity.topicId")
     ContentEntryTopic toDomain(ContentEntryTopicEntity entity);
     
     @Mapping(target = "contentEntryId", source = "domain.contentEntryId.value")
+    @Mapping(target = "id", source = "domain.id.value")
+    @Mapping(target = "topicId", source = "domain.topicId.value")
     ContentEntryTopicEntity toEntity(ContentEntryTopic domain);
 }

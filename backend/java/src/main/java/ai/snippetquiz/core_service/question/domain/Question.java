@@ -2,18 +2,21 @@ package ai.snippetquiz.core_service.question.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.question.domain.valueobject.QuestionId;
+import ai.snippetquiz.core_service.shared.domain.entity.BaseEntity;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Question {
-    private Long id;
+public class Question extends BaseEntity<QuestionId> {
     private String question;
     private String type;
     private Integer chunkIndex;
