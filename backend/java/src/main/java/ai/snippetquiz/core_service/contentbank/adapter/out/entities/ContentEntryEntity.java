@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -30,6 +29,9 @@ public class ContentEntryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "content_bank_id", nullable = false)
+    private UUID contentBankId;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -68,14 +70,4 @@ public class ContentEntryEntity {
 
     @Column(name = "youtube_channel_id")
     private Long youtubeChannelId;
-
-    @OneToMany(mappedBy = "contentEntry", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ContentEntryBankEntity> contentEntryBanks;
-
-    public ContentEntryEntity(ContentType contentType, String content, String sourceUrl, String pageTitle) {
-        this.contentType = contentType;
-        this.content = content;
-        this.sourceUrl = sourceUrl;
-        this.pageTitle = pageTitle;
-    }
 }

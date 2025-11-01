@@ -32,7 +32,7 @@ public interface QuizService {
 
     void processNewQuizQuestions(Quiz quiz, QuizStatus status);
 
-    void createQuizQuestions(Quiz quiz);
+    void createQuizQuestions(Quiz quiz, QuizStatus status);
 
     UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, Long optionSelectedId);
 

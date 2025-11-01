@@ -6,4 +6,7 @@ public class YoutubeChannelId extends BaseId<Long> {
     public YoutubeChannelId(Long value) {
         super(value);
     }
+    public static YoutubeChannelId map(Long value) {
+        return new YoutubeChannelId(value);
+    }
 }

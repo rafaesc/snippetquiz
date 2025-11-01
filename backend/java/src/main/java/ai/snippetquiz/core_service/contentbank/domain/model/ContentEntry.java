@@ -1,15 +1,17 @@
 package ai.snippetquiz.core_service.contentbank.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryCreatedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryDeletedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryTopicAddedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryUpdatedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -22,16 +24,17 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
 @NoArgsConstructor
 @JsonSerialize
 public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private UserId userId;
+    private ContentBankId contentBankId;
     private ContentType contentType;
     private String content;
     private String sourceUrl;
@@ -42,22 +45,14 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private Integer wordCount;
     private Integer videoDuration;
     private String youtubeVideoId;
-    private Long youtubeChannelId;
+    private YoutubeChannelId youtubeChannelId;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static ContentEntry create(UserId userId, ContentType type, String processedContent, String sourceUrl,
-            String pageTitle, Integer youtubeVideoDuration, String youtubeVideoId, YoutubeChannel youtubeChannel) {
+    public ContentEntry(UserId userId, ContentBankId contentBankId, ContentType type, String processedContent, String sourceUrl,
+            String pageTitle, Integer youtubeVideoDuration, String youtubeVideoId, 
+            YoutubeChannel youtubeChannel) {
         var now = LocalDateTime.now();
-        var contentEntry = new ContentEntry();
-        contentEntry.setUserId(userId);
-        contentEntry.setContentType(type);
-        contentEntry.setContent(processedContent);
-        contentEntry.setSourceUrl(sourceUrl);
-        contentEntry.setPageTitle(pageTitle);
-        contentEntry.setCreatedAt(now);
-        contentEntry.setQuestionsGenerated(false);
-
         Integer wordCount = null;
 
         // Calculate word count for selected_text and full_html content types
@@ -66,25 +61,12 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 && !processedContent.trim().isEmpty()) {
             var words = processedContent.trim().split("\\s+");
             wordCount = (int) Arrays.stream(words).filter(word -> !word.isEmpty()).count();
-            contentEntry.setWordCount(wordCount);
         }
 
-        // Add YouTube fields for VIDEO_TRANSCRIPT type
-        if (ContentType.VIDEO_TRANSCRIPT.equals(type)) {
-            if (Objects.nonNull(youtubeVideoId)) {
-                contentEntry.setYoutubeVideoId(youtubeVideoId);
-            }
-            if (Objects.nonNull(youtubeVideoDuration)) {
-                contentEntry.setVideoDuration(youtubeVideoDuration);
-            }
-            if (Objects.nonNull(youtubeChannel)) {
-                contentEntry.setYoutubeChannelId(youtubeChannel.getId().getValue());
-            }
-        }
-
-        contentEntry.record(new ContentEntryCreatedDomainEvent(
-                contentEntry.getId().toString(),
-                userId.toString(),
+        record(new ContentEntryCreatedDomainEvent(
+                getId().getValue().toString(),
+                userId.getValue().toString(),
+                contentBankId.toString(),
                 type.toString(),
                 processedContent,
                 sourceUrl,
@@ -93,38 +75,68 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 wordCount,
                 youtubeVideoDuration,
                 youtubeVideoId,
-                youtubeChannel.getChannelName()));
+                youtubeChannel != null ? youtubeChannel.getChannelName() : null,
+                youtubeChannel != null ? youtubeChannel.getId().getValue() : null));
+    }
 
-        return contentEntry;
+    public void apply(ContentEntryCreatedDomainEvent event) {
+        this.setId(ContentEntryId.map(event.getAggregateId()));
+        this.userId = UserId.map(event.getUserId());
+        this.contentType = ContentType.valueOf(event.getContentType());
+        this.content = event.getContent();
+        this.sourceUrl = event.getSourceUrl();
+        this.pageTitle = event.getPageTitle();
+        this.createdAt = Utils.stringToDate(event.getCreatedAt());
+        this.questionsGenerated = false;
+        this.wordCount = event.getWordCount();
+        this.videoDuration = event.getVideoDuration();
+        this.youtubeVideoId = event.getYoutubeVideoId();
+        this.youtubeChannelId = YoutubeChannelId.map(event.getYoutubeChannelId());
     }
 
     public void update(String content, String pageTitle) {
         var now = LocalDateTime.now();
-        this.content = content;
-        this.pageTitle = pageTitle;
-        this.createdAt = now;
-
+        Integer wordCount = null;
         if (Objects.nonNull(content) && !content.trim().isEmpty()) {
-            int wordCount = content.trim().split("\\s+").length;
-            this.wordCount = wordCount;
+            wordCount = content.trim().split("\\s+").length;
         }
 
         record(new ContentEntryUpdatedDomainEvent(
-                getId().toString(),
-                userId.toString(),
+                getId().getValue().toString(),
+                userId.getValue().toString(),
                 content,
                 pageTitle,
                 Utils.dateToString(now),
                 wordCount));
     }
 
+    public void apply(ContentEntryUpdatedDomainEvent event) {
+        this.content = event.getContent();
+        this.pageTitle = event.getPageTitle();
+        this.createdAt = Utils.stringToDate(event.getCreatedAt());
+        this.wordCount = event.getWordCount();
+    }
+
     public void updatedTopics(List<Topic> topics) {
         var now = LocalDateTime.now();
         record(new ContentEntryTopicAddedDomainEvent(
-            getId().toString(),
-            userId.toString(),
+            getId().getValue().toString(),
+            userId.getValue().toString(),
             Topic.toJson(new HashSet<>(topics)),
             Utils.dateToString(now)));
+    }
+
+    public void apply(ContentEntryTopicAddedDomainEvent event) {
+    }
+
+    public void delete() {
+        record(new ContentEntryDeletedDomainEvent(
+            getId().getValue().toString(),
+            userId.getValue().toString()));
+    }
+
+    public void apply(ContentEntryDeletedDomainEvent event) {
+        deactivate();
     }
 
     public static String toJson(Set<ContentEntry> entries) {
@@ -132,6 +144,14 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
             return objectMapper.writeValueAsString(entries);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error serializing ContentEntry list", e);
+        }
+    }
+
+    public static Set<ContentEntry> fromJson(String json) {
+        try {
+            return objectMapper.readValue(json, new TypeReference<Set<ContentEntry>>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error deserializing ContentEntry list", e);
         }
     }
 }

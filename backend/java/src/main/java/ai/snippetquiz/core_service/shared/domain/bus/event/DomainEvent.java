@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import ai.snippetquiz.core_service.shared.domain.Utils;
+import lombok.Getter;
 
 public abstract class DomainEvent {
+    @Getter
     private String aggregateId;
     private String eventId;
     private String occurredOn;

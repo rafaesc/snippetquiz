@@ -4,11 +4,12 @@ import ai.snippetquiz.core_service.contentbank.application.ContentBankItemRespon
 import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
+import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.ConflictException;
@@ -21,7 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +35,7 @@ public class ContentBankServiceImpl implements ContentBankService {
 
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryRepository contentEntryRepository;
-    private final ContentEntryBankRepository contentEntryBankRepository;
+    private final YoutubeChannelRepository youtubeChannelRepository;
 
     @Override
     public void create(ContentBankId id, UserId userId, String name) {
@@ -50,7 +54,7 @@ public class ContentBankServiceImpl implements ContentBankService {
             contentBank = existingById.get();
             contentBank.rename(name);
         } else {
-            contentBank = ContentBank.create(id, userId, name);
+            contentBank = new ContentBank(id, userId, name);
         }
 
         contentBankRepository.save(contentBank);
@@ -124,22 +128,34 @@ public class ContentBankServiceImpl implements ContentBankService {
     }
 
     private void duplicateContentBankWithEntries(ContentBank originalBank, UserId userId, String newName) {
-        var newBank = ContentBank.create(ContentBankId.create(), userId, newName);
+        var newBank = new ContentBank(ContentBankId.create(), userId, newName);
         newBank = contentBankRepository.save(newBank);
+        var channelIds = newBank.getContentEntries().stream()
+                .map(ContentEntry::getYoutubeChannelId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
-        var contentEntryAssociations = contentEntryBankRepository
-                .findByContentBankId(originalBank.getId());
+        Map<YoutubeChannelId, YoutubeChannel> channelsById = youtubeChannelRepository.findAllByIds(channelIds)
+                .stream()
+                .collect(Collectors.toMap(YoutubeChannel::getId, Function.identity()));
 
-        List<ContentEntryBank> newAssociations = new ArrayList<>();
         List<ContentEntry> newContentEntries = new ArrayList<>();
-        for (ContentEntryBank association : contentEntryAssociations) {
-            var newAssociation = new ContentEntryBank();
-            newAssociation.setContentEntry(association.getContentEntry());
-            newAssociation.setContentBank(newBank);
-            newAssociations.add(newAssociation);
-            newContentEntries.add(association.getContentEntry());
+        for (ContentEntry association : newBank.getContentEntries()) {
+            var newAssociation = new ContentEntry(
+                    association.getUserId(),
+                    association.getContentBankId(),
+                    association.getContentType(),
+                    association.getContent(),
+                    association.getSourceUrl(),
+                    association.getPageTitle(),
+                    association.getVideoDuration(),
+                    association.getYoutubeVideoId(),
+                    association.getYoutubeChannelId() != null ? channelsById.get(association.getYoutubeChannelId()) : null
+            );
+            newAssociation.setContentBankId(newBank.getId());
+            newContentEntries.add(newAssociation);
         }
         newBank.updatedContentEntries(newContentEntries);
-        contentEntryBankRepository.saveAll(newAssociations);
+        contentEntryRepository.saveAll(newContentEntries);
     }
 }

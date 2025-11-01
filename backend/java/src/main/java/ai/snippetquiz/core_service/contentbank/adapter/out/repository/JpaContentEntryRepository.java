@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, UUID> {
 
-    Page<ContentEntryEntity> findByContentEntryBanks_ContentBank_Id(UUID contentBankId, Pageable pageable);
+    Page<ContentEntryEntity> findByContentBankId(UUID contentBankId, Pageable pageable);
 
     Optional<ContentEntryEntity> findByIdAndUserId(UUID id, UUID userId);
 

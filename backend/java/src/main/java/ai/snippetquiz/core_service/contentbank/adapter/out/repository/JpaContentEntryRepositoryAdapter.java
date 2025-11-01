@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -29,6 +30,11 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
+    public void saveAll(List<ContentEntry> contentEntries) {
+        jpaContentEntryRepository.saveAll(contentEntries.stream().map(contentEntryMapper::toEntity).toList());
+    }
+
+    @Override
     public void delete(ContentEntry contentEntry) {
         jpaContentEntryRepository.delete(contentEntryMapper.toEntity(contentEntry));
     }
@@ -39,8 +45,8 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
-    public Page<ContentEntry> findByContentEntryBanks_ContentBank_Id(ContentBankId contentBankId, Pageable pageable) {
-        return jpaContentEntryRepository.findByContentEntryBanks_ContentBank_Id(contentBankId.getValue(), pageable).map(contentEntryMapper::toDomain);
+    public Page<ContentEntry> findByContentBankId(ContentBankId contentBankId, Pageable pageable) {
+        return jpaContentEntryRepository.findByContentBankId(contentBankId.getValue(), pageable).map(contentEntryMapper::toDomain);
     }
 
     @Override

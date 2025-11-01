@@ -1,4 +1,4 @@
-package ai.snippetquiz.core_service.contentbank.domain.events;
+package ai.snippetquiz.core_service.quiz.domain.events;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -10,15 +10,17 @@ import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
-public class ContentBankDeletedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
+public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
     private final String userId;
 
-    public ContentBankDeletedDomainEvent(String aggregateId, String userId) {
+    public QuizDeletedDomainEvent(
+            String aggregateId,
+            String userId) {
         super(aggregateId);
         this.userId = userId;
     }
 
-    public ContentBankDeletedDomainEvent(String aggregateId, String eventId, String occurredOn,
+    public QuizDeletedDomainEvent(String aggregateId, String eventId, String occurredOn,
             String userId) {
         super(aggregateId, eventId, occurredOn);
         this.userId = userId;
@@ -26,7 +28,7 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
 
     @Override
     public String eventName() {
-        return "content_bank.deleted";
+        return "quiz.deleted";
     }
 
     @Override
@@ -37,10 +39,10 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
     }
 
     @Override
-    public ContentBankDeletedDomainEvent fromPrimitives(String aggregateId, HashMap<String, Serializable> body,
+    public QuizDeletedDomainEvent fromPrimitives(String aggregateId, HashMap<String, Serializable> body,
             String eventId,
             String occurredOn) {
-        return new ContentBankDeletedDomainEvent(
+        return new QuizDeletedDomainEvent(
                 aggregateId,
                 eventId,
                 occurredOn,
