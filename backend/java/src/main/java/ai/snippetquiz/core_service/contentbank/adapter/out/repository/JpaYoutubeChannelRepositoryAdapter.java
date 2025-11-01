@@ -4,10 +4,13 @@ import ai.snippetquiz.core_service.contentbank.adapter.out.entities.YoutubeChann
 import ai.snippetquiz.core_service.contentbank.adapter.out.mapper.YoutubeChannelMapper;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -22,9 +25,17 @@ public class JpaYoutubeChannelRepositoryAdapter implements YoutubeChannelReposit
     }
 
     @Override
-    public Optional<YoutubeChannel> findById(Long id) {
-        return jpaYoutubeChannelRepository.findById(id)
+    public Optional<YoutubeChannel> findById(YoutubeChannelId id) {
+        return jpaYoutubeChannelRepository.findById(id.getValue())
                 .map(youtubeChannelMapper::toDomain);
+    }
+
+    @Override
+    public List<YoutubeChannel> findAllByIds(Set<YoutubeChannelId> ids) {
+        return jpaYoutubeChannelRepository.findAllById(ids.stream().map(YoutubeChannelId::getValue).toList())
+                .stream()
+                .map(youtubeChannelMapper::toDomain)
+                .toList();
     }
 
     @Override

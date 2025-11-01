@@ -1,9 +1,8 @@
 package ai.snippetquiz.core_service.quiz.application.service;
 
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
@@ -54,6 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -72,7 +72,6 @@ public class QuizServiceImpl implements QuizService {
     private final QuizQuestionOptionRepository quizQuestionOptionRepository;
     private final QuizGenerationInstructionRepository quizGenerationInstructionRepository;
     private final QuizTopicRepository quizTopicRepository;
-    private final ContentEntryBankRepository contentEntryBankRepository;
     private final QuestionRepository questionRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final TopicRepository topicRepository;
@@ -210,9 +209,7 @@ public class QuizServiceImpl implements QuizService {
 
             log.info("Content bank {} validated for user {}", bankId, userId);
 
-            var contentEntryPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId,
-                    PageRequest.of(0, Integer.MAX_VALUE));
-            var contentEntries = contentEntryPage.getContent();
+            var contentEntries = contentEntryRepository.findAllByContentBankId(bankId);
 
             log.info("Found {} content entries for bankId: {}", contentEntries.size(), bankId);
 
@@ -220,7 +217,7 @@ public class QuizServiceImpl implements QuizService {
                 log.warn("No content entries found for bankId: {}", bankId);
             }
 
-            var mappedEntries = new ArrayList<GetContentEntriesResponse.ContentEntryDto>();
+            var entriesToGenerate = new ArrayList<GetContentEntriesResponse.ContentEntryDto>();
             var entriesSkipped = 0;
 
             for (var entry : contentEntries) {
@@ -228,7 +225,7 @@ public class QuizServiceImpl implements QuizService {
                     entriesSkipped++;
                     continue;
                 }
-                mappedEntries.add(new GetContentEntriesResponse.ContentEntryDto(
+                entriesToGenerate.add(new GetContentEntriesResponse.ContentEntryDto(
                         entry.getId().toString(),
                         entry.getPageTitle() != null ? entry.getPageTitle() : "",
                         entry.getContent() != null ? entry.getContent() : "",
@@ -240,7 +237,7 @@ public class QuizServiceImpl implements QuizService {
 
             var request = new GetContentEntriesResponse.GenerateQuizRequest(
                     instruction != null ? instruction.getInstruction() : "",
-                    mappedEntries);
+                    entriesToGenerate);
 
             return new GetContentEntriesResponse(request, entriesSkipped);
         } catch (Exception error) {
@@ -284,6 +281,7 @@ public class QuizServiceImpl implements QuizService {
         var quiz = quizRepository.findByIdAndUserId(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
+        quiz.delete();
         quizRepository.delete(quiz);
     }
 
@@ -305,18 +303,15 @@ public class QuizServiceImpl implements QuizService {
                     throw new ConflictException("Quiz already exists");
                 });
 
-        var quiz = Quiz.create(userId, contentBank.getId(), contentBank.getName());
+        var quiz = new Quiz(quizId, userId, contentBank.getId(), contentBank.getName());
+        quiz = quizRepository.save(quiz);
 
         var contentEntriesResponse = getContentEntriesByBankId(
                 contentBank.getId(), userId);
         var quizRequest = contentEntriesResponse.request();
         var entries = quizRequest.contentEntries();
         var isReady = (isNull(entries) || entries.isEmpty());
-
-        quiz.setStatus(isReady ? QuizStatus.READY : QuizStatus.PREPARE);
-        quiz = quizRepository.save(quiz);
-
-        createQuizQuestions(quiz);
+        createQuizQuestions(quiz, isReady ? QuizStatus.READY : QuizStatus.PREPARE);
 
         if (isReady) {
             log.warn("No content entries found for quizId: {}, bankId: {}, userId: {}", quiz.getId(),
@@ -329,24 +324,20 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public void processNewQuizQuestions(Quiz quiz, QuizStatus status) {
-        quiz.setStatus(status);
-        quiz.setQuestionUpdatedAt(LocalDateTime.now());
-        quiz = quizRepository.save(quiz);
-
-        createQuizQuestions(quiz);
+        createQuizQuestions(quiz, status);
     }
 
     @Override
-    public void createQuizQuestions(Quiz quiz) {
+    public void createQuizQuestions(Quiz quiz, QuizStatus status) {
         var contentBankId = quiz.getContentBankId();
-        var contentEntryBankList = contentEntryBankRepository.findByContentBankId(contentBankId);
-        var contentEntryMap = contentEntryBankList.stream()
+        var contentEntryList = contentEntryRepository.findAllByContentBankId(contentBankId);
+        Map<ContentEntryId, ContentEntry> contentEntryMap = contentEntryList.stream()
                 .collect(toMap(
-                        ceb -> ceb.getContentEntry().getId(),
-                        ContentEntryBank::getContentEntry));
+                        ContentEntry::getId,
+                        Function.identity()));
 
-        var allQuestions = questionRepository.findByContentEntryIdIn(contentEntryBankList.stream()
-                .map(contentEntryBank -> contentEntryBank.getContentEntry().getId()).toList());
+        var allQuestions = questionRepository.findByContentEntryIdIn(contentEntryList.stream()
+                .map(ContentEntry::getId).toList());
 
         if (allQuestions.isEmpty()) {
             return;
@@ -362,8 +353,8 @@ public class QuizServiceImpl implements QuizService {
                                 q -> Map.of(q.getContentEntryId(), q),
                                 (existing, replacement) -> existing)));
 
-        var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryBankList.stream()
-                .map(contentEntryBank -> contentEntryBank.getContentEntry().getId()).toList());
+        var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryList.stream()
+                .map(ContentEntry::getId).toList());
         var allTopics = topicRepository
                 .findByUserIdAndIdIn(quiz.getUserId(),
                         contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
@@ -420,8 +411,9 @@ public class QuizServiceImpl implements QuizService {
             }
         }
 
-        quiz.setContentEntriesCount(contentEntryBankList.size());
+        quiz.setContentEntriesCount(contentEntryList.size());
         quiz.setQuestionsCount(quizQuestionRepository.findByQuizId(quiz.getId()).size());
+        quiz.setQuestionUpdatedAt(LocalDateTime.now());
         quizRepository.save(quiz);
 
     }

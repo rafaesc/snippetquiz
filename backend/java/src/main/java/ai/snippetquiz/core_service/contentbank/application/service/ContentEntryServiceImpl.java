@@ -2,14 +2,12 @@ package ai.snippetquiz.core_service.contentbank.application.service;
 
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
-import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
@@ -41,7 +39,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
     private final ContentEntryRepository contentEntryRepository;
     private final ContentBankRepository contentBankRepository;
-    private final ContentEntryBankRepository contentEntryBankRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final YoutubeChannelRepository youtubeChannelRepository;
     private final ContentEntryEventPublisher contentEntryEventPublisher;
@@ -114,18 +111,11 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         }
 
         // Create new entry
-        var contentEntry = ContentEntry.create(userId, type, processedContent, sourceUrl, pageTitle,
+        var contentEntry = new ContentEntry(userId, bankId, type, processedContent, sourceUrl, pageTitle,
                 youtubeVideoDuration, youtubeVideoId, youtubeChannel);
         var savedEntry = contentEntryRepository.save(contentEntry);
 
-        // Create association with content bank
-        var association = new ContentEntryBank();
-        association.setContentEntry(savedEntry);
-        association.setContentBank(contentBank);
-
         contentBank.addContentEntry(savedEntry);
-
-        contentEntryBankRepository.save(association);
 
         resultEntry = savedEntry;
 
@@ -167,7 +157,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
-        var entriesPage = contentEntryRepository.findByContentEntryBanks_ContentBank_Id(bankId, pageable);
+        var entriesPage = contentEntryRepository.findByContentBankId(bankId, pageable);
 
         var contentEntryDTOPage = entriesPage.map(entry -> {
             var contentEntryTopicList = contentEntryTopicRepository.findByContentEntryId(entry.getId());
@@ -202,20 +192,15 @@ public class ContentEntryServiceImpl implements ContentEntryService {
             youtubeChannel = youtubeChannelRepository.findById(sourceEntry.getYoutubeChannelId()).orElse(null);
         }
 
-        var clonedEntry = ContentEntry.create(userId, sourceEntry.getContentType(), sourceEntry.getContent(),
+        var clonedEntry = new ContentEntry(userId, targetBank.getId(), sourceEntry.getContentType(),
+                sourceEntry.getContent(),
                 sourceEntry.getSourceUrl(), sourceEntry.getPageTitle(), sourceEntry.getVideoDuration(),
                 sourceEntry.getYoutubeVideoId(),
                 youtubeChannel);
 
         var savedClone = contentEntryRepository.save(clonedEntry);
 
-        var association = new ContentEntryBank();
-        association.setContentEntry(savedClone);
-        association.setContentBank(targetBank);
-
         targetBank.addContentEntry(savedClone);
-
-        contentEntryBankRepository.save(association);
 
         var sourceTopics = contentEntryTopicRepository.findByContentEntryId(entryId);
         var topicIds = new ArrayList<TopicId>();
@@ -235,10 +220,12 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     public void remove(UserId userId, ContentEntryId entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
+        var contentBank = contentBankRepository.findByIdAndUserId(contentEntry.getContentBankId(), userId)
+                .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
 
-        contentEntryBankRepository.deleteByContentEntryId(entryId);
-        contentEntryTopicRepository.deleteByContentEntryId(entryId);
-
+        contentEntry.delete();
+        contentBank.removeContentEntry(contentEntry);
+        
         contentEntryRepository.delete(contentEntry);
     }
 

@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -44,19 +45,6 @@ public class ContentBankEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "contentBank")
-    private List<ContentEntryBankEntity> contentEntryBanks;
-
-    @ManyToMany
-    @JoinTable(
-        name = "content_entries_bank",
-        joinColumns = @JoinColumn(name = "content_bank_id"),
-        inverseJoinColumns = @JoinColumn(name = "content_entry_id")
-    )
-    private List<ContentEntryEntity> contentEntries;
-
-    public ContentBankEntity(UUID userId, String name) {
-        this.userId = userId;
-        this.name = name;
-    }
+    @OneToMany(mappedBy = "contentBank", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContentEntryEntity> contentEntryBanks;
 }

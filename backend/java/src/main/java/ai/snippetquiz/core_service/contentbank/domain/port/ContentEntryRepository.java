@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.domain.port;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,11 +15,17 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 public interface ContentEntryRepository {
     ContentEntry save(ContentEntry contentEntry);
 
+    void saveAll(List<ContentEntry> contentEntries);
+
     Optional<ContentEntry> findById(ContentEntryId id);
 
     void delete(ContentEntry contentEntry);
 
-    Page<ContentEntry> findByContentEntryBanks_ContentBank_Id(ContentBankId contentBankId, Pageable pageable);
+    List<ContentEntry> findAllByIds(List<ContentEntryId> ids);
+
+    List<ContentEntry> findAllByContentBankId(ContentBankId contentBankId);
+
+    Page<ContentEntry> findByContentBankId(ContentBankId contentBankId, Pageable pageable);
 
     Optional<ContentEntry> findByIdAndUserId(ContentEntryId id, UserId userId);
 
