@@ -1,8 +1,10 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.question.domain.Question;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizCreatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizQuestionGeneratedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
@@ -67,5 +69,11 @@ public class Quiz extends AggregateRoot<QuizId> {
 
     public void apply(QuizDeletedDomainEvent event) {
         deactivate();
+    }
+
+    public void generateQuestions(List<Question> questions) {
+        record(new QuizQuestionGeneratedDomainEvent(
+                getId().getValue().toString(),
+                questions));
     }
 }
