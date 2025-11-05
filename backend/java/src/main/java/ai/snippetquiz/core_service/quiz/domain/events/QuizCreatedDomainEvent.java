@@ -17,8 +17,6 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     private final String bankName;
     private final QuizStatus status;
     private final Integer contentEntriesCount;
-    private final Integer questionsCount;
-    private final Integer questionsCompleted;
 
     public QuizCreatedDomainEvent(
             String aggregateId,
@@ -36,16 +34,12 @@ public class QuizCreatedDomainEvent extends DomainEvent {
         this.bankName = bankName;
         this.createdAt = createdAt;
         this.contentEntriesCount = contentEntriesCount;
-        this.questionsCount = questionsCount;
-        this.questionsCompleted = questionsCompleted;
         this.status = status;
     }
 
     public QuizCreatedDomainEvent(String aggregateId, String eventId, String occurredOn,
             String userId, String contentBankId, String bankName, String createdAt,
             Integer contentEntriesCount,
-            Integer questionsCount,
-            Integer questionsCompleted,
             QuizStatus status) {
         super(aggregateId, eventId, occurredOn);
         this.userId = userId;
@@ -53,8 +47,6 @@ public class QuizCreatedDomainEvent extends DomainEvent {
         this.bankName = bankName;
         this.createdAt = createdAt;
         this.contentEntriesCount = contentEntriesCount;
-        this.questionsCount = questionsCount;
-        this.questionsCompleted = questionsCompleted;
         this.status = status;
     }
 
@@ -71,8 +63,6 @@ public class QuizCreatedDomainEvent extends DomainEvent {
         primitives.put("bankName", bankName);
         primitives.put("createdAt", createdAt);
         primitives.put("contentEntriesCount", contentEntriesCount);
-        primitives.put("questionsCount", questionsCount);
-        primitives.put("questionsCompleted", questionsCompleted);
         primitives.put("status", status);
         return primitives;
     }
@@ -90,8 +80,6 @@ public class QuizCreatedDomainEvent extends DomainEvent {
                 (String) body.get("bankName"),
                 (String) body.get("createdAt"),
                 (Integer) body.get("contentEntriesCount"),
-                (Integer) body.get("questionsCount"),
-                (Integer) body.get("questionsCompleted"),
                 (QuizStatus) body.get("status"));
     }
 }

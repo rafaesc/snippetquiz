@@ -1,10 +1,12 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.question.domain.Question;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizCreatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizQuestionGeneratedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.ContentEntryCount;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
@@ -27,12 +29,9 @@ public class Quiz extends AggregateRoot<QuizId> {
     private String bankName;
     private QuizStatus status;
     private LocalDateTime createdAt;
-    private Integer contentEntriesCount = 0;
-    private Integer questionsCount = 0;
-    private Integer questionsCompleted = 0;
-    private LocalDateTime completedAt;
+    private ContentEntryCount contentEntriesCount;
     private LocalDateTime questionUpdatedAt;
-    private List<QuizTopic> quizTopics = List.of();
+    private List<QuizTopic> quizTopics;
 
     public Quiz(QuizId quizId, UserId userId, ContentBankId contentBankId, String bankName) {
         var now = LocalDateTime.now();
@@ -46,7 +45,7 @@ public class Quiz extends AggregateRoot<QuizId> {
                 0,
                 0,
                 0,
-                QuizStatus.READY));
+                QuizStatus.PREPARE));
     }
 
     public  void apply(QuizCreatedDomainEvent event ) {
@@ -55,9 +54,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         setContentBankId(ContentBankId.map(event.getContentBankId()));
         setBankName(event.getBankName());
         setCreatedAt(Utils.stringToDate(event.getCreatedAt()));
-        setContentEntriesCount(event.getContentEntriesCount());
-        setQuestionsCount(event.getQuestionsCount());
-        setQuestionsCompleted(event.getQuestionsCompleted());
+        setContentEntriesCount(new ContentEntryCount(event.getContentEntriesCount()));
         setStatus(event.getStatus());
     }
 
