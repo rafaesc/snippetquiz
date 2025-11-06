@@ -25,6 +25,8 @@ public interface QuestionOptionMapper {
 
     @Mapping(target = "id", source = "domain.id.value")
     @Mapping(target = "contentEntryId", source = "domain.contentEntryId.value")
+    @Mapping(target = "chunkIndex", source = "domain.chunkIndex.value")
+    @Mapping(target = "questionIndexInChunk", source = "domain.questionIndexInChunk.value")
     @Mapping(target = "questionOptions", ignore = true)
     QuestionEntity toEntity(Question domain);
 }

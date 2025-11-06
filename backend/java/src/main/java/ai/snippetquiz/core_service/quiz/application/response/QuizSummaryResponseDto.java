@@ -1,15 +1,15 @@
 package ai.snippetquiz.core_service.quiz.application.response;
 
-import java.util.List;
-
 import ai.snippetquiz.core_service.shared.domain.bus.query.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Set;
+
 @AllArgsConstructor
 @Getter
 public class QuizSummaryResponseDto implements Response {
-    List<String> topics;
+    Set<String> topics;
     Integer totalQuestions;
     Integer totalCorrectAnswers;
 }

@@ -5,23 +5,20 @@ import java.util.HashMap;
 
 import ai.snippetquiz.core_service.shared.domain.bus.event.DeactivationDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class ContentEntryDeletedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
-    private final String userId;
 
-    public ContentEntryDeletedDomainEvent(String aggregateId, String userId) {
-        super(aggregateId);
-        this.userId = userId;
+    public ContentEntryDeletedDomainEvent(String aggregateId, UserId userId) {
+        super(aggregateId, userId.toString());
     }
 
-    public ContentEntryDeletedDomainEvent(String aggregateId, String eventId, String occurredOn,
-            String userId) {
-        super(aggregateId, eventId, occurredOn);
-        this.userId = userId;
+    public ContentEntryDeletedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn) {
+        super(aggregateId, userId.toString(), eventId, occurredOn);
     }
 
     @Override
@@ -32,18 +29,17 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("userId", userId);
         return primitives;
     }
 
     @Override
-    public ContentEntryDeletedDomainEvent fromPrimitives(String aggregateId, HashMap<String, Serializable> body,
+    public ContentEntryDeletedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
             String eventId,
             String occurredOn) {
         return new ContentEntryDeletedDomainEvent(
                 aggregateId,
+                UserId.map(userId),
                 eventId,
-                occurredOn,
-                (String) body.get("userId"));
+                occurredOn);
     }
 }

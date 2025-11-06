@@ -65,8 +65,8 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
 
         record(new ContentEntryCreatedDomainEvent(
                 getId().getValue().toString(),
-                userId.getValue().toString(),
-                contentBankId.toString(),
+                userId,
+                contentBankId.getValue().toString(),
                 type.toString(),
                 processedContent,
                 sourceUrl,
@@ -103,7 +103,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
 
         record(new ContentEntryUpdatedDomainEvent(
                 getId().getValue().toString(),
-                userId.getValue().toString(),
+                userId,
                 content,
                 pageTitle,
                 Utils.dateToString(now),
@@ -121,7 +121,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         var now = LocalDateTime.now();
         record(new ContentEntryTopicAddedDomainEvent(
             getId().getValue().toString(),
-            userId.getValue().toString(),
+            userId,
             Topic.toJson(new HashSet<>(topics)),
             Utils.dateToString(now)));
     }
@@ -132,7 +132,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     public void delete() {
         record(new ContentEntryDeletedDomainEvent(
             getId().getValue().toString(),
-            userId.getValue().toString()));
+            userId));
     }
 
     public void apply(ContentEntryDeletedDomainEvent event) {

@@ -33,7 +33,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
         var now = LocalDateTime.now();
         record(new ContentBankCreatedDomainEvent(
             id.toString(),
-            userId.toString(),
+            userId,
             name,
             Utils.dateToString(now)));
     }
@@ -49,7 +49,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     public void delete() {
         record(new ContentBankDeletedDomainEvent(
             getId().toString(),
-            userId.toString()));
+            userId));
     }
 
     public void apply(ContentBankDeletedDomainEvent event) {
@@ -60,7 +60,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
         var now = LocalDateTime.now();
         record(new ContentBankRenamedDomainEvent(
             getId().toString(),
-            userId.toString(),
+            userId,
             name,
             Utils.dateToString(now)));
     }
@@ -74,7 +74,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
         var now = LocalDateTime.now();
         record(new ContentBankEntriesUpdatedDomainEvent(
             getId().toString(),
-            userId.toString(),
+            userId,
             ContentEntry.toJson(new HashSet<>(contentEntries)),
             Utils.dateToString(now)));
     }

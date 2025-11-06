@@ -10,6 +10,7 @@ import ai.snippetquiz.core_service.quiz.application.response.UpdateQuizResponse;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 
 import org.springframework.data.domain.Pageable;
@@ -26,14 +27,12 @@ public interface QuizService {
 
     CheckQuizInProgressResponse checkQuizInProgress(UserId userId);
 
-    void remove(UserId userId, QuizId quizId);
+    void delete(UserId userId, QuizId quizId);
 
     void createQuiz(UserId userId, ContentBankId contentBankId, QuizId quizId);
 
     void processNewQuizQuestions(Quiz quiz, QuizStatus status);
 
-    void createQuizQuestions(Quiz quiz, QuizStatus status);
-
-    UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, Long optionSelectedId);
+    UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, QuizQuestionOptionId optionSelectedId);
 
 }

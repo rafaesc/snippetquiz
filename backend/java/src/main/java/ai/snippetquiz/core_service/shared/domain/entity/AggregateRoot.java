@@ -52,8 +52,6 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
             }
         }
     }
-
-    // TODO: load from Snapshot for commands that require bulk operations
     
     public void replayEvents(Iterable<DomainEvent> events) {
         events.forEach(event -> applyChange(event, false));

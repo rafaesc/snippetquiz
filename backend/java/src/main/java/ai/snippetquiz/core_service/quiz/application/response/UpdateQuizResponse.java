@@ -10,5 +10,5 @@ public class UpdateQuizResponse implements Response {
     private String message;
     private Boolean success;
     private Boolean completed;
-    private Long correctOptionId;
+    private String correctOptionId;
 }

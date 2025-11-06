@@ -35,13 +35,23 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
     }
 
     @Override
+    public Optional<ContentEntry> findById(ContentEntryId id) {
+        return jpaContentEntryRepository.findById(id.getValue()).map(contentEntryMapper::toDomain);
+    }
+
+    @Override
     public void delete(ContentEntry contentEntry) {
         jpaContentEntryRepository.delete(contentEntryMapper.toEntity(contentEntry));
     }
 
     @Override
-    public Optional<ContentEntry> findById(ContentEntryId id) {
-        return jpaContentEntryRepository.findById(id.getValue()).map(contentEntryMapper::toDomain);
+    public List<ContentEntry> findAllByIds(List<ContentEntryId> ids) {
+        return jpaContentEntryRepository.findAllById(ids.stream().map(ContentEntryId::getValue).toList()).stream().map(contentEntryMapper::toDomain).toList();
+    }
+    
+    @Override
+    public List<ContentEntry> findAllByContentBankId(ContentBankId contentBankId) {
+        return jpaContentEntryRepository.findAllByContentBankId(contentBankId.getValue()).stream().map(contentEntryMapper::toDomain).toList();
     }
 
     @Override

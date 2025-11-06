@@ -3,13 +3,13 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.util.HashMap;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class ContentEntryCreatedDomainEvent extends DomainEvent {
-    private final String userId;
     private final String contentBankId;
     private final String contentType;
     private final String content;
@@ -22,11 +22,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     private final String youtubeChannelName;
     private final Long youtubeChannelId;
 
-
-
     public ContentEntryCreatedDomainEvent(
             String aggregateId,
-            String userId,
+            UserId userId,
             String contentBankId,
             String contentType,
             String content,
@@ -38,8 +36,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String youtubeVideoId,
             String youtubeChannelName,
             Long youtubeChannelId) {
-        super(aggregateId);
-        this.userId = userId;
+        super(aggregateId, userId.toString());
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
@@ -55,9 +52,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
 
     public ContentEntryCreatedDomainEvent(
             String aggregateId,
+            UserId userId,
             String eventId,
             String occurredOn,
-            String userId,
             String contentBankId,
             String contentType,
             String content,
@@ -69,8 +66,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String youtubeVideoId,
             String youtubeChannelName,
             Long youtubeChannelId) {
-        super(aggregateId, eventId, occurredOn);
-        this.userId = userId;
+        super(aggregateId, userId.toString(), eventId, occurredOn);
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
@@ -92,7 +88,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("userId", userId);
         primitives.put("contentBankId", contentBankId);
         primitives.put("contentType", contentType);
         primitives.put("content", content);
@@ -110,14 +105,15 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     @Override
     public ContentEntryCreatedDomainEvent fromPrimitives(
             String aggregateId,
+            String userId,
             HashMap<String, Serializable> body,
             String eventId,
             String occurredOn) {
         return new ContentEntryCreatedDomainEvent(
                 aggregateId,
+                UserId.map(userId),
                 eventId,
                 occurredOn,
-                (String) body.get("userId"),
                 (String) body.get("contentBankId"),
                 (String) body.get("contentType"),
                 (String) body.get("content"),

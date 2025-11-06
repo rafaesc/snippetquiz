@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.adapter.out.repository;
 import ai.snippetquiz.core_service.contentbank.adapter.out.entities.ContentEntryEntity;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Repository;
 public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEntity, UUID> {
 
     Page<ContentEntryEntity> findByContentBankId(UUID contentBankId, Pageable pageable);
+
+    List<ContentEntryEntity> findAllByContentBankId(UUID contentBankId);
 
     Optional<ContentEntryEntity> findByIdAndUserId(UUID id, UUID userId);
 
