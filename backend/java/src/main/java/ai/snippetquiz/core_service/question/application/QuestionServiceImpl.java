@@ -7,6 +7,8 @@ import ai.snippetquiz.core_service.question.domain.Question;
 import ai.snippetquiz.core_service.question.domain.QuestionOption;
 import ai.snippetquiz.core_service.question.domain.port.QuestionOptionRepository;
 import ai.snippetquiz.core_service.question.domain.port.QuestionRepository;
+import ai.snippetquiz.core_service.question.domain.valueobject.QuestionContentEntryChunkId;
+import ai.snippetquiz.core_service.question.domain.valueobject.QuestionContentEntryQuestionChunkId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,8 +38,8 @@ public class QuestionServiceImpl implements QuestionService {
         var question = new Question();
         question.setQuestion(questionText);
         question.setType("single_choice");
-        question.setChunkIndex(chunkIndex);
-        question.setQuestionIndexInChunk(questionIndexInChunk);
+        question.setChunkIndex(new QuestionContentEntryChunkId(chunkIndex));
+        question.setQuestionIndexInChunk(new QuestionContentEntryQuestionChunkId(questionIndexInChunk));
         question.setContentEntryId(ContentEntryId.map(contentEntryId));
 
         var savedQuestion = questionRepository.save(question);

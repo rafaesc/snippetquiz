@@ -33,6 +33,7 @@ import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionRespo
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizTopicRepository;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -53,11 +54,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 @RequiredArgsConstructor
@@ -166,6 +169,7 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.findByIdAndUserId(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
 
+        // projection
         var responsePage = quizQuestionResponseRepository.findByQuiz_IdAndQuiz_UserId(quizId, userId, pageable);
 
         var formattedResponses = responsePage.map(response -> {
@@ -189,15 +193,13 @@ public class QuizServiceImpl implements QuizService {
         var quiz = quizRepository.findByIdAndUserIdWithTopics(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
 
-        List<String> topics = quiz.getQuizTopics() != null ? quiz.getQuizTopics().stream()
-                .map(QuizTopic::getTopicName)
-                .toList() : List.of();
+        Set<String> topics = quiz.getQuizTopics();
 
         var totalCorrectAnswers = quizQuestionResponseRepository.countByQuizIdAndIsCorrect(quizId, true);
 
         return new QuizSummaryResponseDto(
                 topics,
-                quiz.getQuestionsCount(),
+                quiz.getQuizQuestions().size(),
                 totalCorrectAnswers);
     }
 
@@ -269,7 +271,7 @@ public class QuizServiceImpl implements QuizService {
             }
 
             if (QuizStatus.READY_WITH_ERROR.getValue().equals(finalStatus)) {
-                quiz.setStatus(QuizStatus.READY_WITH_ERROR);
+                quiz.updateStatus(QuizStatus.READY_WITH_ERROR);
                 quizRepository.save(quiz);
             }
         }
@@ -277,7 +279,8 @@ public class QuizServiceImpl implements QuizService {
         return new CheckQuizInProgressResponse(Objects.nonNull(inProgressQuiz), inProgressQuiz);
     }
 
-    public void remove(UserId userId, QuizId quizId) {
+    @Override
+    public void delete(UserId userId, QuizId quizId) {
         var quiz = quizRepository.findByIdAndUserId(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
@@ -311,6 +314,7 @@ public class QuizServiceImpl implements QuizService {
         var quizRequest = contentEntriesResponse.request();
         var entries = quizRequest.contentEntries();
         var isReady = (isNull(entries) || entries.isEmpty());
+
         createQuizQuestions(quiz, isReady ? QuizStatus.READY : QuizStatus.PREPARE);
 
         if (isReady) {
@@ -327,8 +331,7 @@ public class QuizServiceImpl implements QuizService {
         createQuizQuestions(quiz, status);
     }
 
-    @Override
-    public void createQuizQuestions(Quiz quiz, QuizStatus status) {
+    private void createQuizQuestions(Quiz quiz, QuizStatus status) {
         var contentBankId = quiz.getContentBankId();
         var contentEntryList = contentEntryRepository.findAllByContentBankId(contentBankId);
         Map<ContentEntryId, ContentEntry> contentEntryMap = contentEntryList.stream()
@@ -343,9 +346,8 @@ public class QuizServiceImpl implements QuizService {
             return;
         }
 
-        Map<Integer, Map<Integer, Map<ContentEntryId, QuizQuestion>>> mapQuizQuestionByChunk = quizQuestionRepository
-                .findByQuizId(quiz.getId()).stream()
-                .filter(q -> q.getChunkIndex() != null && q.getQuestionIndexInChunk() != null)
+        var mapQuizQuestionByChunk = quiz.getQuizQuestions()
+                .stream()
                 .collect(Collectors.groupingBy(
                         QuizQuestion::getChunkIndex,
                         toMap(
@@ -355,13 +357,8 @@ public class QuizServiceImpl implements QuizService {
 
         var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryList.stream()
                 .map(ContentEntry::getId).toList());
-        var allTopics = topicRepository
-                .findByUserIdAndIdIn(quiz.getUserId(),
-                        contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
-                .stream()
-                .map(Topic::getTopic)
-                .toList();
 
+        List<QuizQuestion> quizQuestions = new ArrayList<>(allQuestions.size());
         for (var question : allQuestions) {
             var contentEntryId = question.getContentEntryId();
             var contentEntry = contentEntryMap.get(contentEntryId);
@@ -371,7 +368,7 @@ public class QuizServiceImpl implements QuizService {
             if (mapQuizQuestionByChunk.containsKey(chunkIndex)
                     && mapQuizQuestionByChunk.get(chunkIndex).containsKey(questionIndexInChunk)
                     && mapQuizQuestionByChunk.get(chunkIndex).get(questionIndexInChunk)
-                            .containsKey(contentEntryId)) {
+                    .containsKey(contentEntryId)) {
                 continue;
             }
 
@@ -384,46 +381,38 @@ public class QuizServiceImpl implements QuizService {
                     contentEntry != null ? contentEntry.getContentType() : ContentType.SELECTED_TEXT);
             quizQuestion.setContentEntrySourceUrl(contentEntry != null ? contentEntry.getSourceUrl() : null);
             quizQuestion.setContentEntryId(contentEntryId);
-            quizQuestion.setQuizId(quiz.getId());
-
-            quizQuestion = quizQuestionRepository.save(quizQuestion);
 
             for (var option : question.getQuestionOptions()) {
                 var quizOption = new QuizQuestionOption();
-                quizOption.setQuizQuestionId(quizQuestion.getId());
                 quizOption.setOptionText(option.getOptionText());
                 quizOption.setOptionExplanation(option.getOptionExplanation());
                 quizOption.setIsCorrect(option.getIsCorrect());
 
-                quizQuestionOptionRepository.save(quizOption);
+                quizQuestion.getQuizQuestionOptions().add(quizOption);
             }
+
+            quizQuestions.add(quizQuestion);
         }
 
-        for (var topicName : allTopics) {
-            var existingTopic = quizTopicRepository
-                    .findByQuizIdAndTopicName(quiz.getId(), topicName);
+        Set<String> quizTopics = topicRepository
+                .findByUserIdAndIdIn(quiz.getUserId(),
+                        contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
+                .stream()
+                .map(Topic::getTopic)
+                .collect(toSet());
 
-            if (existingTopic.isEmpty()) {
-                var quizTopic = new QuizTopic();
-                quizTopic.setQuizId(quiz.getId());
-                quizTopic.setTopicName(topicName);
-                quizTopicRepository.save(quizTopic);
-            }
-        }
+        quiz.addQuestions(status, contentEntryList.size(), quizTopics, quizQuestions);
 
-        quiz.setContentEntriesCount(contentEntryList.size());
-        quiz.setQuestionsCount(quizQuestionRepository.findByQuizId(quiz.getId()).size());
-        quiz.setQuestionUpdatedAt(LocalDateTime.now());
         quizRepository.save(quiz);
-
     }
 
     @Override
-    public UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, Long optionSelectedId) {
+    public UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, QuizQuestionOptionId optionSelectedId) {
         var quiz = quizRepository.findByIdAndUserIdWithQuestions(quizId, userId)
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
+        var questionsCompleted = quiz.getQuizQuestionResponses().size();
 
-        if (quiz.getQuestionsCompleted() >= quiz.getQuestionsCount()) {
+        if (questionsCompleted >= quiz.getQuizQuestions().size()) {
             return new UpdateQuizResponse(
                     "Quiz is already completed",
                     false,
@@ -431,17 +420,7 @@ public class QuizServiceImpl implements QuizService {
                     null);
         }
 
-        var sortedQuestions = quizQuestionRepository.findByQuizId(quizId, quizQuestionPageable);
-
-        if (quiz.getQuestionsCompleted() >= sortedQuestions.size()) {
-            return new UpdateQuizResponse(
-                    "Quiz is already completed",
-                    false,
-                    false,
-                    null);
-        }
-
-        var currentQuestion = sortedQuestions.get(quiz.getQuestionsCompleted());
+        var currentQuestion = quiz.getQuizQuestions().get(questionsCompleted - 1);
 
         if (isNull(currentQuestion)) {
             return new UpdateQuizResponse(
@@ -451,7 +430,7 @@ public class QuizServiceImpl implements QuizService {
                     null);
         }
 
-        var options = quizQuestionOptionRepository.findByQuizQuestionId(currentQuestion.getId());
+        var options = currentQuestion.getQuizQuestionOptions();
         var selectedOption = options.stream()
                 .filter(option -> option.getId().equals(optionSelectedId))
                 .findFirst()
@@ -481,37 +460,25 @@ public class QuizServiceImpl implements QuizService {
 
         // Create a new QuizQuestionResponse
         var response = new QuizQuestionResponse();
-        response.setUserId(userId);
-        response.setQuizId(quiz.getId());
-        response.setQuizQuestion(currentQuestion);
-        response.setQuizQuestionOption(selectedOption);
+        response.setQuizQuestion(currentQuestion.getId());
+        response.setQuizQuestionOption(selectedOption.getId());
         response.setIsCorrect(selectedOption.getIsCorrect());
         response.setCorrectAnswer(correctOption.getOptionText());
         response.setResponseTime("0");
 
-        quizQuestionResponseRepository.save(response);
-
-        // Increment Quiz.questionsCompleted
-        var updatedQuestionsCompleted = quiz.getQuestionsCompleted() + 1;
-        var isCompleted = updatedQuestionsCompleted >= quiz.getQuestionsCount() &&
-                QuizStatus.READY.equals(quiz.getStatus());
-
-        quiz.setQuestionsCompleted(updatedQuestionsCompleted);
-        if (isCompleted) {
-            quiz.setCompletedAt(LocalDateTime.now());
-        }
+        quiz.answerMarked(response);
 
         quizRepository.save(quiz);
 
         return new UpdateQuizResponse(
                 "Quiz updated successfully",
                 true,
-                isCompleted,
-                correctOption.getId());
+                quiz.getIsAllQuestionsMarked(),
+                correctOption.getId().toString());
     }
 
     private void emitCreateQuizEvent(UserId userId, QuizId quizId, ContentBankId bankId,
-            GetContentEntriesResponse contentEntriesResponse) {
+                                     GetContentEntriesResponse contentEntriesResponse) {
         try {
             var quizRequest = contentEntriesResponse.request();
             var entriesSkipped = contentEntriesResponse.entriesSkipped();

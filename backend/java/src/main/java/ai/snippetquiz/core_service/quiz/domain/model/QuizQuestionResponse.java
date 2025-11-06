@@ -1,5 +1,7 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionId;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,23 +13,9 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizQuestionResponse {
-    private Long id;
-    private QuizId quizId;
-    private UserId userId;
-    private QuizQuestion quizQuestion;
-    private QuizQuestionOption quizQuestionOption;
+    private QuizQuestionId quizQuestion;
+    private QuizQuestionOptionId quizQuestionOption;
     private Boolean isCorrect;
     private String correctAnswer;
     private String responseTime;
-
-    public QuizQuestionResponse(QuizId quizId, UserId userId, QuizQuestion quizQuestion, QuizQuestionOption quizQuestionOption,
-                                Boolean isCorrect, String correctAnswer, String responseTime) {
-        this.quizId = quizId;
-        this.userId = userId;
-        this.quizQuestion = quizQuestion;
-        this.quizQuestionOption = quizQuestionOption;
-        this.isCorrect = isCorrect;
-        this.correctAnswer = correctAnswer;
-        this.responseTime = responseTime;
-    }
 }

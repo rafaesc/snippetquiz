@@ -13,10 +13,11 @@ import ai.snippetquiz.core_service.quiz.application.find.FindOneQuizQuery;
 import ai.snippetquiz.core_service.quiz.application.findall.FindAllQuizzesQuery;
 import ai.snippetquiz.core_service.quiz.application.findresponses.FindQuizResponsesQuery;
 import ai.snippetquiz.core_service.quiz.application.findsummary.FindQuizSummaryQuery;
-import ai.snippetquiz.core_service.quiz.application.remove.RemoveQuizCommand;
+import ai.snippetquiz.core_service.quiz.application.delete.DeleteQuizCommand;
 import ai.snippetquiz.core_service.quiz.application.validate.CheckQuizInProgressQuery;
 import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.DomainError;
 import ai.snippetquiz.core_service.shared.domain.bus.command.CommandBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
@@ -96,8 +97,8 @@ public class QuizController extends ApiController {
     public UpdateQuizResponse updateQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id,
-            @PathVariable @NotNull(message = "Question option ID cannot be null") Long questionOptionId) {
-        return quizService.updateQuiz(UserId.map(userId), QuizId.map(id), questionOptionId);
+            @PathVariable @NotNull(message = "Question option ID cannot be null") String questionOptionId) {
+        return quizService.updateQuiz(UserId.map(userId), QuizId.map(id), QuizQuestionOptionId.map(questionOptionId));
     }
 
     @DeleteMapping("/{id}")
@@ -105,7 +106,7 @@ public class QuizController extends ApiController {
     public void remove(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @PathVariable String id) {
-        dispatch(new RemoveQuizCommand(UUID.fromString(userId), UUID.fromString(id)));
+        dispatch(new DeleteQuizCommand(UUID.fromString(userId), UUID.fromString(id)));
     }
 
     @GetMapping("/{id}/responses")

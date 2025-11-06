@@ -1,25 +1,31 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
-import ai.snippetquiz.core_service.question.domain.Question;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizAnswerMarkedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizCreatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
-import ai.snippetquiz.core_service.quiz.domain.events.QuizQuestionGeneratedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizQuestionsAddedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizStatusUpdatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.ContentEntryCount;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
-@Data
+import static java.util.Arrays.asList;
+
+
+@Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,47 +36,84 @@ public class Quiz extends AggregateRoot<QuizId> {
     private QuizStatus status;
     private LocalDateTime createdAt;
     private ContentEntryCount contentEntriesCount;
-    private LocalDateTime questionUpdatedAt;
-    private List<QuizTopic> quizTopics;
+    private Set<String> quizTopics;
+    private Boolean isAllQuestionsMarked;
+    private List<QuizQuestion> quizQuestions;
+    private List<QuizQuestionResponse>  quizQuestionResponses;
 
     public Quiz(QuizId quizId, UserId userId, ContentBankId contentBankId, String bankName) {
-        var now = LocalDateTime.now();
-
         record(new QuizCreatedDomainEvent(
-                quizId.getValue().toString(),
-                userId.getValue().toString(),
+                quizId.toString(),
+                userId,
                 contentBankId.getValue().toString(),
                 bankName,
-                Utils.dateToString(now),
-                0,
-                0,
-                0,
                 QuizStatus.PREPARE));
     }
 
-    public  void apply(QuizCreatedDomainEvent event ) {
+    public void apply(QuizCreatedDomainEvent event) {
         setId(QuizId.map(event.getAggregateId()));
-        setUserId(UserId.map(event.getUserId()));
-        setContentBankId(ContentBankId.map(event.getContentBankId()));
-        setBankName(event.getBankName());
-        setCreatedAt(Utils.stringToDate(event.getCreatedAt()));
-        setContentEntriesCount(new ContentEntryCount(event.getContentEntriesCount()));
-        setStatus(event.getStatus());
+        this.userId = UserId.map(event.getUserId());
+        this.contentBankId = ContentBankId.map(event.getContentBankId());
+        this.bankName = event.getBankName();
+        this.createdAt = Utils.stringToDate(event.getOccurredOn());
+        this.quizQuestionResponses = new ArrayList<>();
+        this.quizQuestions = new ArrayList<>();
+        this.status = event.getStatus();
     }
 
     public void delete() {
-        record(new QuizDeletedDomainEvent(
-            getId().getValue().toString(),
-            userId.getValue().toString()));
+        record(new QuizDeletedDomainEvent(getId().toString(), userId));
     }
 
     public void apply(QuizDeletedDomainEvent event) {
         deactivate();
     }
 
-    public void generateQuestions(List<Question> questions) {
-        record(new QuizQuestionGeneratedDomainEvent(
-                getId().getValue().toString(),
-                questions));
+    public void updateStatus(QuizStatus newStatus) {
+        record(new QuizStatusUpdatedDomainEvent(getId().toString(), userId, newStatus));
+    }
+
+    public void apply(QuizStatusUpdatedDomainEvent event) {
+        this.status = event.getStatus();
+    }
+
+    public void addQuestions(
+        QuizStatus status, 
+        Integer contentEntriesCount, 
+        Set<String> quizTopics,
+        List<QuizQuestion> quizQuestions
+    ) {
+        record(new QuizQuestionsAddedDomainEvent(
+                getId().toString(),
+                userId,
+                quizTopics,
+                status,
+                LocalDateTime.now(),
+                new ContentEntryCount(contentEntriesCount),
+                quizQuestions));
+    }
+
+    public void apply(QuizQuestionsAddedDomainEvent event) {
+        this.status = event.getStatus();
+        this.quizTopics = event.getQuizTopics();
+        this.contentEntriesCount = event.getContentEntriesCount();
+        this.quizQuestions.addAll(event.getQuizQuestions());
+    }
+
+    public void answerMarked(QuizQuestionResponse quizQuestionResponse) {
+        if (Objects.nonNull(this.isAllQuestionsMarked)) {
+            return;
+        }
+
+        var willBeAllQuestionsMarked = (getQuizQuestionResponses().size() + 1) >= getQuizQuestions().size() &&
+                asList(QuizStatus.READY, QuizStatus.READY_WITH_ERROR).contains(getStatus());
+
+        record(new QuizAnswerMarkedDomainEvent(
+                getId().toString(), userId, quizQuestionResponse, willBeAllQuestionsMarked));
+    }
+
+    public void apply(QuizAnswerMarkedDomainEvent event) {
+        this.quizQuestionResponses.add(event.getQuizQuestionResponse());
+        this.isAllQuestionsMarked = event.isAllQuestionsMarked();
     }
 }

@@ -10,5 +10,7 @@ import org.mapstruct.MappingConstants;
 public interface QuestionMapper {
     @Mapping(target = "id.value", source = "entity.id")
     @Mapping(target = "contentEntryId.value", source = "entity.contentEntryId")
+    @Mapping(target = "chunkIndex.value", source = "entity.chunkIndex")
+    @Mapping(target = "questionIndexInChunk.value", source = "entity.questionIndexInChunk")
     Question toDomain(QuestionEntity entity);
 }

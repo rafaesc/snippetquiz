@@ -5,48 +5,35 @@ import java.util.HashMap;
 
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class QuizCreatedDomainEvent extends DomainEvent {
-    private final String userId;
     private final String contentBankId;
-    private final String createdAt;
     private final String bankName;
     private final QuizStatus status;
-    private final Integer contentEntriesCount;
 
     public QuizCreatedDomainEvent(
             String aggregateId,
-            String userId,
+            UserId userId,
             String contentBankId,
             String bankName,
-            String createdAt,
-            Integer contentEntriesCount,
-            Integer questionsCount,
-            Integer questionsCompleted,
             QuizStatus status) {
-        super(aggregateId);
-        this.userId = userId;
+        super(aggregateId, userId.toString());
         this.contentBankId = contentBankId;
         this.bankName = bankName;
-        this.createdAt = createdAt;
-        this.contentEntriesCount = contentEntriesCount;
         this.status = status;
     }
 
-    public QuizCreatedDomainEvent(String aggregateId, String eventId, String occurredOn,
-            String userId, String contentBankId, String bankName, String createdAt,
-            Integer contentEntriesCount,
+    public QuizCreatedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
+            String contentBankId, String bankName,
             QuizStatus status) {
-        super(aggregateId, eventId, occurredOn);
-        this.userId = userId;
+        super(aggregateId, userId.toString(), eventId, occurredOn);
         this.contentBankId = contentBankId;
         this.bankName = bankName;
-        this.createdAt = createdAt;
-        this.contentEntriesCount = contentEntriesCount;
         this.status = status;
     }
 
@@ -58,28 +45,23 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("userId", userId);
         primitives.put("contentBankId", contentBankId);
         primitives.put("bankName", bankName);
-        primitives.put("createdAt", createdAt);
-        primitives.put("contentEntriesCount", contentEntriesCount);
         primitives.put("status", status);
         return primitives;
     }
 
     @Override
-    public QuizCreatedDomainEvent fromPrimitives(String aggregateId, HashMap<String, Serializable> body,
+    public QuizCreatedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
             String eventId,
             String occurredOn) {
         return new QuizCreatedDomainEvent(
                 aggregateId,
+                UserId.map(userId),
                 eventId,
                 occurredOn,
-                (String) body.get("userId"),
                 (String) body.get("contentBankId"),
                 (String) body.get("bankName"),
-                (String) body.get("createdAt"),
-                (Integer) body.get("contentEntriesCount"),
                 (QuizStatus) body.get("status"));
     }
 }

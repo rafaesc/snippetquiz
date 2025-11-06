@@ -3,13 +3,13 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.util.HashMap;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class ContentEntryUpdatedDomainEvent extends DomainEvent {
-    private final String userId;
     private final String content;
     private final String pageTitle;
     private final String createdAt;
@@ -17,13 +17,12 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
 
     public ContentEntryUpdatedDomainEvent(
             String aggregateId,
-            String userId,
+            UserId userId,
             String content,
             String pageTitle,
             String createdAt,
             Integer wordCount) {
-        super(aggregateId);
-        this.userId = userId;
+        super(aggregateId, userId.toString());
         this.content = content;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -32,15 +31,14 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
 
     public ContentEntryUpdatedDomainEvent(
             String aggregateId,
+            UserId userId,
             String eventId,
             String occurredOn,
-            String userId,
             String content,
             String pageTitle,
             String createdAt,
             Integer wordCount) {
-        super(aggregateId, eventId, occurredOn);
-        this.userId = userId;
+        super(aggregateId, userId.toString(), eventId, occurredOn);
         this.content = content;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -55,7 +53,6 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("userId", userId);
         primitives.put("content", content);
         primitives.put("pageTitle", pageTitle);
         primitives.put("createdAt", createdAt);
@@ -66,14 +63,15 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     @Override
     public ContentEntryUpdatedDomainEvent fromPrimitives(
             String aggregateId,
+            String userId,
             HashMap<String, Serializable> body,
             String eventId,
             String occurredOn) {
         return new ContentEntryUpdatedDomainEvent(
                 aggregateId,
+                UserId.map(userId),
                 eventId,
                 occurredOn,
-                (String) body.get("userId"),
                 (String) body.get("content"),
                 (String) body.get("pageTitle"),
                 (String) body.get("createdAt"),
