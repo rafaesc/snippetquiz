@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface JpaDomainEventRepository extends JpaRepository<DomainEventEntity, UUID> {
-    List<DomainEventEntity>  findAllByUserIdAndAggregateIdAndAggregateType(UUID userId, UUID aggregateId, String aggregateType);
+    List<DomainEventEntity> findAllByUserIdAndAggregateId(UUID userId, UUID aggregateId);
 }

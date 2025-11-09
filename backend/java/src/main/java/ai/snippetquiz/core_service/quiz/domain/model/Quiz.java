@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Arrays.asList;
 
 
@@ -38,6 +39,7 @@ public class Quiz extends AggregateRoot<QuizId> {
     private ContentEntryCount contentEntriesCount;
     private Set<String> quizTopics;
     private Boolean isAllQuestionsMarked;
+    private LocalDateTime questionUpdatedAt;
     private List<QuizQuestion> quizQuestions;
     private List<QuizQuestionResponse>  quizQuestionResponses;
 
@@ -98,6 +100,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         this.quizTopics = event.getQuizTopics();
         this.contentEntriesCount = event.getContentEntriesCount();
         this.quizQuestions.addAll(event.getQuizQuestions());
+        this.questionUpdatedAt = event.getUpdatedAt();
     }
 
     public void answerMarked(QuizQuestionResponse quizQuestionResponse) {

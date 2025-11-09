@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import lombok.Getter;
+import lombok.Setter;
 
 public abstract class DomainEvent {
     @Getter
@@ -15,7 +16,11 @@ public abstract class DomainEvent {
     private String userId;
     private String eventId;
     @Getter
+    @Setter
     private String occurredOn;
+    @Getter
+    @Setter
+    private int version;
 
     public DomainEvent(String aggregateId, String userId) {
         this.aggregateId = aggregateId;
