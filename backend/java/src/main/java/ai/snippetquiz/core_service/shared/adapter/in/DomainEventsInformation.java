@@ -41,11 +41,11 @@ public final class DomainEventsInformation {
 
         for (var event : domainEvents) {
             try {
-                var method = event.getDeclaredMethod("eventId");
+                var method = event.getDeclaredMethod("eventName");
                 method.setAccessible(true);
-                String eventId = (String) method.invoke(event);
+                String eventName = (String) method.invoke(event);
 
-                events.put(eventId, event);
+                events.put(eventName, event);
             } catch (NoSuchMethodException e) {
                 log.error(MessageFormat.format("The eventId method was not found in the domain event for {0}", event.getName()));
             } catch (Exception e) {

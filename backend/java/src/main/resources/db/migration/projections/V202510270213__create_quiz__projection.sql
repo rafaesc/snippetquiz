@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS quiz__projection (
     id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    content_bank_id UUID NOT NULL,
+    bank_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     questions_count INTEGER NOT NULL DEFAULT 0,
     questions_completed INTEGER NOT NULL DEFAULT 0,

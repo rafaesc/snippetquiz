@@ -21,8 +21,7 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
         super(aggregateId, userId.toString(), eventId, occurredOn);
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "content_entry.deleted";
     }
 

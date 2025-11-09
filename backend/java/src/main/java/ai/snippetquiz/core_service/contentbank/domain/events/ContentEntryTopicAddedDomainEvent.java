@@ -35,8 +35,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
         this.updatedAt = updatedAt;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "content_entry.updated";
     }
 

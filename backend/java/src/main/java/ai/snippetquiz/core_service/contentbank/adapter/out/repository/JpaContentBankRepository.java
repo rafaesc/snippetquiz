@@ -30,8 +30,6 @@ public interface JpaContentBankRepository extends JpaRepository<ContentBankEntit
     Optional<ContentBankEntity> findByUserIdAndNameAndIdNot(UUID userId, String name, UUID excludeId);
 
     @Query("SELECT DISTINCT cb FROM ContentBankEntity cb " +
-            "INNER JOIN FETCH cb.contentEntryBanks ceb " +
-            "INNER JOIN FETCH ceb.contentEntry ce " +
-            "WHERE cb.id = :id AND cb.userId = :userId")
+            "WHERE cb.id = :id AND cb.userId = :userId and cb.contentEntries is not empty")
     Optional<ContentBankEntity> findByIdAndUserIdWithContentEntries(@Param("id") UUID id, @Param("userId") UUID userId);
 }

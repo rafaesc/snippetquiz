@@ -27,8 +27,7 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
         this.updatedAt = updatedAt;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "content_bank.renamed";
     }
 

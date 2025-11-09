@@ -56,8 +56,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
         this.quizQuestions = quizQuestions;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "quiz.questions.added";
     }
 

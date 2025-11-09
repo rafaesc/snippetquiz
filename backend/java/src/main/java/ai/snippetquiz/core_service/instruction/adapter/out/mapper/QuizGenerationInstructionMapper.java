@@ -10,6 +10,8 @@ import org.mapstruct.MappingConstants;
 public interface QuizGenerationInstructionMapper {
     @Mapping(target = "id.value", source = "entity.id")
     @Mapping(target = "userId.value", source = "entity.userId")
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "uncommittedChanges", ignore = true)
     QuizGenerationInstruction toDomain(QuizGenerationInstructionEntity entity);
     
     @Mapping(target = "id", source = "domain.id.value")
