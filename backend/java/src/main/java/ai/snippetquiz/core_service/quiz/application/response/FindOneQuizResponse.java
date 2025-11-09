@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.quiz.application.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import ai.snippetquiz.core_service.shared.domain.bus.query.Response;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,6 @@ public class FindOneQuizResponse implements Response {
     private Integer questionsCompleted;
     private String status;
     private Integer contentEntriesCount;
-    private List<String> topics;
+    private Set<String> topics;
     private QuizQuestionDTOResponse question;
 }

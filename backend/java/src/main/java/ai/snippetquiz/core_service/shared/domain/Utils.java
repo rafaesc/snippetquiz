@@ -3,12 +3,16 @@ package ai.snippetquiz.core_service.shared.domain;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @UtilityClass
 public class Utils {
@@ -45,6 +49,12 @@ public class Utils {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error deserializing JSON with TypeReference ", e);
         }
+    }
+
+    public static <T> Page<T> paginateList(final Pageable pageable, List<T> list) {
+        int first = Math.min(Long.valueOf(pageable.getOffset()).intValue(), list.size());;
+        int last = Math.min(first + pageable.getPageSize(), list.size());
+        return new PageImpl<>(list.subList(first, last), pageable, list.size());
     }
 
     public static ObjectMapper getMapper() {

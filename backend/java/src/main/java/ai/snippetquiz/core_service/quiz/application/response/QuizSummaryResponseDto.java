@@ -11,5 +11,5 @@ import java.util.Set;
 public class QuizSummaryResponseDto implements Response {
     Set<String> topics;
     Integer totalQuestions;
-    Integer totalCorrectAnswers;
+    Long totalCorrectAnswers;
 }

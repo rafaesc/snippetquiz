@@ -27,15 +27,11 @@ import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizTopic;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.CreateQuizEventPublisher;
-import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionOptionRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizQuestionResponseRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
-import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizTopicRepository;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
+import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.ConflictException;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
@@ -43,9 +39,7 @@ import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +52,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static ai.snippetquiz.core_service.shared.domain.Utils.paginateList;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -67,21 +62,14 @@ import static java.util.stream.Collectors.toSet;
 @Transactional
 @Slf4j
 public class QuizServiceImpl implements QuizService {
-    private final QuizRepository quizRepository;
-    private final QuizQuestionRepository quizQuestionRepository;
-    private final QuizQuestionResponseRepository quizQuestionResponseRepository;
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryRepository contentEntryRepository;
-    private final QuizQuestionOptionRepository quizQuestionOptionRepository;
     private final QuizGenerationInstructionRepository quizGenerationInstructionRepository;
-    private final QuizTopicRepository quizTopicRepository;
     private final QuestionRepository questionRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final TopicRepository topicRepository;
     private final CreateQuizEventPublisher createQuizEventPublisher;
-
-    private final Pageable quizQuestionPageable = PageRequest.of(0, Integer.MAX_VALUE,
-            Sort.by(Sort.Direction.ASC, "id"));
+    private final EventSourcingHandler<Quiz> quizEventSourcingHandler;
 
     private String getFinalStatus(Quiz quiz) {
         String finalStatus = quiz.getStatus().getValue();
@@ -116,37 +104,37 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public FindOneQuizResponse findOne(UserId userId, QuizId quizId) {
-        var quiz = quizRepository.findByIdAndUserIdWithTopics(quizId, userId)
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
                 .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
 
-        List<String> topics = quiz.getQuizTopics() != null ? quiz.getQuizTopics().stream()
-                .map(QuizTopic::getTopicName).toList() : List.of();
+        Set<String> topics = quiz.getQuizTopics();
+        var totalQuestionCompleted = quiz.getQuizQuestionResponses().size();
+        var totalQuestions = quiz.getQuizQuestions().size();
 
-        var sortedQuestions = quizQuestionRepository.findByQuizId(quizId, quizQuestionPageable);
-        if (sortedQuestions.isEmpty()) {
+        if (totalQuestions == 0) {
             return new FindOneQuizResponse(
                     quiz.getId().toString(),
                     quiz.getBankName(),
                     quiz.getCreatedAt(),
-                    quiz.getQuestionsCount(),
-                    quiz.getQuestionsCompleted(),
+                    totalQuestions,
+                    totalQuestionCompleted,
                     getFinalStatus(quiz),
-                    quiz.getContentEntriesCount(),
+                    quiz.getContentEntriesCount().getValue(),
                     topics,
                     null);
         }
 
         QuizQuestionDTOResponse currentQuestionDto = null;
-        if (quiz.getQuestionsCompleted() < sortedQuestions.size()) {
-            var currentQuestion = sortedQuestions.get(quiz.getQuestionsCompleted());
-            var options = quizQuestionOptionRepository.findByQuizQuestionId(currentQuestion.getId()).stream()
+        if (totalQuestionCompleted < totalQuestions) {
+            var currentQuestion = quiz.getQuizQuestions().get(totalQuestionCompleted);
+            var options = currentQuestion.getQuizQuestionOptions().stream()
                     .map(option -> new QuizQuestionOptionDTOResponse(
-                            option.getId(),
+                            option.getId().toString(),
                             option.getOptionText()))
                     .toList();
 
             currentQuestionDto = new QuizQuestionDTOResponse(
-                    currentQuestion.getId(),
+                    currentQuestion.getId().toString(),
                     currentQuestion.getQuestion(),
                     options);
         }
@@ -155,34 +143,46 @@ public class QuizServiceImpl implements QuizService {
                 quiz.getId().toString(),
                 quiz.getBankName(),
                 quiz.getCreatedAt(),
-                quiz.getQuestionsCount(),
-                quiz.getQuestionsCompleted(),
+                totalQuestions,
+                totalQuestionCompleted,
                 getFinalStatus(quiz),
-                quiz.getContentEntriesCount(),
+                quiz.getContentEntriesCount().getValue(),
                 topics,
                 currentQuestionDto);
     }
 
     @Transactional(readOnly = true)
     public PagedModelResponse<QuizResponseItemDto> findQuizResponses(UserId userId, QuizId quizId, Pageable pageable) {
-
-        quizRepository.findByIdAndUserId(quizId, userId)
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
+        var questionsByQuestionId = quiz.getQuizQuestions().stream()
+                .collect(Collectors.toMap(QuizQuestion::getId, Function.identity()));
 
         // projection
-        var responsePage = quizQuestionResponseRepository.findByQuiz_IdAndQuiz_UserId(quizId, userId, pageable);
+        var responsePage = paginateList(pageable, quiz.getQuizQuestionResponses());
 
         var formattedResponses = responsePage.map(response -> {
-            var question = response.getQuizQuestion();
-            var selectedOption = response.getQuizQuestionOption();
+            var question = questionsByQuestionId.get(response.getQuizQuestion());
+
+            if (Objects.isNull(question)) {
+                throw new NotFoundException("Quiz question not found " + quizId);
+            }
+
+            var selectedOption = question.getQuizQuestionOptions().stream().filter(
+                    option -> response.getQuizQuestionOption().toString().equals(option.getOptionText())
+            ).findFirst();
+
+            if (selectedOption.isEmpty()) {
+                throw new NotFoundException("Quiz question option not found " + quizId);
+            }
 
             return new QuizResponseItemDto(
                     response.getIsCorrect(),
-                    question != null ? question.getQuestion() : "",
-                    selectedOption != null ? selectedOption.getOptionText() : "",
+                    question.getQuestion(),
+                    selectedOption.get().getOptionText(),
                     response.getCorrectAnswer(),
-                    selectedOption != null ? selectedOption.getOptionExplanation() : "",
-                    question != null ? question.getContentEntrySourceUrl() : "");
+                    selectedOption.get().getOptionExplanation(),
+                    question.getContentEntrySourceUrl());
         });
 
         return new PagedModelResponse<>(formattedResponses);
@@ -190,12 +190,12 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public QuizSummaryResponseDto findQuizSummary(QuizId quizId, UserId userId) {
-        var quiz = quizRepository.findByIdAndUserIdWithTopics(quizId, userId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
+                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
 
         Set<String> topics = quiz.getQuizTopics();
 
-        var totalCorrectAnswers = quizQuestionResponseRepository.countByQuizIdAndIsCorrect(quizId, true);
+        var totalCorrectAnswers = quiz.getQuizQuestionResponses().stream().filter(QuizQuestionResponse::getIsCorrect).count();
 
         return new QuizSummaryResponseDto(
                 topics,
@@ -281,11 +281,10 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public void delete(UserId userId, QuizId quizId) {
-        var quiz = quizRepository.findByIdAndUserId(quizId, userId)
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
                 .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
         quiz.delete();
-        quizRepository.delete(quiz);
     }
 
     @Override
@@ -301,13 +300,12 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or you do not have permission to access it"));
 
-        quizRepository.findById(quizId)
+        quizEventSourcingHandler.getById(userId, quizId.toString())
                 .ifPresent(quiz -> {
                     throw new ConflictException("Quiz already exists");
                 });
 
         var quiz = new Quiz(quizId, userId, contentBank.getId(), contentBank.getName());
-        quiz = quizRepository.save(quiz);
 
         var contentEntriesResponse = getContentEntriesByBankId(
                 contentBank.getId(), userId);
@@ -343,6 +341,7 @@ public class QuizServiceImpl implements QuizService {
                 .map(ContentEntry::getId).toList());
 
         if (allQuestions.isEmpty()) {
+            quizEventSourcingHandler.save(quiz);
             return;
         }
 
@@ -403,12 +402,12 @@ public class QuizServiceImpl implements QuizService {
 
         quiz.addQuestions(status, contentEntryList.size(), quizTopics, quizQuestions);
 
-        quizRepository.save(quiz);
+        quizEventSourcingHandler.save(quiz);
     }
 
     @Override
     public UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, QuizQuestionOptionId optionSelectedId) {
-        var quiz = quizRepository.findByIdAndUserIdWithQuestions(quizId, userId)
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
         var questionsCompleted = quiz.getQuizQuestionResponses().size();
 
@@ -468,7 +467,7 @@ public class QuizServiceImpl implements QuizService {
 
         quiz.answerMarked(response);
 
-        quizRepository.save(quiz);
+        quizEventSourcingHandler.save(quiz);
 
         return new UpdateQuizResponse(
                 "Quiz updated successfully",
