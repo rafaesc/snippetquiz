@@ -45,8 +45,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
         this.wordCount = wordCount;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "content_entry.topic_added";
     }
 

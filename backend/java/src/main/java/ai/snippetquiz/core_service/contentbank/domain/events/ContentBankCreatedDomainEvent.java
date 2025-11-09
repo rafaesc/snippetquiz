@@ -27,8 +27,7 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
         this.createdAt = createdAt;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "content_bank.created";
     }
 

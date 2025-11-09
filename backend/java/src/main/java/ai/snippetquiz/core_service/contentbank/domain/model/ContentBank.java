@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.domain.model;
 
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

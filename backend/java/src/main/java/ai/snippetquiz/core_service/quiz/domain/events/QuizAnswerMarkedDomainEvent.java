@@ -34,8 +34,8 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
         this.isAllQuestionsMarked = isAllQuestionsMarked;
     }
 
-    @Override
-    public String eventName() {
+
+    public static String eventName() {  
         return "quiz.answer.marked";
     }
 

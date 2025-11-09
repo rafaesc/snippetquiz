@@ -24,13 +24,11 @@ public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEnt
     Optional<ContentEntryEntity> findByIdAndUserId(UUID id, UUID userId);
 
     @Query("SELECT COUNT(ce) FROM ContentEntryEntity ce " +
-            "JOIN ContentEntryBankEntity ceb ON ce.id = ceb.contentEntry.id " +
-            "WHERE ceb.contentBank.id = :contentBankId")
+            "WHERE ce.contentBankId = :contentBankId")
     long countByContentBankId(@Param("contentBankId") UUID contentBankId);
 
     @Query("SELECT ce FROM ContentEntryEntity ce " +
-            "JOIN ContentEntryBankEntity ceb ON ce.id = ceb.contentEntry.id " +
-            "WHERE ce.sourceUrl = :sourceUrl AND ce.contentType = :contentType AND ceb.contentBank.id = :contentBankId " +
+            "WHERE ce.sourceUrl = :sourceUrl AND ce.contentType = :contentType AND ce.contentBankId = :contentBankId " +
             "ORDER BY ce.createdAt DESC LIMIT 1")
     Optional<ContentEntryEntity> findBySourceUrlAndContentTypeAndContentBankId(
             @Param("sourceUrl") String sourceUrl,

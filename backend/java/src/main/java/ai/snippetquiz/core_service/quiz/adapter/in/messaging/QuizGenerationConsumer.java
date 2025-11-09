@@ -8,10 +8,10 @@ import ai.snippetquiz.core_service.question.application.dto.CreateQuestionReques
 import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
 import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload;
+import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.SendFanoutMessageQuizLoadingEvent;
-import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizRepository;
-import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class QuizGenerationConsumer {
 
     private final ObjectMapper objectMapper;
-    private final QuizRepository quizRepository;
+    private final EventSourcingHandler<Quiz> quizEventSourcingHandler;
     private final QuizService quizService;
     private final ContentEntryRepository contentEntryRepository;
     private final QuestionService questionService;
@@ -56,7 +56,7 @@ public class QuizGenerationConsumer {
         try {
             var userId = UUID.fromString(data.userId());
             var quizId = data.quizId();
-            var quiz = quizRepository.findById(QuizId.map(quizId))
+            var quiz = quizEventSourcingHandler.getById(new UserId(userId), quizId)
                     .orElseThrow(() -> new NotFoundException(
                             "Quiz not found or you do not have permission to access it"));
 

@@ -23,8 +23,7 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
         super(aggregateId, userId.toString(), eventId, occurredOn);
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "quiz.deleted";
     }
 

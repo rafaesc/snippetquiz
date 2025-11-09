@@ -7,7 +7,6 @@ import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;

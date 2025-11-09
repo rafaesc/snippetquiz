@@ -39,8 +39,6 @@ public abstract class DomainEvent {
     protected DomainEvent() {
     }
 
-    public abstract String eventName();
-
     public abstract HashMap<String, Serializable> toPrimitives();
 
     public abstract DomainEvent fromPrimitives(

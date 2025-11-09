@@ -25,11 +25,12 @@ import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionOption;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
-import ai.snippetquiz.core_service.quiz.domain.model.QuizTopic;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.CreateQuizEventPublisher;
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizProjectionRepository;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -37,6 +38,7 @@ import ai.snippetquiz.core_service.shared.exception.ConflictException;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -70,12 +72,13 @@ public class QuizServiceImpl implements QuizService {
     private final TopicRepository topicRepository;
     private final CreateQuizEventPublisher createQuizEventPublisher;
     private final EventSourcingHandler<Quiz> quizEventSourcingHandler;
+    private final QuizProjectionRepository quizProjectionRepository;
 
-    private String getFinalStatus(Quiz quiz) {
-        String finalStatus = quiz.getStatus().getValue();
-        if (QuizStatus.IN_PROGRESS.getValue().equals(finalStatus) && quiz.getQuestionUpdatedAt() != null) {
-            LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
-            if (quiz.getQuestionUpdatedAt().isBefore(thirtyMinutesAgo)) {
+    private String getFinalStatus(QuizStatus quizStatus, LocalDateTime questionUpdatedAt) {
+        String finalStatus = quizStatus.getValue();
+        if (QuizStatus.IN_PROGRESS.getValue().equals(finalStatus) && questionUpdatedAt != null) {
+            var thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+            if (questionUpdatedAt.isBefore(thirtyMinutesAgo)) {
                 finalStatus = QuizStatus.READY_WITH_ERROR.getValue();
             }
         }
@@ -84,18 +87,18 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public PagedModelResponse<QuizResponse> findAll(UserId userId, Pageable pageable) {
-        var quizPage = quizRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        var quizPage = quizProjectionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         var quizResponses = quizPage.map(quiz -> {
-            List<String> topics = Objects.nonNull(quiz.getQuizTopics()) ? quiz.getQuizTopics().stream()
-                    .map(QuizTopic::getTopicName)
-                    .toList() : List.of();
+            List<String> topics = Utils.fromJson(quiz.getTopics(), new TypeReference<>() {
+            });
+
             return new QuizResponse(
                     quiz.getId().toString(),
                     quiz.getBankName(),
                     quiz.getCreatedAt(),
                     quiz.getQuestionsCount(),
                     quiz.getQuestionsCompleted(),
-                    getFinalStatus(quiz),
+                    getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
                     quiz.getContentEntriesCount(),
                     topics);
         });
@@ -118,7 +121,7 @@ public class QuizServiceImpl implements QuizService {
                     quiz.getCreatedAt(),
                     totalQuestions,
                     totalQuestionCompleted,
-                    getFinalStatus(quiz),
+                    getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
                     quiz.getContentEntriesCount().getValue(),
                     topics,
                     null);
@@ -145,7 +148,7 @@ public class QuizServiceImpl implements QuizService {
                 quiz.getCreatedAt(),
                 totalQuestions,
                 totalQuestionCompleted,
-                getFinalStatus(quiz),
+                getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
                 quiz.getContentEntriesCount().getValue(),
                 topics,
                 currentQuestionDto);
@@ -251,7 +254,7 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional(readOnly = true)
     public CheckQuizInProgressResponse checkQuizInProgress(UserId userId) {
-        var inProgressQuizzes = quizRepository.findAllByUserIdAndStatus(userId,
+        var inProgressQuizzes = quizProjectionRepository.findAllByUserIdAndStatus(userId,
                 QuizStatus.IN_PROGRESS);
 
         if (inProgressQuizzes.isEmpty()) {
@@ -260,19 +263,21 @@ public class QuizServiceImpl implements QuizService {
 
         QuizInProgressDetails inProgressQuiz = null;
 
-        for (var quiz : inProgressQuizzes) {
-            var finalStatus = getFinalStatus(quiz);
+        for (var quizProjection : inProgressQuizzes) {
+            var finalStatus = getFinalStatus(quizProjection.getStatus(), quizProjection.getQuestionUpdatedAt());
 
-            if (QuizStatus.PREPARE.equals(quiz.getStatus()) || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
+            if (QuizStatus.PREPARE.equals(quizProjection.getStatus()) || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
                 inProgressQuiz = new QuizInProgressDetails(
-                        quiz.getId().toString(),
-                        quiz.getContentBankId() != null ? quiz.getContentBankId().toString() : null,
-                        quiz.getBankName());
+                        quizProjection.getId().toString(),
+                        quizProjection.getContentBankId() != null ? quizProjection.getContentBankId().toString() : null,
+                        quizProjection.getBankName());
             }
 
             if (QuizStatus.READY_WITH_ERROR.getValue().equals(finalStatus)) {
+                var quiz = quizEventSourcingHandler.getById(userId, quizProjection.getId().toString())
+                        .orElseThrow(() -> new NotFoundException("Quiz not found " + quizProjection.getId()));
                 quiz.updateStatus(QuizStatus.READY_WITH_ERROR);
-                quizRepository.save(quiz);
+                quizEventSourcingHandler.save(quiz);
             }
         }
 

@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "content_banks" (
+CREATE TABLE IF NOT EXISTS "content_banks" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "name" TEXT NOT NULL,
@@ -13,7 +13,7 @@ CREATE INDEX "content_banks_user_id_prefix_idx"
 ON "content_banks" (LEFT("user_id"::text, 4));
 
 -- CreateTable
-CREATE TABLE "topics" (
+CREATE TABLE IF NOT EXISTS "topics" (
     "id" BIGSERIAL NOT NULL,
     "user_id" UUID NOT NULL,
     "topic" TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE "topics" (
 );
 
 -- CreateTable
-CREATE TABLE "youtube_channels" (
+CREATE TABLE IF NOT EXISTS "youtube_channels" (
     "id" BIGSERIAL NOT NULL,
     "channel_id" TEXT NOT NULL,
     "channel_name" TEXT NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE "youtube_channels" (
 );
 
 -- CreateTable
-CREATE TABLE "content_entries" (
+CREATE TABLE IF NOT EXISTS "content_entries" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "content_bank_id" UUID NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE "content_entries" (
 );
 
 -- CreateTable
-CREATE TABLE "questions" (
+CREATE TABLE IF NOT EXISTS "questions" (
     "id" BIGSERIAL NOT NULL,
     "question" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -75,7 +75,7 @@ CREATE INDEX "questions_content_entry_id_prefix_idx"
 ON "questions" (LEFT("content_entry_id"::text, 4));
 
 -- CreateTable
-CREATE TABLE "question_options" (
+CREATE TABLE IF NOT EXISTS "question_options" (
     "id" BIGSERIAL NOT NULL,
     "question_id" BIGINT NOT NULL,
     "option_text" TEXT NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE "question_options" (
 );
 
 -- CreateTable
-CREATE TABLE "quiz_generation_instructions" (
+CREATE TABLE IF NOT EXISTS "quiz_generation_instructions" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "instruction" TEXT NOT NULL,
     "user_id" UUID NOT NULL,
@@ -99,7 +99,7 @@ CREATE INDEX "quiz_generation_instructions_user_id_prefix_idx"
 ON "quiz_generation_instructions" (LEFT("user_id"::text, 4));
 
 -- CreateTable
-CREATE TABLE "content_entry_topics" (
+CREATE TABLE IF NOT EXISTS "content_entry_topics" (
     "id" BIGSERIAL NOT NULL,
     "content_entry_id" UUID NOT NULL,
     "topic_id" BIGINT NOT NULL,
@@ -130,9 +130,6 @@ ALTER TABLE "questions" ADD CONSTRAINT "questions_content_entry_id_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "question_options" ADD CONSTRAINT "question_options_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "questions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "content_entries_bank" ADD CONSTRAINT "content_entries_bank_content_entry_id_fkey" FOREIGN KEY ("content_entry_id") REFERENCES "content_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "content_entries" ADD CONSTRAINT "content_entries_content_bank_id_fkey" FOREIGN KEY ("content_bank_id") REFERENCES "content_banks"("id") ON DELETE CASCADE ON UPDATE CASCADE;

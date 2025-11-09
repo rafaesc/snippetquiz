@@ -80,8 +80,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.youtubeChannelId = youtubeChannelId;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "content_entry.created";
     }
 

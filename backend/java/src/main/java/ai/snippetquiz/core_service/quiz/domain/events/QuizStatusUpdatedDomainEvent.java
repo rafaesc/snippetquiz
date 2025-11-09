@@ -25,8 +25,7 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent implements Deactiv
         this.status = status;
     }
 
-    @Override
-    public String eventName() {
+    public static String eventName() {
         return "quiz.status.updated";
     }
 
