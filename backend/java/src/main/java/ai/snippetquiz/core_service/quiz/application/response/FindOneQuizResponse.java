@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.quiz.application.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 import ai.snippetquiz.core_service.shared.domain.bus.query.Response;

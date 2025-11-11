@@ -22,6 +22,7 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
     private final JpaDomainEventRepository jpaDomainEventRepository;
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, String aggregateId) {
         var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(), UUID.fromString(aggregateId));

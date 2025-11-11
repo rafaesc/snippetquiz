@@ -1,8 +1,10 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
@@ -12,16 +14,16 @@ import lombok.Getter;
 @EqualsAndHashCode(callSuper = true)
 public class ContentBankCreatedDomainEvent extends DomainEvent {
     private final String name;
-    private final String createdAt;
+    private final LocalDateTime createdAt;
 
-    public ContentBankCreatedDomainEvent(String aggregateId, UserId userId, String name, String createdAt) {
+    public ContentBankCreatedDomainEvent(String aggregateId, UserId userId, String name, LocalDateTime createdAt) {
         super(aggregateId, userId.toString());
         this.name = name;
         this.createdAt = createdAt;
     }
 
     public ContentBankCreatedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
-            String name, String createdAt) {
+            String name, LocalDateTime createdAt) {
         super(aggregateId, userId.toString(), eventId, occurredOn);
         this.name = name;
         this.createdAt = createdAt;
@@ -35,7 +37,7 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
         primitives.put("name", name);
-        primitives.put("createdAt", createdAt);
+        primitives.put("createdAt", Utils.dateToString(createdAt));
         return primitives;
     }
 
@@ -49,6 +51,6 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 (String) body.get("name"),
-                (String) body.get("createdAt"));
+                Utils.stringToDate((String) body.get("createdAt")));
     }
 }

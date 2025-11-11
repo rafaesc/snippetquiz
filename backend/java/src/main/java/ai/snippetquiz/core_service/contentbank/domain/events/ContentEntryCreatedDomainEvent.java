@@ -1,7 +1,9 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
@@ -15,7 +17,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     private final String content;
     private final String sourceUrl;
     private final String pageTitle;
-    private final String createdAt;
+    private final LocalDateTime createdAt;
     private final Integer wordCount;
     private final Integer videoDuration;
     private final String youtubeVideoId;
@@ -30,7 +32,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String content,
             String sourceUrl,
             String pageTitle,
-            String createdAt,
+            LocalDateTime createdAt,
             Integer wordCount,
             Integer videoDuration,
             String youtubeVideoId,
@@ -60,7 +62,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String content,
             String sourceUrl,
             String pageTitle,
-            String createdAt,
+            LocalDateTime createdAt,
             Integer wordCount,
             Integer videoDuration,
             String youtubeVideoId,
@@ -92,7 +94,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         primitives.put("content", content);
         primitives.put("sourceUrl", sourceUrl);
         primitives.put("pageTitle", pageTitle);
-        primitives.put("createdAt", createdAt);
+        primitives.put("createdAt", Utils.dateToString(createdAt));
         primitives.put("wordCount", wordCount);
         primitives.put("videoDuration", videoDuration);
         primitives.put("youtubeVideoId", youtubeVideoId);
@@ -118,7 +120,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 (String) body.get("content"),
                 (String) body.get("sourceUrl"),
                 (String) body.get("pageTitle"),
-                (String) body.get("createdAt"),
+                Utils.stringToDate((String) body.get("createdAt")),
                 (int) body.get("wordCount"),
                 (Integer) body.get("videoDuration"),
                 (String) body.get("youtubeVideoId"),

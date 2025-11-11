@@ -8,7 +8,6 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
@@ -22,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -52,6 +52,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     public ContentEntry(UserId userId, ContentBankId contentBankId, ContentType type, String processedContent, String sourceUrl,
             String pageTitle, Integer youtubeVideoDuration, String youtubeVideoId, 
             YoutubeChannel youtubeChannel) {
+        var contentEntryId = UUID.randomUUID();
         var now = LocalDateTime.now();
         Integer wordCount = null;
 
@@ -64,14 +65,14 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         }
 
         record(new ContentEntryCreatedDomainEvent(
-                getId().getValue().toString(),
+                contentEntryId.toString(),
                 userId,
-                contentBankId.getValue().toString(),
+                contentBankId.toString(),
                 type.toString(),
                 processedContent,
                 sourceUrl,
                 pageTitle,
-                Utils.dateToString(now),
+                now,
                 wordCount,
                 youtubeVideoDuration,
                 youtubeVideoId,
@@ -82,11 +83,12 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     public void apply(ContentEntryCreatedDomainEvent event) {
         this.setId(ContentEntryId.map(event.getAggregateId()));
         this.userId = UserId.map(event.getUserId());
+        this.contentBankId = ContentBankId.map(event.getContentBankId());
         this.contentType = ContentType.valueOf(event.getContentType());
         this.content = event.getContent();
         this.sourceUrl = event.getSourceUrl();
         this.pageTitle = event.getPageTitle();
-        this.createdAt = Utils.stringToDate(event.getCreatedAt());
+        this.createdAt = event.getCreatedAt();
         this.questionsGenerated = false;
         this.wordCount = event.getWordCount();
         this.videoDuration = event.getVideoDuration();
@@ -106,14 +108,14 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 userId,
                 content,
                 pageTitle,
-                Utils.dateToString(now),
+                now,
                 wordCount));
     }
 
     public void apply(ContentEntryUpdatedDomainEvent event) {
         this.content = event.getContent();
         this.pageTitle = event.getPageTitle();
-        this.createdAt = Utils.stringToDate(event.getCreatedAt());
+        this.createdAt = event.getCreatedAt();
         this.wordCount = event.getWordCount();
     }
 
@@ -123,10 +125,11 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
             getId().getValue().toString(),
             userId,
             Topic.toJson(new HashSet<>(topics)),
-            Utils.dateToString(now)));
+            now));
     }
 
     public void apply(ContentEntryTopicAddedDomainEvent event) {
+        this.createdAt = event.getUpdatedAt();
     }
 
     public void delete() {

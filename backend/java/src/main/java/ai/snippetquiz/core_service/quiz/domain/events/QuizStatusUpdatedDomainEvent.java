@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
-public class QuizStatusUpdatedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
+public class QuizStatusUpdatedDomainEvent extends DomainEvent {
     private final QuizStatus status;
 
     public QuizStatusUpdatedDomainEvent(String aggregateId, UserId userId, QuizStatus status) {

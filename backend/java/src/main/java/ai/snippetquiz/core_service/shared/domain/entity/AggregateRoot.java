@@ -17,19 +17,11 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
     @Setter
     private int version = -1;
     private boolean active = true;
-    private List<DomainEvent> domainEvents = new ArrayList<>();
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
     private final Logger logger = Logger.getLogger(AggregateRoot.class.getName());
 
     protected void deactivate() {
         this.active = false;
-    }
-
-    final public List<DomainEvent> pullDomainEvents() {
-        List<DomainEvent> events = domainEvents;
-
-        domainEvents = Collections.emptyList();
-
-        return events;
     }
 
     final protected void record(DomainEvent event) {
