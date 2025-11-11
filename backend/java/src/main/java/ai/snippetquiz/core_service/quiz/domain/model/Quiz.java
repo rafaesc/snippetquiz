@@ -8,10 +8,8 @@ import ai.snippetquiz.core_service.quiz.domain.events.QuizQuestionsAddedDomainEv
 import ai.snippetquiz.core_service.quiz.domain.events.QuizStatusUpdatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.ContentEntryCount;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

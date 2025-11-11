@@ -1,7 +1,6 @@
 package ai.snippetquiz.core_service.quiz.domain.events;
 
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DeactivationDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
