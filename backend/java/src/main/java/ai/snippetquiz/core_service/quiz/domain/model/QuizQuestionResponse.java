@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
-import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

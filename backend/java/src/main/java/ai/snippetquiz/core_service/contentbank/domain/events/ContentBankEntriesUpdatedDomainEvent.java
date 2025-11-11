@@ -1,8 +1,10 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
@@ -12,16 +14,16 @@ import lombok.Getter;
 @EqualsAndHashCode(callSuper = true)
 public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     private final String contentEntries;
-    private final String updatedAt;
+    private final LocalDateTime updatedAt;
 
-    public ContentBankEntriesUpdatedDomainEvent(String aggregateId, UserId userId, String contentEntries, String updatedAt) {
+    public ContentBankEntriesUpdatedDomainEvent(String aggregateId, UserId userId, String contentEntries, LocalDateTime updatedAt) {
         super(aggregateId, userId.toString());
         this.contentEntries = contentEntries;
         this.updatedAt = updatedAt;
     }
 
     public ContentBankEntriesUpdatedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
-            String contentEntries, String updatedAt) {
+            String contentEntries, LocalDateTime updatedAt) {
         super(aggregateId, userId.toString(), eventId, occurredOn);
         this.contentEntries = contentEntries;
         this.updatedAt = updatedAt;
@@ -35,7 +37,7 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
         primitives.put("contentEntries", contentEntries);
-        primitives.put("updatedAt", updatedAt);
+        primitives.put("updatedAt", Utils.dateToString(updatedAt));
         return primitives;
     }
 
@@ -49,6 +51,6 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 (String) body.get("contentEntries"),
-                (String) body.get("updatedAt"));
+                Utils.stringToDate((String) body.get("updatedAt")));
     }
 }

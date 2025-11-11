@@ -1,5 +1,12 @@
 package ai.snippetquiz.core_service.contentbank.domain.model;
 
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankCreatedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankDeletedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankEntriesUpdatedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankRenamedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.shared.domain.Utils;
+import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,14 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankCreatedDomainEvent;
-import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankDeletedDomainEvent;
-import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankEntriesUpdatedDomainEvent;
-import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankRenamedDomainEvent;
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
-import ai.snippetquiz.core_service.shared.domain.Utils;
-import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -31,24 +30,24 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     public ContentBank(ContentBankId id, UserId userId, String name) {
         var now = LocalDateTime.now();
         record(new ContentBankCreatedDomainEvent(
-            id.toString(),
-            userId,
-            name,
-            Utils.dateToString(now)));
+                id.toString(),
+                userId,
+                name,
+                now));
     }
 
     public void apply(ContentBankCreatedDomainEvent event) {
         this.setId(ContentBankId.map(event.getAggregateId()));
         this.userId = UserId.map(event.getUserId());
         this.name = event.getName();
-        this.createdAt = Utils.stringToDate(event.getCreatedAt());
-        this.updatedAt = Utils.stringToDate(event.getCreatedAt());
+        this.createdAt = event.getCreatedAt();
+        this.updatedAt = event.getCreatedAt();
     }
 
     public void delete() {
         record(new ContentBankDeletedDomainEvent(
-            getId().toString(),
-            userId));
+                getId().toString(),
+                userId));
     }
 
     public void apply(ContentBankDeletedDomainEvent event) {
@@ -58,42 +57,40 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     public void rename(String name) {
         var now = LocalDateTime.now();
         record(new ContentBankRenamedDomainEvent(
-            getId().toString(),
-            userId,
-            name,
-            Utils.dateToString(now)));
+                getId().toString(),
+                userId,
+                name,
+                now));
     }
 
     public void apply(ContentBankRenamedDomainEvent event) {
         this.name = event.getName();
-        this.updatedAt = Utils.stringToDate(event.getUpdatedAt());
+        this.updatedAt = event.getUpdatedAt();
     }
 
     public void updatedContentEntries(List<ContentEntry> contentEntries) {
         var now = LocalDateTime.now();
         record(new ContentBankEntriesUpdatedDomainEvent(
-            getId().toString(),
-            userId,
-            ContentEntry.toJson(new HashSet<>(contentEntries)),
-            Utils.dateToString(now)));
+                getId().toString(),
+                userId,
+                ContentEntry.toJson(new HashSet<>(contentEntries)),
+                now));
     }
 
     public void apply(ContentBankEntriesUpdatedDomainEvent event) {
         this.contentEntries = new ArrayList<>(ContentEntry.fromJson(event.getContentEntries()));
-        this.updatedAt = Utils.stringToDate(event.getUpdatedAt());
+        this.updatedAt = event.getUpdatedAt();
     }
 
     public void addContentEntry(ContentEntry contentEntry) {
-        var contentEntries = this.getContentEntries();
-        contentEntries.add(contentEntry);
-
-        updatedContentEntries(contentEntries);
+        var newContentEntries = new ArrayList<>(this.contentEntries);
+        newContentEntries.add(contentEntry);
+        updatedContentEntries(newContentEntries);
     }
 
     public void removeContentEntry(ContentEntry contentEntry) {
-        var contentEntries = this.getContentEntries();
-        contentEntries.remove(contentEntry);
-
-        updatedContentEntries(contentEntries);
+        var newContentEntries = new ArrayList<>(this.contentEntries);
+        newContentEntries.remove(contentEntry);
+        updatedContentEntries(newContentEntries);
     }
 }

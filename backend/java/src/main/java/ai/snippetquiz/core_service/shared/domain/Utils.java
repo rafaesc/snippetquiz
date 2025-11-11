@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.shared.domain;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;

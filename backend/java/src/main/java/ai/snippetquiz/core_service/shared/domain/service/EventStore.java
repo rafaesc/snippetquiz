@@ -3,7 +3,6 @@ package ai.snippetquiz.core_service.shared.domain.service;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.port.repository.DomainEventRepository;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
-import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

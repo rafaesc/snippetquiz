@@ -1,7 +1,9 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
@@ -12,7 +14,7 @@ import lombok.Getter;
 public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     private final String content;
     private final String pageTitle;
-    private final String createdAt;
+    private final LocalDateTime createdAt;
     private final Integer wordCount;
 
     public ContentEntryUpdatedDomainEvent(
@@ -20,7 +22,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
             UserId userId,
             String content,
             String pageTitle,
-            String createdAt,
+            LocalDateTime createdAt,
             Integer wordCount) {
         super(aggregateId, userId.toString());
         this.content = content;
@@ -36,7 +38,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
             String occurredOn,
             String content,
             String pageTitle,
-            String createdAt,
+            LocalDateTime createdAt,
             Integer wordCount) {
         super(aggregateId, userId.toString(), eventId, occurredOn);
         this.content = content;
@@ -54,7 +56,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
         var primitives = new HashMap<String, Serializable>();
         primitives.put("content", content);
         primitives.put("pageTitle", pageTitle);
-        primitives.put("createdAt", createdAt);
+        primitives.put("createdAt", Utils.dateToString(createdAt));
         primitives.put("wordCount", wordCount);
         return primitives;
     }
@@ -73,7 +75,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
                 occurredOn,
                 (String) body.get("content"),
                 (String) body.get("pageTitle"),
-                (String) body.get("createdAt"),
+                Utils.stringToDate((String) body.get("createdAt")),
                 (int) body.get("wordCount"));
     }
 }

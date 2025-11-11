@@ -43,12 +43,15 @@ public class Quiz extends AggregateRoot<QuizId> {
     private List<QuizQuestionResponse>  quizQuestionResponses;
 
     public Quiz(QuizId quizId, UserId userId, ContentBankId contentBankId, String bankName) {
+        var now = LocalDateTime.now();
+
         record(new QuizCreatedDomainEvent(
                 quizId.toString(),
                 userId,
                 contentBankId.getValue().toString(),
                 bankName,
-                QuizStatus.PREPARE));
+                QuizStatus.PREPARE,
+                now));
     }
 
     public void apply(QuizCreatedDomainEvent event) {
@@ -56,7 +59,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         this.userId = UserId.map(event.getUserId());
         this.contentBankId = ContentBankId.map(event.getContentBankId());
         this.bankName = event.getBankName();
-        this.createdAt = Utils.stringToDate(event.getOccurredOn());
+        this.createdAt = event.getCreatedAt();
         this.quizQuestionResponses = new ArrayList<>();
         this.quizQuestions = new ArrayList<>();
         this.status = event.getStatus();
