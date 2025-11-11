@@ -226,8 +226,11 @@ class QuizServiceImplTest {
         @Test
         void createQuiz_whenQuizInProgress_throwsConflictException() {
             // Given
+            var quizProjection = new QuizProjection();
+            quizProjection.setId(quizId);
+            quizProjection.setStatus(QuizStatus.IN_PROGRESS);
             when(quizProjectionRepository.findAllByUserIdAndStatus(userId, QuizStatus.IN_PROGRESS))
-                    .thenReturn(List.of(new QuizProjection()));
+                    .thenReturn(List.of(quizProjection));
 
             // When & Then
             assertThrows(ConflictException.class, () -> quizService.createQuiz(userId, contentBankId, quizId));
@@ -268,16 +271,17 @@ class QuizServiceImplTest {
             when(contentBankRepository.findByIdAndUserId(contentBankId, userId)).thenReturn(Optional.of(contentBank));
             when(contentEntryRepository.findAllByContentBankId(contentBankId)).thenReturn(Collections.emptyList());
             when(quizGenerationInstructionRepository.findFirstByUserId(userId)).thenReturn(Optional.of(new QuizGenerationInstruction()));
+            when(questionRepository.findByContentEntryIdIn(any())).thenReturn(Collections.emptyList());
 
             // When
             quizService.createQuiz(userId, contentBankId, quizId);
 
             // Then
             ArgumentCaptor<Quiz> quizCaptor = ArgumentCaptor.forClass(Quiz.class);
-            verify(quizEventSourcingHandler, times(2)).save(quizCaptor.capture());
+            verify(quizEventSourcingHandler, times(1)).save(quizCaptor.capture());
             Quiz savedQuiz = quizCaptor.getValue();
             assertThat(savedQuiz.getId()).isEqualTo(quizId);
-            assertThat(savedQuiz.getStatus()).isEqualTo(QuizStatus.READY);
+            assertThat(savedQuiz.getStatus()).isEqualTo(QuizStatus.PREPARE);
         }
     }
 
@@ -307,7 +311,7 @@ class QuizServiceImplTest {
 
             // Then
             assertThat(response.getMessage()).isEqualTo("Quiz is already completed");
-            assertThat(response.getCompleted()).isFalse();
+            assertThat(response.getCompleted()).isTrue();
         }
 
         @Test
@@ -322,6 +326,29 @@ class QuizServiceImplTest {
             correctOption.setIsCorrect(true);
             question.getQuizQuestionOptions().add(correctOption);
             quiz.addQuestions(QuizStatus.IN_PROGRESS, 1, Collections.emptySet(), List.of(question));
+
+            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+
+            // When
+            UpdateQuizResponse response = quizService.updateQuiz(userId, quizId, correctOption.getId());
+
+            // Then
+            assertThat(response.getCompleted()).isFalse();
+            verify(quizEventSourcingHandler).save(quiz);
+        }
+
+        @Test
+        void updateQuizCompleted_withValidAnswer() {
+            // Given
+            Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
+            QuizQuestion question = new QuizQuestion();
+            question.setQuestion("What is Java?");
+            QuizQuestionOption correctOption = new QuizQuestionOption();
+            correctOption.setId(new QuizQuestionOptionId(UUID.randomUUID()));
+            correctOption.setOptionText("A programming language");
+            correctOption.setIsCorrect(true);
+            question.getQuizQuestionOptions().add(correctOption);
+            quiz.addQuestions(QuizStatus.READY, 1, Collections.emptySet(), List.of(question));
 
             when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
 

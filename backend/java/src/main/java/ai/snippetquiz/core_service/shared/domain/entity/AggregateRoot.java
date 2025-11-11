@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import ai.snippetquiz.core_service.shared.domain.bus.event.DeactivationDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,7 +38,7 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
         } catch (NoSuchMethodException e) {
             logger.log(Level.WARNING, MessageFormat.format("The apply method was not found in the aggregate for {0}", event.getClass().getName()));
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error applying event to aggregate", e);
+            logger.log(Level.SEVERE, MessageFormat.format("Error applying event to aggregate {0}", event.getClass().getName()), e);
         } finally {
             if (isNewEvent) {
                 domainEvents.add(event);
@@ -49,6 +50,7 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
         events.forEach(event -> applyChange(event, false));
     }
 
+    @JsonIgnore
     public List<DomainEvent> getUncommittedChanges() {
         return this.domainEvents;
     }

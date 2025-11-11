@@ -198,22 +198,21 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                 sourceEntry.getYoutubeVideoId(),
                 youtubeChannel);
 
-        var savedClone = contentEntryRepository.save(clonedEntry);
-
-        targetBank.addContentEntry(savedClone);
+        contentEntryRepository.save(clonedEntry);
 
         var sourceTopics = contentEntryTopicRepository.findByContentEntryId(entryId);
         var topicIds = new ArrayList<TopicId>();
         for (ContentEntryTopic sourceTopic : sourceTopics) {
             var clonedTopic = new ContentEntryTopic();
-            clonedTopic.setContentEntryId(savedClone.getId());
+            clonedTopic.setContentEntryId(clonedEntry.getId());
             clonedTopic.setTopicId(sourceTopic.getTopicId());
             topicIds.add(sourceTopic.getTopicId());
             contentEntryTopicRepository.save(clonedTopic);
         }
 
         var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
-        savedClone.updatedTopics(topics);
+        clonedEntry.updatedTopics(topics);
+        targetBank.addContentEntry(clonedEntry);
     }
 
     @Override

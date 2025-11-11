@@ -30,8 +30,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
 @JsonSerialize
+@NoArgsConstructor
 public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private UserId userId;
     private ContentBankId contentBankId;
@@ -46,8 +46,6 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private Integer videoDuration;
     private String youtubeVideoId;
     private YoutubeChannelId youtubeChannelId;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public ContentEntry(UserId userId, ContentBankId contentBankId, ContentType type, String processedContent, String sourceUrl,
             String pageTitle, Integer youtubeVideoDuration, String youtubeVideoId, 
@@ -140,21 +138,5 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
 
     public void apply(ContentEntryDeletedDomainEvent event) {
         deactivate();
-    }
-
-    public static String toJson(Set<ContentEntry> entries) {
-        try {
-            return objectMapper.writeValueAsString(entries);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error serializing ContentEntry list", e);
-        }
-    }
-
-    public static Set<ContentEntry> fromJson(String json) {
-        try {
-            return objectMapper.readValue(json, new TypeReference<Set<ContentEntry>>() {});
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error deserializing ContentEntry list", e);
-        }
     }
 }
