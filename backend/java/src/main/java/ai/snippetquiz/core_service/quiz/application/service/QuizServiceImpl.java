@@ -420,11 +420,11 @@ public class QuizServiceImpl implements QuizService {
             return new UpdateQuizResponse(
                     "Quiz is already completed",
                     false,
-                    false,
+                    true,
                     null);
         }
 
-        var currentQuestion = quiz.getQuizQuestions().get(questionsCompleted - 1);
+        var currentQuestion = quiz.getQuizQuestions().get(questionsCompleted);
 
         if (isNull(currentQuestion)) {
             return new UpdateQuizResponse(

@@ -17,6 +17,11 @@ import org.springframework.data.domain.Pageable;
 public class Utils {
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    static {
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
     public static String dateToString(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }

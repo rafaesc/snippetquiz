@@ -8,6 +8,7 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -73,12 +74,13 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
         record(new ContentBankEntriesUpdatedDomainEvent(
                 getId().toString(),
                 userId,
-                ContentEntry.toJson(new HashSet<>(contentEntries)),
+                Utils.toJson(new HashSet<>(contentEntries)),
                 now));
     }
 
     public void apply(ContentBankEntriesUpdatedDomainEvent event) {
-        this.contentEntries = new ArrayList<>(ContentEntry.fromJson(event.getContentEntries()));
+        this.contentEntries = Utils.fromJson(event.getContentEntries(), new TypeReference<>() {
+        });
         this.updatedAt = event.getUpdatedAt();
     }
 

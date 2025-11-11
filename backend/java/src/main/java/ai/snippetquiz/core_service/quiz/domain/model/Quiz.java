@@ -28,7 +28,6 @@ import static java.util.Arrays.asList;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 public class Quiz extends AggregateRoot<QuizId> {
     private UserId userId;
     private ContentBankId contentBankId;
@@ -58,6 +57,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         setId(QuizId.map(event.getAggregateId()));
         this.userId = UserId.map(event.getUserId());
         this.contentBankId = ContentBankId.map(event.getContentBankId());
+        this.contentEntriesCount = new ContentEntryCount(0);
         this.bankName = event.getBankName();
         this.createdAt = event.getCreatedAt();
         this.quizQuestionResponses = new ArrayList<>();
