@@ -11,7 +11,6 @@ import java.util.Set;
 
 @Service
 @Slf4j
-@SuppressWarnings("rawtypes")
 public final class DomainEventsInformation {
     HashMap<String, Class<? extends DomainEvent>> indexedDomainEvents;
 
@@ -34,7 +33,6 @@ public final class DomainEventsInformation {
         return eventClass;
     }
 
-    @SuppressWarnings("unchecked")
     private HashMap<String, Class<? extends DomainEvent>> formatEvents(
             Set<Class<? extends DomainEvent>> domainEvents) {
         HashMap<String, Class<? extends DomainEvent>> events = new HashMap<>();
@@ -47,9 +45,9 @@ public final class DomainEventsInformation {
 
                 events.put(eventName, event);
             } catch (NoSuchMethodException e) {
-                log.error(MessageFormat.format("The eventId method was not found in the domain event for {0}", event.getName()));
+                log.error("The eventName method was not found in the domain event for {}", event.getName());
             } catch (Exception e) {
-                log.error("Error eventId", e);
+                log.error("Error eventName", e);
             }
         }
 

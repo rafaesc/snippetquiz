@@ -6,6 +6,7 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -13,11 +14,12 @@ import java.util.HashMap;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class QuizCreatedDomainEvent extends DomainEvent {
-    private final String contentBankId;
-    private final String bankName;
-    private final QuizStatus status;
-    private final LocalDateTime createdAt;
+    private String contentBankId;
+    private String bankName;
+    private QuizStatus status;
+    private LocalDateTime createdAt;
 
     public QuizCreatedDomainEvent(
             String aggregateId,

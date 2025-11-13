@@ -8,9 +8,11 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ContentEntryDeletedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
 
     public ContentEntryDeletedDomainEvent(String aggregateId, UserId userId) {

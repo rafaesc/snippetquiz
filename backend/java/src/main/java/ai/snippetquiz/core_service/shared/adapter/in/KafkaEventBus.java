@@ -2,6 +2,8 @@ package ai.snippetquiz.core_service.shared.adapter.in;
 
 import java.util.List;
 
+import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
+import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -13,19 +15,29 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Primary
 public class KafkaEventBus implements EventBus {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    public void publish(List<DomainEvent> events) {
-        events.forEach(this::publish);
+    public void publish(String aggregateType, List<DomainEvent> events) {
+        events.forEach(event -> publish(aggregateType, event));
     }
 
-    private void publish(DomainEvent domainEvent) {
+    private void publish(final String aggregateType, DomainEvent domainEvent) {
         try {
-            //TODO:
+            String serializedDomainEvent =  DomainEventJsonSerializer.serialize(domainEvent);
+
+            kafkaTemplate
+                    .send(aggregateType, domainEvent.getAggregateId(), serializedDomainEvent)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.error("Failed to publish domain event: userId {}, {}", domainEvent.getUserId(), domainEvent, ex);
+                        }
+                    });
+
         } catch (Exception error) {
-            log.error("Failed to publish domain event: {}", domainEvent, error);
+            log.error("Failed to publish domain event: userId {}, {}", domainEvent.getUserId(), domainEvent, error);
         }
     }
     

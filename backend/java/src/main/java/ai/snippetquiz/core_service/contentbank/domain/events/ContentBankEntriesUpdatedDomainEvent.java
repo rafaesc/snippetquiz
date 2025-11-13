@@ -9,12 +9,14 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
-    private final String contentEntries;
-    private final LocalDateTime updatedAt;
+    private String contentEntries;
+    private LocalDateTime updatedAt;
 
     public ContentBankEntriesUpdatedDomainEvent(String aggregateId, UserId userId, String contentEntries, LocalDateTime updatedAt) {
         super(aggregateId, userId.toString());

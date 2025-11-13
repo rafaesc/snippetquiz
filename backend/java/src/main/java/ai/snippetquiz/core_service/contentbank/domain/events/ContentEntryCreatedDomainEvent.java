@@ -8,21 +8,23 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ContentEntryCreatedDomainEvent extends DomainEvent {
-    private final String contentBankId;
-    private final String contentType;
-    private final String content;
-    private final String sourceUrl;
-    private final String pageTitle;
-    private final LocalDateTime createdAt;
-    private final Integer wordCount;
-    private final Integer videoDuration;
-    private final String youtubeVideoId;
-    private final String youtubeChannelName;
-    private final Long youtubeChannelId;
+    private String contentBankId;
+    private String contentType;
+    private String content;
+    private String sourceUrl;
+    private String pageTitle;
+    private LocalDateTime createdAt;
+    private Integer wordCount;
+    private Integer videoDuration;
+    private String youtubeVideoId;
+    private String youtubeChannelName;
+    private Long youtubeChannelId;
 
     public ContentEntryCreatedDomainEvent(
             String aggregateId,
