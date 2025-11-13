@@ -8,12 +8,14 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
-    private final String topics;
-    private final LocalDateTime updatedAt;
+    private String topics;
+    private LocalDateTime updatedAt;
 
     public ContentEntryTopicAddedDomainEvent(
             String aggregateId,

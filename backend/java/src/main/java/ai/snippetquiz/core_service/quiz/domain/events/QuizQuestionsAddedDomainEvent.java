@@ -9,6 +9,7 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -18,12 +19,13 @@ import java.util.Set;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class QuizQuestionsAddedDomainEvent extends DomainEvent {
-    private final Set<String> quizTopics;
-    private final QuizStatus status;
-    private final LocalDateTime updatedAt;
-    private final ContentEntryCount contentEntriesCount;
-    private final List<QuizQuestion> quizQuestions;
+    private Set<String> quizTopics;
+    private QuizStatus status;
+    private LocalDateTime updatedAt;
+    private ContentEntryCount contentEntriesCount;
+    private List<QuizQuestion> quizQuestions;
 
 
     public QuizQuestionsAddedDomainEvent(

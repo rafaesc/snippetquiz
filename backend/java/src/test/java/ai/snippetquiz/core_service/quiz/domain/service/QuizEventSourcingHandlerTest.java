@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.port.repository.DomainEventRepository;
 import ai.snippetquiz.core_service.shared.domain.service.EventStore;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -27,7 +28,8 @@ class QuizEventSourcingHandlerTest {
     void save_persists_uncommitted_events_and_marks_committed() {
         @SuppressWarnings("unchecked")
         DomainEventRepository<DomainEvent> repo = mock(DomainEventRepository.class);
-        EventStore eventStore = new EventStore(repo);
+        EventBus eventBus = mock(EventBus.class);
+        EventStore eventStore = new EventStore(repo, eventBus);
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
         when(repo.findAllByUserIdAndAggregateIdAndAggregateType(any(UserId.class), anyString()))
@@ -56,7 +58,8 @@ class QuizEventSourcingHandlerTest {
     void get_by_id_returns_empty_when_no_events() {
         @SuppressWarnings("unchecked")
         DomainEventRepository<DomainEvent> repo = mock(DomainEventRepository.class);
-        EventStore eventStore = new EventStore(repo);
+        EventBus eventBus = mock(EventBus.class);
+        EventStore eventStore = new EventStore(repo, eventBus);
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
         var userId = new UserId(UUID.randomUUID());
@@ -74,7 +77,8 @@ class QuizEventSourcingHandlerTest {
     void get_by_id_replays_events_and_sets_latest_version() {
         @SuppressWarnings("unchecked")
         DomainEventRepository<DomainEvent> repo = mock(DomainEventRepository.class);
-        EventStore eventStore = new EventStore(repo);
+        EventBus eventBus = mock(EventBus.class);
+        EventStore eventStore = new EventStore(repo, eventBus);
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
         var userId = new UserId(UUID.randomUUID());

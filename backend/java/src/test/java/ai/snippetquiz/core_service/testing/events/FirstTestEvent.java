@@ -1,10 +1,12 @@
 package ai.snippetquiz.core_service.testing.events;
 
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
 
+@NoArgsConstructor
 public class FirstTestEvent extends DomainEvent {
 
     public FirstTestEvent(String aggregateId, String userId) {

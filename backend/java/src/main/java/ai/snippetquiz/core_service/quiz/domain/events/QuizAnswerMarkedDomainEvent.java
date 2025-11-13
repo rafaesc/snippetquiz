@@ -6,15 +6,17 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class QuizAnswerMarkedDomainEvent extends DomainEvent {
-    private final QuizQuestionResponse quizQuestionResponse;
-    private final boolean isAllQuestionsMarked;
+    private QuizQuestionResponse quizQuestionResponse;
+    private boolean isAllQuestionsMarked;
 
     public QuizAnswerMarkedDomainEvent(
             String aggregateId,
