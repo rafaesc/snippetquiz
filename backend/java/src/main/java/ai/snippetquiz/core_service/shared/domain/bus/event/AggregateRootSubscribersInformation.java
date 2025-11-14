@@ -3,11 +3,15 @@ package ai.snippetquiz.core_service.shared.domain.bus.event;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-
-import org.springframework.context.ApplicationContext;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Slf4j

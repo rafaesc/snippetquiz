@@ -1,33 +1,29 @@
 package ai.snippetquiz.core_service.quiz.adapter.out.repository;
 
 import ai.snippetquiz.AbstractIntegrationTest;
-import ai.snippetquiz.core_service.CoreServiceApplication;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizProjection;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
-import ai.snippetquiz.core_service.shared.adapter.out.PostgresqlContainerBase;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = CoreServiceApplication.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class JpaQuizProjectionProjectionRepositoryAdapterIT extends AbstractIntegrationTest {
+
     @Autowired
     private JpaQuizProjectionProjectionRepositoryAdapter adapter;
 

@@ -7,7 +7,6 @@ import org.testcontainers.kafka.ConfluentKafkaContainer;
 @Testcontainers
 public abstract class KafkaContainerBase {
     @Container
-    @SuppressWarnings("resource")
     protected static final ConfluentKafkaContainer kafka =
             new ConfluentKafkaContainer("confluentinc/cp-kafka:7.4.0");
 }
