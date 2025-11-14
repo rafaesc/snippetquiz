@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +53,18 @@ public class Utils {
             return mapper.readValue(json, typeReference);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error deserializing JSON with TypeReference ", e);
+        }
+    }
+
+    public static String getEventName(Class<? extends DomainEvent> eventClass) {
+        try {
+            java.lang.reflect.Method method = eventClass.getDeclaredMethod("eventName");
+            method.setAccessible(true);
+            return (String) method.invoke(null);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException("The eventName method was not found in the domain event for " + eventClass.getName(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking eventName on " + eventClass.getName(), e);
         }
     }
 

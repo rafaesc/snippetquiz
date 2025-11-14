@@ -26,7 +26,7 @@ public class EventStore {
             event.setVersion(version);
             domainEventRepository.save(userId, aggregateId, aggregateType, event);
         }
-        eventBus.publish(aggregateType, eventStream);
+        eventBus.publish(aggregateType, events);
     }
 
     public List<DomainEvent> getEvents(UserId userId, String aggregateId) {

@@ -20,7 +20,7 @@ public class KafkaEventBus implements EventBus {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    public void publish(String aggregateType, List<DomainEvent> events) {
+    public void publish(String aggregateType, Iterable<? extends DomainEvent> events) {
         events.forEach(event -> publish(aggregateType, event));
     }
 
@@ -40,5 +40,4 @@ public class KafkaEventBus implements EventBus {
             log.error("Failed to publish domain event: userId {}, {}", domainEvent.getUserId(), domainEvent, error);
         }
     }
-    
 }

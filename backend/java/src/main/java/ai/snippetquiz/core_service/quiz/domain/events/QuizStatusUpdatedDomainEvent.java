@@ -21,8 +21,14 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent {
         this.status = status;
     }
 
-    public QuizStatusUpdatedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn, QuizStatus status) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public QuizStatusUpdatedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version,
+            QuizStatus status) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.status = status;
     }
 
@@ -38,14 +44,19 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public QuizStatusUpdatedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
-                                                       String eventId,
-                                                       String occurredOn) {
+    public QuizStatusUpdatedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
+            String eventId,
+            String occurredOn,
+            int version) {
         return new QuizStatusUpdatedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (QuizStatus) body.get("status"));
     }
 }

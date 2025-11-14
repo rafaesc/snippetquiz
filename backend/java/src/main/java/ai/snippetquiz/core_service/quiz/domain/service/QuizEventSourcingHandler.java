@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.shared.domain.service.EventStore;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -17,8 +18,9 @@ public class QuizEventSourcingHandler implements EventSourcingHandler<Quiz> {
     private final EventStore eventStore;
 
     @Override
+    @Transactional
     public void save(Quiz aggregate) {
-        String aggregateType = aggregate.getClass().getSimpleName();
+        String aggregateType = aggregate.getAggregateType();
         eventStore.saveEvents(aggregate.getUserId(), aggregate.getId().toString(), aggregateType, aggregate.getUncommittedChanges(), aggregate.getVersion());
         aggregate.markChangesAsCommitted();
     }

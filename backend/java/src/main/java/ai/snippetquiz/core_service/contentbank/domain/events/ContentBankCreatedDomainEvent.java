@@ -24,9 +24,16 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
         this.createdAt = createdAt;
     }
 
-    public ContentBankCreatedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
-            String name, LocalDateTime createdAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public ContentBankCreatedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version,
+            String name,
+            LocalDateTime createdAt
+    ) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.name = name;
         this.createdAt = createdAt;
     }
@@ -44,14 +51,19 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public ContentBankCreatedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
+    public ContentBankCreatedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentBankCreatedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (String) body.get("name"),
                 Utils.stringToDate((String) body.get("createdAt")));
     }

@@ -19,8 +19,13 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
         super(aggregateId, userId.toString());
     }
 
-    public ContentBankDeletedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public ContentBankDeletedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
     }
 
     public static String eventName() {
@@ -29,18 +34,22 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
 
     @Override
     public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
-        return primitives;
+        return new HashMap<String, Serializable>();
     }
 
     @Override
-    public ContentBankDeletedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
+    public ContentBankDeletedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentBankDeletedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
-                occurredOn);
+                occurredOn,
+                version);
     }
 }

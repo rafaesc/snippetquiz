@@ -13,8 +13,14 @@ public class FirstTestEvent extends DomainEvent {
         super(aggregateId, userId);
     }
 
-    public FirstTestEvent(String aggregateId, String userId, String eventId, String occurredOn) {
-        super(aggregateId, userId, eventId, occurredOn);
+    public FirstTestEvent(
+            String aggregateId,
+            String userId,
+            String eventId,
+            String occurredOn,
+            int version
+    ) {
+        super(aggregateId, userId, eventId, occurredOn, version);
     }
 
     public static String eventName() {
@@ -32,7 +38,8 @@ public class FirstTestEvent extends DomainEvent {
             String userId,
             HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
-        return new FirstTestEvent(aggregateId, userId, eventId, occurredOn);
+            String occurredOn,
+            int version) {
+        return new FirstTestEvent(aggregateId, userId, eventId, occurredOn, version);
     }
 }

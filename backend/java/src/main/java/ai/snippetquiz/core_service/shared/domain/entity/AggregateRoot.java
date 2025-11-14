@@ -20,6 +20,10 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
     private final List<DomainEvent> domainEvents = new ArrayList<>();
     private final Logger logger = Logger.getLogger(AggregateRoot.class.getName());
 
+    protected String getAggregateType() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     protected void deactivate() {
         this.active = false;
     }

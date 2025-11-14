@@ -24,9 +24,14 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
         this.updatedAt = updatedAt;
     }
 
-    public ContentBankRenamedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
+    public ContentBankRenamedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version,
             String name, LocalDateTime updatedAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.name = name;
         this.updatedAt = updatedAt;
     }
@@ -44,14 +49,19 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public ContentBankRenamedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
+    public ContentBankRenamedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentBankRenamedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (String) body.get("name"),
                 Utils.stringToDate((String) body.get("updatedAt")));
     }

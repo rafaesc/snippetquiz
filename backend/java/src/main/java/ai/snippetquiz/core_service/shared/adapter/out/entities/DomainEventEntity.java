@@ -24,7 +24,7 @@ import org.hibernate.type.SqlTypes;
 public class DomainEventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID eventId;
 
     private UUID userId;
 
@@ -32,7 +32,7 @@ public class DomainEventEntity {
 
     private String aggregateType;
 
-    private String eventId;
+    private String eventName;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

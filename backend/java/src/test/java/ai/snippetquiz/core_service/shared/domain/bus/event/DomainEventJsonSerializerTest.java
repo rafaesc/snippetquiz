@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class DomainEventJsonSerializerTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void serialize_includes_expected_fields() {
         // Arrange
         FirstTestEvent event = new FirstTestEvent("agg-1", "user-1");

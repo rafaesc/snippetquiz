@@ -59,6 +59,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             UserId userId,
             String eventId,
             String occurredOn,
+            int version,
             String contentBankId,
             String contentType,
             String content,
@@ -70,7 +71,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String youtubeVideoId,
             String youtubeChannelName,
             Long youtubeChannelId) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
@@ -111,12 +112,14 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String userId,
             HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentEntryCreatedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (String) body.get("contentBankId"),
                 (String) body.get("contentType"),
                 (String) body.get("content"),

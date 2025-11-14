@@ -38,11 +38,12 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
             UserId userId,
             String eventId,
             String occurredOn,
+            int version,
             String content,
             String pageTitle,
             LocalDateTime createdAt,
             Integer wordCount) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.content = content;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -69,12 +70,14 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
             String userId,
             HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentEntryUpdatedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (String) body.get("content"),
                 (String) body.get("pageTitle"),
                 Utils.stringToDate((String) body.get("createdAt")),
