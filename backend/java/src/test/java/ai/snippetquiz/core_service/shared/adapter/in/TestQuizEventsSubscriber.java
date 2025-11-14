@@ -4,11 +4,15 @@ import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriberFor;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @AggregateEventSubscriberFor(Quiz.class)
+@Service
+@AllArgsConstructor
 public class TestQuizEventsSubscriber implements AggregateEventSubscriber {
 
     private static volatile DomainEvent lastEvent;

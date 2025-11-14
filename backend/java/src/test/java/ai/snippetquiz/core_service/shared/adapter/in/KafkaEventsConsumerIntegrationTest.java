@@ -54,8 +54,7 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         ctx.refresh();
 
         // Subscribers information scans only test package to avoid non-registered beans
-        AggregateRootSubscribersInformation subscribersInformation =
-                new AggregateRootSubscribersInformation(ctx, "ai.snippetquiz.core_service.shared.adapter.in");
+        AggregateRootSubscribersInformation subscribersInformation = new AggregateRootSubscribersInformation(ctx);
 
         // Real deserializer using reflections-based event registry
         DomainEventsInformation eventsInformation = new DomainEventsInformation();

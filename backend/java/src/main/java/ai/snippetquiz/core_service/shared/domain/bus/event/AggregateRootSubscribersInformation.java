@@ -16,12 +16,8 @@ public final class AggregateRootSubscribersInformation {
     private final ApplicationContext context;
 
     public AggregateRootSubscribersInformation(ApplicationContext context) {
-        this(context, "ai.snippetquiz.core_service");
-    }
-
-    public AggregateRootSubscribersInformation(ApplicationContext context, String basePackage) {
         this.context = context;
-        Reflections reflections = new Reflections(basePackage);
+        Reflections reflections = new Reflections("ai.snippetquiz.core_service");
         Set<Class<?>> subscribers = reflections.getTypesAnnotatedWith(AggregateEventSubscriberFor.class);
         this.information = formatSubscribers(subscribers);
     }

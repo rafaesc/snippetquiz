@@ -58,16 +58,4 @@ public abstract class DomainEvent {
             String eventId,
             String occurredOn,
             int version);
-
-    public String aggregateId() {
-        return aggregateId;
-    }
-
-    public String eventId() {
-        return eventId;
-    }
-
-    public String occurredOn() {
-        return occurredOn;
-    }
 }
