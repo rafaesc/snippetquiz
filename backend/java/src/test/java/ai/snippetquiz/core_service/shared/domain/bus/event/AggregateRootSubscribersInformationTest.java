@@ -1,20 +1,26 @@
 package ai.snippetquiz.core_service.shared.domain.bus.event;
 
 import ai.snippetquiz.core_service.quiz.application.consumer.QuizProjectionHandler;
+import ai.snippetquiz.core_service.shared.adapter.in.TestQuizEventsSubscriber;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
 
-import java.util.Collection;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizProjectionRepository;
+import static org.mockito.Mockito.mock;
 
 class AggregateRootSubscribersInformationTest {
 
     @Test
     void search_returns_registered_bean_instances_for_aggregate_type() {
         GenericApplicationContext ctx = new GenericApplicationContext();
-        ctx.registerBean(QuizProjectionHandler.class);
+        ctx.registerBean(TestQuizEventsSubscriber.class);
         ctx.refresh();
 
         // Prepare info and inject context
@@ -26,8 +32,8 @@ class AggregateRootSubscribersInformationTest {
         // Assert
         assertNotNull(subscribers);
         assertFalse(subscribers.isEmpty(), "Expected at least one subscriber for quiz-aggregate");
-        assertTrue(subscribers.stream().anyMatch(s -> s instanceof QuizProjectionHandler),
-                "Expected an instance of QuizProjectionHandler among search results");
+        assertTrue(subscribers.stream().anyMatch(s -> s instanceof TestQuizEventsSubscriber),
+                "Expected an instance of TestQuizEventsSubscriber among search results");
         assertTrue(subscribers.stream().allMatch(s -> s instanceof AggregateEventSubscriber),
                 "All results must implement AggregateEventSubscriber");
     }
@@ -48,6 +54,8 @@ class AggregateRootSubscribersInformationTest {
     @Test
     void getSubscribers_returns_map_with_quiz_key_and_handler_instance() {
         GenericApplicationContext ctx = new GenericApplicationContext();
+        QuizProjectionRepository repo = mock(QuizProjectionRepository.class);
+        ctx.registerBean(QuizProjectionRepository.class, () -> repo);
         ctx.registerBean(QuizProjectionHandler.class);
         ctx.refresh();
 

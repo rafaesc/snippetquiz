@@ -45,10 +45,12 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -115,7 +117,7 @@ class QuizServiceImplTest {
             quizProjection.setQuestionsCompleted(5);
             quizProjection.setStatus(QuizStatus.IN_PROGRESS);
             quizProjection.setContentEntriesCount(2);
-            quizProjection.setTopics("[\"Java\", \"Spring\"]");
+            quizProjection.setTopics(new HashSet<>(asList("Java", "Spring")));
 
             Page<QuizProjection> quizPage = new PageImpl<>(List.of(quizProjection));
             when(quizProjectionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)).thenReturn(quizPage);

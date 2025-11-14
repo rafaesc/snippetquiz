@@ -11,4 +11,9 @@ public class QuizQuestionId extends BaseId<UUID> {
     public static QuizQuestionId map(String value) {
         return new QuizQuestionId(UUID.fromString(value));
     }
+    
+    @Override
+    public String toString() {
+        return getValue().toString();
+    }
 }

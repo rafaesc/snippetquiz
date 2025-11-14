@@ -12,9 +12,4 @@ public interface QuizProjectionMapper {
     @Mapping(target = "contentBankId.value", source = "entity.contentBankId")
     @Mapping(target = "userId.value", source = "entity.userId")
     QuizProjection toDomain(QuizProjectionEntity entity);
-
-    @Mapping(target = "id", source = "domain.id.value")
-    @Mapping(target = "contentBankId", source = "domain.contentBankId.value")
-    @Mapping(target = "userId", source = "domain.userId.value")
-    QuizProjectionEntity toEntity(QuizProjection domain);
 }

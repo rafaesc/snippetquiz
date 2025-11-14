@@ -13,8 +13,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -24,7 +27,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class QuizProjectionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "content_bank_id")
@@ -52,6 +54,18 @@ public class QuizProjectionEntity {
 
     @Column(name = "question_updated_at")
     private LocalDateTime questionUpdatedAt;
+
+    @Column(name = "questions", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Set<String> questions;
+
+    @Column(name = "topics", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Set<String> topics;
+
+    @Column(name = "responses", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Set<String> responses;
 
     @Column(name = "user_id")
     private UUID userId;

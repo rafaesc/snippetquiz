@@ -29,10 +29,10 @@ class DomainEventJsonDeserializerTest {
         assertNotNull(result);
         assertInstanceOf(SecondTestEvent.class, result);
         var reconstructed = (SecondTestEvent) result;
-        assertEquals(original.aggregateId(), reconstructed.aggregateId());
+        assertEquals(original.getAggregateId(), reconstructed.getAggregateId());
         assertEquals(original.getUserId(), reconstructed.getUserId());
-        assertEquals(original.eventId(), reconstructed.eventId());
-        assertEquals(original.occurredOn(), reconstructed.occurredOn());
+        assertEquals(original.getEventId(), reconstructed.getEventId());
+        assertEquals(original.getOccurredOn(), reconstructed.getOccurredOn());
         assertEquals(original.getValueObject(), reconstructed.getValueObject());
     }
 

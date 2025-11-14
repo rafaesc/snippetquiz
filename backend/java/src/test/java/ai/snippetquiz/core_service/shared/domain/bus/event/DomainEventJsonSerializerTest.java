@@ -31,10 +31,10 @@ class DomainEventJsonSerializerTest {
         assertNotNull(attributes);
 
         assertEquals(FirstTestEvent.eventName(), data.get("type"));
-        assertEquals(event.eventId(), data.get("id"));
-        assertEquals(event.occurredOn(), data.get("occurred_on"));
+        assertEquals(event.getEventId(), data.get("id"));
+        assertEquals(event.getOccurredOn(), data.get("occurred_on"));
 
-        assertEquals(event.aggregateId(), attributes.get("id"));
+        assertEquals(event.getAggregateId(), attributes.get("id"));
         assertEquals(event.getUserId(), attributes.get("userId"));
     }
 }

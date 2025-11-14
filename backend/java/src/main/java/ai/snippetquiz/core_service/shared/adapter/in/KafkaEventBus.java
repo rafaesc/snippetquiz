@@ -1,7 +1,5 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
-import java.util.List;
-
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;

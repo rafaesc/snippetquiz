@@ -5,17 +5,21 @@ import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.entity.BaseEntity;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder
 public class QuizProjection extends BaseEntity<QuizId> {
     private UserId userId;
     private ContentBankId contentBankId;
@@ -26,5 +30,7 @@ public class QuizProjection extends BaseEntity<QuizId> {
     private Integer questionsCount;
     private Integer questionsCompleted;
     private LocalDateTime questionUpdatedAt;
-    private String topics;
+    private Set<String> topics;
+    private Set<String> questions;
+    private Set<String> responses;
 }

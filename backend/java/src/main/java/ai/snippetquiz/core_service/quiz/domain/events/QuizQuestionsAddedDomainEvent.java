@@ -31,11 +31,11 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
     public QuizQuestionsAddedDomainEvent(
             String aggregateId,
             UserId userId,
-            java.util.Set<String> quizTopics,
+            Set<String> quizTopics,
             QuizStatus status,
-            java.time.LocalDateTime updatedAt,
+            LocalDateTime updatedAt,
             ContentEntryCount contentEntriesCount,
-            java.util.List<QuizQuestion> quizQuestions) {
+            List<QuizQuestion> quizQuestions) {
         super(aggregateId, userId.toString());
         this.quizTopics = quizTopics;
         this.status = status;
@@ -50,11 +50,11 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
             String eventId,
             String occurredOn,
             int version,
-            java.util.Set<String> quizTopics,
+            Set<String> quizTopics,
             QuizStatus status,
-            java.time.LocalDateTime updatedAt,
+            LocalDateTime updatedAt,
             ContentEntryCount contentEntriesCount,
-            java.util.List<QuizQuestion> quizQuestions
+            List<QuizQuestion> quizQuestions
     ) {
         super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.quizTopics = quizTopics;

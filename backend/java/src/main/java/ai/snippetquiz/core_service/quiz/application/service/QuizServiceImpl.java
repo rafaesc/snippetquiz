@@ -30,7 +30,6 @@ import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizProjectionRep
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -38,7 +37,6 @@ import ai.snippetquiz.core_service.shared.exception.ConflictException;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -88,20 +86,15 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     public PagedModelResponse<QuizResponse> findAll(UserId userId, Pageable pageable) {
         var quizPage = quizProjectionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-        var quizResponses = quizPage.map(quiz -> {
-            List<String> topics = Utils.fromJson(quiz.getTopics(), new TypeReference<>() {
-            });
-
-            return new QuizResponse(
-                    quiz.getId().toString(),
-                    quiz.getBankName(),
-                    quiz.getCreatedAt(),
-                    quiz.getQuestionsCount(),
-                    quiz.getQuestionsCompleted(),
-                    getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
-                    quiz.getContentEntriesCount(),
-                    topics);
-        });
+        var quizResponses = quizPage.map(quiz -> new QuizResponse(
+                quiz.getId().toString(),
+                quiz.getBankName(),
+                quiz.getCreatedAt(),
+                quiz.getQuestionsCount(),
+                quiz.getQuestionsCompleted(),
+                getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
+                quiz.getContentEntriesCount(),
+                new ArrayList<>(quiz.getTopics())));
         return new PagedModelResponse<>(quizResponses);
     }
 

@@ -4,7 +4,6 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscri
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateRootSubscribersInformation;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
