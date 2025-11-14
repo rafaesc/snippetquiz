@@ -1,6 +1,10 @@
 package ai.snippetquiz.core_service.quiz.application.consumer;
 
-import ai.snippetquiz.core_service.quiz.domain.events.*;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizAnswerMarkedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizCreatedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizQuestionsAddedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizStatusUpdatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizProjection;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;

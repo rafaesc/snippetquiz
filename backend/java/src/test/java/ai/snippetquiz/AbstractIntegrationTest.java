@@ -1,15 +1,14 @@
 package ai.snippetquiz;
 
 import ai.snippetquiz.core_service.shared.adapter.in.KafkaContainerBase;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
@@ -24,7 +23,8 @@ public abstract class AbstractIntegrationTest extends KafkaContainerBase {
             DockerImageName.parse("postgres:16-alpine"))
             .withDatabaseName("testdb")
             .withUsername("test")
-            .withPassword("test");
+            .withPassword("test")
+            .withReuse(true);
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
