@@ -1,12 +1,12 @@
 package ai.snippetquiz.core_service.shared.domain.bus.event;
 
-import ai.snippetquiz.core_service.shared.adapter.in.DomainEventsInformation;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.testing.events.SecondTestEvent;
 import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,7 +15,8 @@ class DomainEventJsonDeserializerTest {
     @Test
     void deserialize_reconstructs_event_instance() throws Exception {
         // Arrange
-        SecondTestEvent original = new SecondTestEvent("agg-2", "user-2");
+        var valueObject = UUID.randomUUID().toString();
+        SecondTestEvent original = new SecondTestEvent("agg-2", "user-2", valueObject);
         String json = DomainEventJsonSerializer.serialize(original);
 
         DomainEventsInformation info = new DomainEventsInformation();
@@ -27,10 +28,12 @@ class DomainEventJsonDeserializerTest {
         // Assert
         assertNotNull(result);
         assertInstanceOf(SecondTestEvent.class, result);
-        assertEquals(original.aggregateId(), result.aggregateId());
-        assertEquals(original.getUserId(), result.getUserId());
-        assertEquals(original.eventId(), result.eventId());
-        assertEquals(original.occurredOn(), result.occurredOn());
+        var reconstructed = (SecondTestEvent) result;
+        assertEquals(original.aggregateId(), reconstructed.aggregateId());
+        assertEquals(original.getUserId(), reconstructed.getUserId());
+        assertEquals(original.eventId(), reconstructed.eventId());
+        assertEquals(original.occurredOn(), reconstructed.occurredOn());
+        assertEquals(original.getValueObject(), reconstructed.getValueObject());
     }
 
     @Test

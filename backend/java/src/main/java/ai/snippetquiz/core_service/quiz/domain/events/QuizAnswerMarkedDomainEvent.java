@@ -28,16 +28,21 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
         this.isAllQuestionsMarked = isAllQuestionsMarked;
     }
 
-    public QuizAnswerMarkedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
-                                       QuizQuestionResponse quizQuestionResponse,
-                                       boolean isAllQuestionsMarked) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public QuizAnswerMarkedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version,
+            QuizQuestionResponse quizQuestionResponse,
+            boolean isAllQuestionsMarked) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.quizQuestionResponse = quizQuestionResponse;
         this.isAllQuestionsMarked = isAllQuestionsMarked;
     }
 
 
-    public static String eventName() {  
+    public static String eventName() {
         return "quiz.answer.marked";
     }
 
@@ -50,14 +55,19 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public QuizAnswerMarkedDomainEvent fromPrimitives(String aggregateId, String userId, java.util.HashMap<String, java.io.Serializable> body,
-                                                      String eventId,
-                                                      String occurredOn) {
+    public QuizAnswerMarkedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
+            String eventId,
+            String occurredOn,
+            int version) {
         return new QuizAnswerMarkedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 Utils.fromJson((String) body.get("quizQuestionResponse"), QuizQuestionResponse.class),
                 (boolean) body.get("isAllQuestionsMarked"));
     }

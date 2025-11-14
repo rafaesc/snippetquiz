@@ -44,13 +44,19 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
         this.quizQuestions = quizQuestions;
     }
 
-    public QuizQuestionsAddedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn,
-                                         java.util.Set<String> quizTopics,
-                                         QuizStatus status,
-                                         java.time.LocalDateTime updatedAt,
-                                         ContentEntryCount contentEntriesCount,
-                                         java.util.List<QuizQuestion> quizQuestions) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public QuizQuestionsAddedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version,
+            java.util.Set<String> quizTopics,
+            QuizStatus status,
+            java.time.LocalDateTime updatedAt,
+            ContentEntryCount contentEntriesCount,
+            java.util.List<QuizQuestion> quizQuestions
+    ) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.quizTopics = quizTopics;
         this.status = status;
         this.updatedAt = updatedAt;
@@ -74,14 +80,19 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public QuizQuestionsAddedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
-                                                        String eventId,
-                                                        String occurredOn) {
+    public QuizQuestionsAddedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
+            String eventId,
+            String occurredOn,
+            int version) {
         return new QuizQuestionsAddedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 Utils.fromJson((String) body.get("quizTopics"), new TypeReference<Set<String>>() {
                 }),
                 (QuizStatus) body.get("status"),

@@ -1,14 +1,14 @@
 package ai.snippetquiz.core_service.quiz.domain.events;
 
-import java.io.Serializable;
-import java.util.HashMap;
-
 import ai.snippetquiz.core_service.shared.domain.bus.event.DeactivationDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.HashMap;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -21,8 +21,14 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
         super(aggregateId, userId.toString());
     }
 
-    public QuizDeletedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public QuizDeletedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version
+    ) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
     }
 
     public static String eventName() {
@@ -31,18 +37,22 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
 
     @Override
     public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
-        return primitives;
+        return new HashMap<>();
     }
 
     @Override
-    public QuizDeletedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
+    public QuizDeletedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new QuizDeletedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
-                occurredOn);
+                occurredOn,
+                version);
     }
 }

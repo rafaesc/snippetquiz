@@ -36,11 +36,15 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     }
 
     public QuizCreatedDomainEvent(
-            String aggregateId, UserId userId, String eventId, String occurredOn,
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version,
             String contentBankId, String bankName,
             QuizStatus status,
             LocalDateTime createdAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;
@@ -62,14 +66,19 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public QuizCreatedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
-                                                 String eventId,
-                                                 String occurredOn) {
+    public QuizCreatedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
+            String eventId,
+            String occurredOn,
+            int version) {
         return new QuizCreatedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (String) body.get("contentBankId"),
                 (String) body.get("bankName"),
                 (QuizStatus) body.get("status"),

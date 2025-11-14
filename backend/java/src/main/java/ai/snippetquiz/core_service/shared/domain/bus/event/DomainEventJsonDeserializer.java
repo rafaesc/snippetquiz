@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.shared.domain.bus.event;
 
-import ai.snippetquiz.core_service.shared.adapter.in.DomainEventsInformation;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,8 @@ public class DomainEventJsonDeserializer {
                 String.class,
                 HashMap.class,
                 String.class,
-                String.class);
+                String.class,
+                int.class);
 
         return (T) fromPrimitivesMethod.invoke(
                 nullInstance,
@@ -42,7 +42,8 @@ public class DomainEventJsonDeserializer {
                 (String) attributes.get("userId"),
                 attributes,
                 (String) data.get("id"),
-                (String) data.get("occurred_on"));
+                (String) data.get("occurred_on"),
+                (int) data.get("version"));
     }
 
 }

@@ -19,8 +19,13 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
         super(aggregateId, userId.toString());
     }
 
-    public ContentEntryDeletedDomainEvent(String aggregateId, UserId userId, String eventId, String occurredOn) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+    public ContentEntryDeletedDomainEvent(
+            String aggregateId,
+            UserId userId,
+            String eventId,
+            String occurredOn,
+            int version) {
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
     }
 
     public static String eventName() {
@@ -29,18 +34,22 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
 
     @Override
     public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
-        return primitives;
+        return new HashMap<>();
     }
 
     @Override
-    public ContentEntryDeletedDomainEvent fromPrimitives(String aggregateId, String userId, HashMap<String, Serializable> body,
+    public ContentEntryDeletedDomainEvent fromPrimitives(
+            String aggregateId,
+            String userId,
+            HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentEntryDeletedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
-                occurredOn);
+                occurredOn,
+                version);
     }
 }

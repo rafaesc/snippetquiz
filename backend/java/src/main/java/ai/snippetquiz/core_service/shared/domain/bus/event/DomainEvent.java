@@ -7,8 +7,9 @@ import java.util.UUID;
 
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import static java.time.ZoneOffset.UTC;
 
 public abstract class DomainEvent {
     @Getter
@@ -28,14 +29,21 @@ public abstract class DomainEvent {
         this.aggregateId = aggregateId;
         this.userId = userId;
         this.eventId = UUID.randomUUID().toString();
-        this.occurredOn = Utils.dateToString(LocalDateTime.now());
+        this.occurredOn = Utils.dateToString(LocalDateTime.now(UTC));
     }
 
-    public DomainEvent(String aggregateId, String userId, String eventId, String occurredOn) {
+    public DomainEvent(
+            String aggregateId,
+            String userId,
+            String eventId,
+            String occurredOn,
+            int version
+    ) {
         this.aggregateId = aggregateId;
         this.userId = userId;
         this.eventId = eventId;
         this.occurredOn = occurredOn;
+        this.version = version;
     }
 
     protected DomainEvent() {
@@ -48,7 +56,8 @@ public abstract class DomainEvent {
             String userId,
             HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn);
+            String occurredOn,
+            int version);
 
     public String aggregateId() {
         return aggregateId;

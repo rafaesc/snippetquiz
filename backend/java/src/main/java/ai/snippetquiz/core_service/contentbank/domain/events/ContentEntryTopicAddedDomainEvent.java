@@ -32,9 +32,10 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             UserId userId,
             String eventId,
             String occurredOn,
+            int version,
             String topics,
             LocalDateTime updatedAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn);
+        super(aggregateId, userId.toString(), eventId, occurredOn, version);
         this.topics = topics;
         this.updatedAt = updatedAt;
     }
@@ -57,12 +58,14 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             String userId,
             HashMap<String, Serializable> body,
             String eventId,
-            String occurredOn) {
+            String occurredOn,
+            int version) {
         return new ContentEntryTopicAddedDomainEvent(
                 aggregateId,
                 UserId.map(userId),
                 eventId,
                 occurredOn,
+                version,
                 (String) body.get("topics"),
                 Utils.stringToDate((String) body.get("updatedAt")));
     }

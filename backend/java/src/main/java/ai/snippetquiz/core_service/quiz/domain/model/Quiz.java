@@ -39,6 +39,10 @@ public class Quiz extends AggregateRoot<QuizId> {
     private List<QuizQuestion> quizQuestions;
     private List<QuizQuestionResponse>  quizQuestionResponses;
 
+    public String getAggregateType() {
+        return "quiz-aggregate";
+    }
+
     public Quiz(QuizId quizId, UserId userId, ContentBankId contentBankId, String bankName) {
         var now = LocalDateTime.now();
 

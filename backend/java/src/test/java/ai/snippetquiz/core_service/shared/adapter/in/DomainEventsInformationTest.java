@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
+import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
 import ai.snippetquiz.core_service.testing.events.FirstTestEvent;
 import ai.snippetquiz.core_service.testing.events.SecondTestEvent;
 import org.junit.jupiter.api.Test;

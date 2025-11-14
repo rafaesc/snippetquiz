@@ -16,20 +16,8 @@ public class DomainEventJsonSerializer {
         return Utils.toJson(new HashMap<String, Serializable>() {{
             put("data", new HashMap<String, Serializable>() {{
                 put("id", domainEvent.eventId());
-
-                var eventClass = domainEvent.getClass();
-                try {
-                    var method = eventClass.getDeclaredMethod("eventName");
-                    method.setAccessible(true);
-                    String eventName = (String) method.invoke(domainEvent);
-
-                    put("type", eventName);
-                } catch (NoSuchMethodException e) {
-                    log.error("The eventName method was not found in the domain event for {}", eventClass.getName());
-                } catch (Exception e) {
-                    log.error("Error eventName", e);
-                }
-
+                put("version", domainEvent.getVersion());
+                put("type", Utils.getEventName(domainEvent.getClass()));
                 put("occurred_on", domainEvent.occurredOn());
                 put("attributes", attributes);
             }});
