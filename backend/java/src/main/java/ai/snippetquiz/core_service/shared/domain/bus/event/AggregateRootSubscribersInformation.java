@@ -46,7 +46,7 @@ public final class AggregateRootSubscribersInformation {
             try {
                 Object aggregateInstance = aggregateClass.getDeclaredConstructor().newInstance();
 
-                java.lang.reflect.Method getAggregateType = aggregateClass.getDeclaredMethod("getAggregateType");
+                java.lang.reflect.Method getAggregateType = aggregateClass.getDeclaredMethod("aggregateType");
                 getAggregateType.setAccessible(true);
                 String aggregateType = (String) getAggregateType.invoke(aggregateInstance);
 

@@ -37,7 +37,7 @@ public class SecondTestEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("valueObject", valueObject);
+        primitives.put("value_object", valueObject);
         return primitives;
     }
 
@@ -50,6 +50,6 @@ public class SecondTestEvent extends DomainEvent {
             String occurredOn,
             int version) {
         return new SecondTestEvent(aggregateId, userId, eventId, occurredOn, version,
-                (String) body.get("valueObject"));
+                (String) body.get("value_object"));
     }
 }

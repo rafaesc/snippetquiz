@@ -92,17 +92,17 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("contentBankId", contentBankId);
-        primitives.put("contentType", contentType);
+        primitives.put("content_bank_id", contentBankId);
+        primitives.put("content_type", contentType);
         primitives.put("content", content);
-        primitives.put("sourceUrl", sourceUrl);
-        primitives.put("pageTitle", pageTitle);
-        primitives.put("createdAt", Utils.dateToString(createdAt));
-        primitives.put("wordCount", wordCount);
-        primitives.put("videoDuration", videoDuration);
-        primitives.put("youtubeVideoId", youtubeVideoId);
-        primitives.put("youtubeChannelName", youtubeChannelName);
-        primitives.put("youtubeChannelId", youtubeChannelId);
+        primitives.put("source_url", sourceUrl);
+        primitives.put("page_title", pageTitle);
+        primitives.put("created_at", Utils.dateToString(createdAt));
+        primitives.put("word_count", wordCount);
+        primitives.put("video_duration", videoDuration);
+        primitives.put("youtube_video_id", youtubeVideoId);
+        primitives.put("youtube_channel_name", youtubeChannelName);
+        primitives.put("youtube_channel_id", youtubeChannelId);
         return primitives;
     }
 
@@ -120,16 +120,16 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                (String) body.get("contentBankId"),
-                (String) body.get("contentType"),
+                (String) body.get("content_bank_id"),
+                (String) body.get("content_type"),
                 (String) body.get("content"),
-                (String) body.get("sourceUrl"),
-                (String) body.get("pageTitle"),
-                Utils.stringToDate((String) body.get("createdAt")),
-                (int) body.get("wordCount"),
-                (Integer) body.get("videoDuration"),
-                (String) body.get("youtubeVideoId"),
-                (String) body.get("youtubeChannelName"),
-                (Long) body.get("youtubeChannelId"));
+                (String) body.get("source_url"),
+                (String) body.get("page_title"),
+                Utils.stringToDate((String) body.get("created_at")),
+                (int) body.get("word_count"),
+                (Integer) body.get("video_duration"),
+                (String) body.get("youtube_video_id"),
+                (String) body.get("youtube_channel_name"),
+                (Long) body.get("youtube_channel_id"));
     }
 }

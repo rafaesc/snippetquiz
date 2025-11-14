@@ -38,10 +38,10 @@ public class DomainEventJsonDeserializer {
 
         return (T) fromPrimitivesMethod.invoke(
                 nullInstance,
-                (String) attributes.get("id"),
-                (String) attributes.get("userId"),
+                (String) attributes.get("aggregate_id"),
+                (String) attributes.get("user_id"),
                 attributes,
-                (String) data.get("id"),
+                (String) data.get("event_id"),
                 (String) data.get("occurred_on"),
                 (int) data.get("version"));
     }

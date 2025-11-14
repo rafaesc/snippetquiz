@@ -24,6 +24,7 @@ public class KafkaEventBus implements EventBus {
 
     private void publish(final String aggregateType, DomainEvent domainEvent) {
         try {
+            log.info("Publishing domain event {} to topic {}", domainEvent.toPrimitives().toString(), aggregateType);
             String serializedDomainEvent =  DomainEventJsonSerializer.serialize(domainEvent);
 
             kafkaTemplate

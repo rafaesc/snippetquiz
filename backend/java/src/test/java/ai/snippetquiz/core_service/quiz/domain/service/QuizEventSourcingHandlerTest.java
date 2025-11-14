@@ -52,7 +52,7 @@ class QuizEventSourcingHandlerTest {
         var bankId = new ContentBankId(UUID.randomUUID());
         var quiz = new Quiz(quizId, userId, bankId, "Bank Name");
 
-        assertFalse(quiz.getUncommittedChanges().isEmpty(), "Precondition: there should be 1 uncommitted event");
+        assertFalse(quiz.pullUncommittedChanges().isEmpty(), "Precondition: there should be 1 uncommitted event");
 
         handler.save(quiz);
 
@@ -60,7 +60,7 @@ class QuizEventSourcingHandlerTest {
         verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().toString()), eq("quiz-aggregate"), eventCaptor.capture());
         assertEquals(0, eventCaptor.getValue().getVersion(), "First persisted event should have version 0");
 
-        assertTrue(quiz.getUncommittedChanges().isEmpty(), "Uncommitted changes must be cleared after save");
+        assertTrue(quiz.pullUncommittedChanges().isEmpty(), "Uncommitted changes must be cleared after save");
     }
 
     @Test

@@ -51,7 +51,7 @@ class QuizTest {
         assertNotNull(quiz.getQuizQuestions());
         assertNotNull(quiz.getQuizQuestionResponses());
 
-        var events = quiz.getUncommittedChanges();
+        var events = quiz.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(QuizCreatedDomainEvent.class, events.getFirst());
     }
@@ -64,7 +64,7 @@ class QuizTest {
         quiz.updateStatus(QuizStatus.IN_PROGRESS);
 
         assertEquals(QuizStatus.IN_PROGRESS, quiz.getStatus());
-        var events = quiz.getUncommittedChanges();
+        var events = quiz.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(QuizStatusUpdatedDomainEvent.class, events.getFirst());
     }
@@ -87,7 +87,7 @@ class QuizTest {
         assertEquals(1, quiz.getQuizQuestions().size());
         assertNotNull(quiz.getQuestionUpdatedAt());
 
-        var events = quiz.getUncommittedChanges();
+        var events = quiz.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(QuizQuestionsAddedDomainEvent.class, events.getFirst());
     }
@@ -108,7 +108,7 @@ class QuizTest {
         assertEquals(1, quiz.getQuizQuestionResponses().size());
         assertEquals(Boolean.FALSE, quiz.getIsAllQuestionsMarked());
 
-        var events = quiz.getUncommittedChanges();
+        var events = quiz.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(QuizAnswerMarkedDomainEvent.class, events.getFirst());
         assertFalse(((QuizAnswerMarkedDomainEvent) events.getFirst()).isAllQuestionsMarked());
@@ -128,7 +128,7 @@ class QuizTest {
         assertEquals(1, quiz.getQuizQuestionResponses().size());
         assertEquals(Boolean.TRUE, quiz.getIsAllQuestionsMarked());
 
-        var events = quiz.getUncommittedChanges();
+        var events = quiz.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(QuizAnswerMarkedDomainEvent.class, events.getFirst());
         assertTrue(((QuizAnswerMarkedDomainEvent) events.getFirst()).isAllQuestionsMarked());
@@ -143,7 +143,7 @@ class QuizTest {
 
         // First mark completes the quiz
         quiz.answerMarked(new QuizQuestionResponse());
-        var firstBatch = quiz.getUncommittedChanges();
+        var firstBatch = quiz.pullUncommittedChanges();
         assertEquals(1, firstBatch.size());
         assertInstanceOf(QuizAnswerMarkedDomainEvent.class, firstBatch.getFirst());
         assertEquals(Boolean.TRUE, quiz.getIsAllQuestionsMarked());
@@ -151,7 +151,7 @@ class QuizTest {
 
         // Second mark should be ignored
         quiz.answerMarked(new QuizQuestionResponse());
-        var secondBatch = quiz.getUncommittedChanges();
+        var secondBatch = quiz.pullUncommittedChanges();
         assertEquals(0, secondBatch.size());
     }
 
@@ -162,7 +162,7 @@ class QuizTest {
 
         quiz.delete();
 
-        var events = quiz.getUncommittedChanges();
+        var events = quiz.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(QuizDeletedDomainEvent.class, events.getFirst());
 

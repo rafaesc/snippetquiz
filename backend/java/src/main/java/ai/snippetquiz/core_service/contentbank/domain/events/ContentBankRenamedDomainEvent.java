@@ -44,7 +44,7 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
         primitives.put("name", name);
-        primitives.put("updatedAt", Utils.dateToString(updatedAt));
+        primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
     }
 
@@ -63,6 +63,6 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
                 occurredOn,
                 version,
                 (String) body.get("name"),
-                Utils.stringToDate((String) body.get("updatedAt")));
+                Utils.stringToDate((String) body.get("updated_at")));
     }
 }

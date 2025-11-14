@@ -24,6 +24,7 @@ import org.hibernate.type.SqlTypes;
 public class DomainEventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", nullable = false)
     private UUID eventId;
 
     private UUID userId;

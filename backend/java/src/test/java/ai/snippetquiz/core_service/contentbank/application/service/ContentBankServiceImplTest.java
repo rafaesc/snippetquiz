@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.ConflictException;
@@ -50,6 +51,9 @@ class ContentBankServiceImplTest {
 
     @Mock
     private YoutubeChannelRepository youtubeChannelRepository;
+
+    @Mock
+    private EventBus eventBus;
 
     @InjectMocks
     private ContentBankServiceImpl contentBankService;

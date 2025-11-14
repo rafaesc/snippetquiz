@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTORespon
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
@@ -43,6 +44,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     private final YoutubeChannelRepository youtubeChannelRepository;
     private final ContentEntryEventPublisher contentEntryEventPublisher;
     private final TopicRepository topicRepository;
+    private final EventBus eventBus;
 
     @Override
     public void create(UserId userId,
@@ -113,9 +115,12 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         // Create new entry
         var contentEntry = new ContentEntry(userId, bankId, type, processedContent, sourceUrl, pageTitle,
                 youtubeVideoDuration, youtubeVideoId, youtubeChannel);
+
         var savedEntry = contentEntryRepository.save(contentEntry);
+        eventBus.publish(contentEntry.aggregateType(), contentEntry.drainDomainEvents());
 
         contentBank.addContentEntry(savedEntry);
+        eventBus.publish(contentBank.aggregateType(), contentBank.drainDomainEvents());
 
         resultEntry = savedEntry;
 
@@ -131,7 +136,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     @Transactional(readOnly = true)
     public ContentEntryDTOResponse findById(UserId userId, ContentEntryId entryId) {
         var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
-                .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
+                .orElseThrow(() -> new NotFoundException("Content entry not found or access denied " + entryId.toString()));
 
         var contentEntryTopicList = contentEntryTopicRepository.findByContentEntryId(contentEntry.getId());
         var topicIds = contentEntryTopicList.stream()
@@ -212,7 +217,10 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
         var topics = topicRepository.findAllByIdInAndUserId(topicIds, userId);
         clonedEntry.updatedTopics(topics);
+        eventBus.publish(clonedEntry.aggregateType(), clonedEntry.drainDomainEvents());
+
         targetBank.addContentEntry(clonedEntry);
+        eventBus.publish(targetBank.aggregateType(), targetBank.drainDomainEvents());
     }
 
     @Override
@@ -226,6 +234,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         contentBank.removeContentEntry(contentEntry);
         
         contentEntryRepository.delete(contentEntry);
+        eventBus.publish(contentEntry.aggregateType(), contentEntry.drainDomainEvents());
     }
 
     private void generateTopicsForContentEntry(UserId userId, ContentEntry contentEntry) {

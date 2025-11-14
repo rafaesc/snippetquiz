@@ -28,6 +28,10 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     private LocalDateTime updatedAt;
     private List<ContentEntry> contentEntries = List.of();
 
+    public String aggregateType() {
+        return "content-bank.events";
+    }
+
     public ContentBank(ContentBankId id, UserId userId, String name) {
         var now = LocalDateTime.now();
         record(new ContentBankCreatedDomainEvent(

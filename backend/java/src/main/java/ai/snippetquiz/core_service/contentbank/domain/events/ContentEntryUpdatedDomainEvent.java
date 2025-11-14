@@ -58,9 +58,9 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
         primitives.put("content", content);
-        primitives.put("pageTitle", pageTitle);
-        primitives.put("createdAt", Utils.dateToString(createdAt));
-        primitives.put("wordCount", wordCount);
+        primitives.put("page_title", pageTitle);
+        primitives.put("created_at", Utils.dateToString(createdAt));
+        primitives.put("word_count", wordCount);
         return primitives;
     }
 
@@ -79,8 +79,8 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
                 occurredOn,
                 version,
                 (String) body.get("content"),
-                (String) body.get("pageTitle"),
-                Utils.stringToDate((String) body.get("createdAt")),
-                (int) body.get("wordCount"));
+                (String) body.get("page_title"),
+                Utils.stringToDate((String) body.get("created_at")),
+                (int) body.get("word_count"));
     }
 }

@@ -117,9 +117,6 @@ CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "topics"("user_id", "topic");
 CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "youtube_channels"("channel_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "content_entries_content_bank_id_key" ON "content_entries"(LEFT("content_bank_id"::text, 4));
-
--- CreateIndex
 CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "content_entry_topics"(LEFT("content_entry_id"::text, 4), "topic_id");
 
 -- AddForeignKey
