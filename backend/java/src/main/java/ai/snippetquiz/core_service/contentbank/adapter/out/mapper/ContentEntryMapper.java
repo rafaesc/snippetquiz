@@ -14,7 +14,6 @@ public interface ContentEntryMapper {
     @Mapping(target = "contentBankId.value", source = "entity.contentBankId")
     @Mapping(target = "youtubeChannelId.value", source = "entity.youtubeChannelId")
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "uncommittedChanges", ignore = true)
     ContentEntry toDomain(ContentEntryEntity entity);
 
     @Mapping(target = "id", source = "domain.id.value")

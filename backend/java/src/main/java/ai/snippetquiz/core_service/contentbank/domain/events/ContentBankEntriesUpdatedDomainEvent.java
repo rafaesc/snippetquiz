@@ -43,8 +43,8 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("contentEntries", contentEntries);
-        primitives.put("updatedAt", Utils.dateToString(updatedAt));
+        primitives.put("content_entries", contentEntries);
+        primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
     }
 
@@ -62,7 +62,7 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                (String) body.get("contentEntries"),
-                Utils.stringToDate((String) body.get("updatedAt")));
+                (String) body.get("content_entries"),
+                Utils.stringToDate((String) body.get("updated_at")));
     }
 }

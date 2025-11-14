@@ -16,6 +16,11 @@ public class ContentEntryId extends BaseId<UUID> {
         return new ContentEntryId(UUID.fromString(value));
     }
 
+    @Override
+    public String toString() {
+        return getValue().toString();
+    }
+
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static ContentEntryId fromJson(JsonNode node) {
         if (node == null || node.isNull()) {

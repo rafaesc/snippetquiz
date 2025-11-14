@@ -9,10 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Data
@@ -25,18 +21,8 @@ public class Topic extends BaseEntity<TopicId> {
     private String topic;
     private LocalDateTime createdAt;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     public Topic(UserId userId, String topic) {
         this.userId = userId;
         this.topic = topic;
-    }
-
-    public static String toJson(Set<Topic> entries) {
-        try {
-            return objectMapper.writeValueAsString(entries);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error serializing Topic list", e);
-        }
     }
 }

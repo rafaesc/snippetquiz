@@ -14,6 +14,7 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
@@ -38,6 +39,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.Double.doubleToLongBits;
+import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,6 +71,9 @@ class ContentEntryServiceImplTest {
 
     @Mock
     private TopicRepository topicRepository;
+
+    @Mock
+    private EventBus eventBus;
 
     @InjectMocks
     private ContentEntryServiceImpl contentEntryService;
@@ -339,6 +344,7 @@ class ContentEntryServiceImplTest {
                     contentEntryService.clone(userId, entryId, bankId));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void clone_success_clonesEntryAddsToBankAndCopiesTopics() {
             // Given
@@ -384,8 +390,17 @@ class ContentEntryServiceImplTest {
             assertThat(targetBank.getContentEntries()).hasSize(1);
             verify(contentEntryTopicRepository, times(2)).save(any(ContentEntryTopic.class));
             verify(topicRepository, times(1)).findAllByIdInAndUserId(anyList(), eq(userId));
-            assertThat(savedClone.getUncommittedChanges())
+
+            // Verify domain event published via EventBus (events are drained from the aggregate)
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(Iterable.class);
+            verify(eventBus, times(2)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+
+            boolean publishedTopicAdded = eventsCaptor.getAllValues().stream()
+                    .flatMap(iter -> stream(iter.spliterator(), false))
                     .anyMatch(e -> e.getClass().getSimpleName().equals("ContentEntryTopicAddedDomainEvent"));
+
+            assertThat(publishedTopicAdded).isTrue();
         }
     }
 
@@ -422,6 +437,7 @@ class ContentEntryServiceImplTest {
             assertThrows(NotFoundException.class, () -> contentEntryService.remove(userId, entry.getId()));
         }
 
+        @SuppressWarnings("unchecked")
         @Test
         void remove_success_callsDomainDeletesAndRepositoryDelete() {
             // Given
@@ -439,17 +455,20 @@ class ContentEntryServiceImplTest {
             var bank = new ContentBank(bankId, userId, "Bank");
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.of(bank));
-
+        
             // When
             contentEntryService.remove(userId, entry.getId());
-
+        
             // Then
             // Assert domain events/state instead of spying
-            assertThat(entry.getUncommittedChanges())
-                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentEntryDeletedDomainEvent"));
-            assertThat(bank.getUncommittedChanges())
-                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentBankEntriesUpdatedDomainEvent"));
             verify(contentEntryRepository, times(1)).delete(entry);
+            var eventsCaptor = ArgumentCaptor.forClass(Iterable.class);
+            verify(eventBus, times(1)).publish(eq(entry.aggregateType()), eventsCaptor.capture());
+        
+            boolean publishedDelete = stream(eventsCaptor.getValue().spliterator(), false)
+                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentEntryDeletedDomainEvent"));
+        
+            assertThat(publishedDelete).isTrue();
         }
     }
 }

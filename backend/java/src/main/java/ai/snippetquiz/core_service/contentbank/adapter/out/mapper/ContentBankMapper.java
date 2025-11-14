@@ -11,7 +11,6 @@ public interface ContentBankMapper {
     @Mapping(target = "id.value", source = "entity.id")
     @Mapping(target = "userId.value", source = "entity.userId")
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "uncommittedChanges", ignore = true)
     ContentBank toDomain(ContentBankEntity entity);
     
     @Mapping(target = "id", source = "domain.id.value")

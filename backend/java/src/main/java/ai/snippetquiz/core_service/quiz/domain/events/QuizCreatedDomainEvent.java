@@ -58,10 +58,10 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("contentBankId", contentBankId);
-        primitives.put("bankName", bankName);
+        primitives.put("content_bank_id", contentBankId);
+        primitives.put("bank_name", bankName);
         primitives.put("status", status);
-        primitives.put("createdAt", Utils.dateToString(createdAt));
+        primitives.put("created_at", Utils.dateToString(createdAt));
         return primitives;
     }
 
@@ -79,9 +79,9 @@ public class QuizCreatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                (String) body.get("contentBankId"),
-                (String) body.get("bankName"),
+                (String) body.get("content_bank_id"),
+                (String) body.get("bank_name"),
                 (QuizStatus) body.get("status"),
-                Utils.stringToDate((String) body.get("createdAt")));
+                Utils.stringToDate((String) body.get("created_at")));
     }
 }

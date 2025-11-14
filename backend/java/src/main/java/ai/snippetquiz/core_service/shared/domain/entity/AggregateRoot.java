@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import ai.snippetquiz.core_service.shared.domain.bus.event.DeactivationDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,10 +16,10 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
     @Setter
     private int version = -1;
     private boolean active = true;
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
+    private List<DomainEvent> domainEvents = new ArrayList<>();
     private final Logger logger = Logger.getLogger(AggregateRoot.class.getName());
 
-    protected String getAggregateType() {
+    protected String aggregateType() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -53,9 +52,14 @@ public abstract class AggregateRoot<ID> extends BaseEntity<ID> {
         events.forEach(event -> applyChange(event, false));
     }
 
-    @JsonIgnore
-    public List<DomainEvent> getUncommittedChanges() {
+    public List<DomainEvent> pullUncommittedChanges() {
         return this.domainEvents;
+    }
+
+    public List<DomainEvent> drainDomainEvents() {
+        List<DomainEvent> events = domainEvents;
+        this.domainEvents = new ArrayList<>();
+        return events;
     }
 
     public void markChangesAsCommitted() {

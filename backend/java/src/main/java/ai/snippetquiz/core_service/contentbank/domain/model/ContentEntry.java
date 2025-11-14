@@ -8,6 +8,7 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
@@ -17,7 +18,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -42,6 +42,10 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private Integer videoDuration;
     private String youtubeVideoId;
     private YoutubeChannelId youtubeChannelId;
+
+    public String aggregateType() {
+        return "content-entry.events";
+    }
 
     public ContentEntry(UserId userId, ContentBankId contentBankId, ContentType type, String processedContent, String sourceUrl,
             String pageTitle, Integer youtubeVideoDuration, String youtubeVideoId, 
@@ -118,7 +122,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         record(new ContentEntryTopicAddedDomainEvent(
             getId().getValue().toString(),
             userId,
-            Topic.toJson(new HashSet<>(topics)),
+            Utils.toJson(topics),
             now));
     }
 

@@ -10,6 +10,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepositor
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.ConflictException;
@@ -36,8 +37,10 @@ public class ContentBankServiceImpl implements ContentBankService {
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryRepository contentEntryRepository;
     private final YoutubeChannelRepository youtubeChannelRepository;
+    private final EventBus eventBus;
 
     @Override
+    @Transactional
     public void create(ContentBankId id, UserId userId, String name) {
         var existingBank = contentBankRepository.findByUserIdAndNameAndIdNot(userId, name.trim(), id);
         if (existingBank.isPresent()) {
@@ -58,6 +61,7 @@ public class ContentBankServiceImpl implements ContentBankService {
         }
 
         contentBankRepository.save(contentBank);
+        eventBus.publish(contentBank.aggregateType(), contentBank.drainDomainEvents());
     }
 
     @Override
@@ -103,14 +107,14 @@ public class ContentBankServiceImpl implements ContentBankService {
     public void remove(UserId userId, ContentBankId id) {
         var contentBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or access denied"));
+
         contentBank.delete();
         contentBankRepository.deleteByIdAndUserId(id, userId);
+        eventBus.publish(contentBank.aggregateType(), contentBank.drainDomainEvents());
     }
 
     @Override
-    public void duplicate(UserId userId, ContentBankId id, String name) {
-        var newName = name;
-
+    public void duplicate(UserId userId, ContentBankId id, String newName) {
         var originalBank = contentBankRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or does not belong to user"));
@@ -130,7 +134,7 @@ public class ContentBankServiceImpl implements ContentBankService {
     private void duplicateContentBankWithEntries(ContentBank originalBank, UserId userId, String newName) {
         var newBank = new ContentBank(ContentBankId.create(), userId, newName);
         newBank = contentBankRepository.save(newBank);
-        var channelIds = newBank.getContentEntries().stream()
+        var channelIds = originalBank.getContentEntries().stream()
                 .map(ContentEntry::getYoutubeChannelId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -140,7 +144,7 @@ public class ContentBankServiceImpl implements ContentBankService {
                 .collect(Collectors.toMap(YoutubeChannel::getId, Function.identity()));
 
         List<ContentEntry> newContentEntries = new ArrayList<>();
-        for (ContentEntry association : newBank.getContentEntries()) {
+        for (ContentEntry association : originalBank.getContentEntries()) {
             var newAssociation = new ContentEntry(
                     association.getUserId(),
                     association.getContentBankId(),
@@ -157,5 +161,6 @@ public class ContentBankServiceImpl implements ContentBankService {
         }
         newBank.updatedContentEntries(newContentEntries);
         contentEntryRepository.saveAll(newContentEntries);
+        eventBus.publish(newBank.aggregateType(), newBank.drainDomainEvents());
     }
 }

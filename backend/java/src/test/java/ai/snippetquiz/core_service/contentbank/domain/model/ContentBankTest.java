@@ -44,7 +44,7 @@ class ContentBankTest {
         assertNotNull(contentBank.getContentEntries());
         assertTrue(contentBank.getContentEntries().isEmpty());
 
-        var events = contentBank.getUncommittedChanges();
+        var events = contentBank.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(ContentBankCreatedDomainEvent.class, events.getFirst());
     }
@@ -59,7 +59,7 @@ class ContentBankTest {
         assertEquals("New Name", contentBank.getName());
         assertNotNull(contentBank.getUpdatedAt());
 
-        var events = contentBank.getUncommittedChanges();
+        var events = contentBank.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(ContentBankRenamedDomainEvent.class, events.getFirst());
     }
@@ -71,7 +71,7 @@ class ContentBankTest {
 
         contentBank.delete();
 
-        var events = contentBank.getUncommittedChanges();
+        var events = contentBank.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(ContentBankDeletedDomainEvent.class, events.getFirst());
 
@@ -90,7 +90,7 @@ class ContentBankTest {
         assertEquals(1, contentBank.getContentEntries().size());
         assertNotNull(contentBank.getUpdatedAt());
 
-        var events = contentBank.getUncommittedChanges();
+        var events = contentBank.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(ContentBankEntriesUpdatedDomainEvent.class, events.getFirst());
     }
@@ -105,7 +105,7 @@ class ContentBankTest {
         assertEquals(1, contentBank.getContentEntries().size());
         assertNotNull(contentBank.getUpdatedAt());
 
-        var events = contentBank.getUncommittedChanges();
+        var events = contentBank.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(ContentBankEntriesUpdatedDomainEvent.class, events.getFirst());
     }
@@ -125,7 +125,7 @@ class ContentBankTest {
         assertTrue(contentBank.getContentEntries().isEmpty());
         assertNotNull(contentBank.getUpdatedAt());
 
-        var events = contentBank.getUncommittedChanges();
+        var events = contentBank.pullUncommittedChanges();
         assertEquals(1, events.size());
         assertInstanceOf(ContentBankEntriesUpdatedDomainEvent.class, events.getFirst());
     }

@@ -20,8 +20,8 @@ public class QuizEventSourcingHandler implements EventSourcingHandler<Quiz> {
     @Override
     @Transactional
     public void save(Quiz aggregate) {
-        String aggregateType = aggregate.getAggregateType();
-        eventStore.saveEvents(aggregate.getUserId(), aggregate.getId().toString(), aggregateType, aggregate.getUncommittedChanges(), aggregate.getVersion());
+        String aggregateType = aggregate.aggregateType();
+        eventStore.saveEvents(aggregate.getUserId(), aggregate.getId().toString(), aggregateType, aggregate.pullUncommittedChanges(), aggregate.getVersion());
         aggregate.markChangesAsCommitted();
     }
 

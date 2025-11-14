@@ -10,7 +10,6 @@ import org.mapstruct.MappingConstants;
 public interface YoutubeChannelMapper {
     @Mapping(target = "id.value", source = "entity.id")
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "uncommittedChanges", ignore = true)
     YoutubeChannel toDomain(YoutubeChannelEntity entity);
     
     @Mapping(target = "id", source = "domain.id.value")

@@ -75,14 +75,14 @@ class ContentEntryTest {
 
         assertEquals(updatedContent, contentEntry.getContent());
         assertEquals(updatedPageTitle, contentEntry.getPageTitle());
-        assertTrue(contentEntry.getUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryUpdatedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryUpdatedDomainEvent));
     }
 
     @Test
     void delete_recordsEvent() {
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
         contentEntry.delete();
-        assertTrue(contentEntry.getUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryDeletedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryDeletedDomainEvent));
     }
 
     @Test
@@ -93,7 +93,7 @@ class ContentEntryTest {
 
         contentEntry.updatedTopics(topics);
 
-        assertTrue(contentEntry.getUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryTopicAddedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryTopicAddedDomainEvent));
     }
 
     @Test

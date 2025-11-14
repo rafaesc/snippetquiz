@@ -49,8 +49,8 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Serializable> toPrimitives() {
         var primitives = new HashMap<String, Serializable>();
-        primitives.put("quizQuestionResponse", Utils.toJson(quizQuestionResponse));
-        primitives.put("isAllQuestionsMarked", isAllQuestionsMarked);
+        primitives.put("quiz_question_response", Utils.toJson(quizQuestionResponse));
+        primitives.put("is_all_questions_marked", isAllQuestionsMarked);
         return primitives;
     }
 
@@ -68,7 +68,7 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                Utils.fromJson((String) body.get("quizQuestionResponse"), QuizQuestionResponse.class),
-                (boolean) body.get("isAllQuestionsMarked"));
+                Utils.fromJson((String) body.get("quiz_question_response"), QuizQuestionResponse.class),
+                (boolean) body.get("is_all_questions_marked"));
     }
 }
