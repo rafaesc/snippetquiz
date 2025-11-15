@@ -81,7 +81,7 @@ public class QuizCreatedDomainEvent extends DomainEvent {
                 version,
                 (String) body.get("content_bank_id"),
                 (String) body.get("bank_name"),
-                (QuizStatus) body.get("status"),
+                QuizStatus.valueOf((String) body.get("status")),
                 Utils.stringToDate((String) body.get("created_at")));
     }
 }

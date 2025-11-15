@@ -23,7 +23,6 @@ import org.hibernate.type.SqlTypes;
 @AllArgsConstructor
 public class DomainEventEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private UUID eventId;
 

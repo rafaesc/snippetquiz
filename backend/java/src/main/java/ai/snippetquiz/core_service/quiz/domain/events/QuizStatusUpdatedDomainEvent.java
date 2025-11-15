@@ -57,6 +57,6 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                (QuizStatus) body.get("status"));
+                QuizStatus.valueOf((String) body.get("status")));
     }
 }

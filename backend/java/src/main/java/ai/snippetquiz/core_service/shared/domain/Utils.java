@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 
 @UtilityClass
 public class Utils {
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final ObjectMapper mapper = new ObjectMapper();
 
     static {
@@ -24,11 +25,11 @@ public class Utils {
     }
 
     public static String dateToString(LocalDateTime dateTime) {
-        return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return dateTime.format(dateFormatter);
     }
 
     public static LocalDateTime stringToDate(String dateString) {
-        return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE);
+        return LocalDateTime.parse(dateString, dateFormatter);
     }
 
     public static String toJson(Object object) {

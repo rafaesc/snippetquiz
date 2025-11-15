@@ -69,13 +69,12 @@ public class QuizController extends ApiController {
     public CreateQuizResponse createQuiz(
             @RequestHeader(Constants.USER_ID_HEADER) String userId,
             @RequestBody CreateQuizRequest request) {
-        var id = UUID.randomUUID();
         dispatch(new CreateQuizCommand(
                 UUID.fromString(userId),
                 UUID.fromString(request.bankId()),
                 UUID.fromString(request.quizId())
         ));
-        return new CreateQuizResponse(id.toString());
+        return new CreateQuizResponse(request.quizId());
     }
 
     @GetMapping
