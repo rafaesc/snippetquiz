@@ -57,7 +57,7 @@ class QuizEventSourcingHandlerTest {
         handler.save(quiz);
 
         ArgumentCaptor<DomainEvent> eventCaptor = ArgumentCaptor.forClass(DomainEvent.class);
-        verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().toString()), eq("quiz-aggregate"), eventCaptor.capture());
+        verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().toString()), eq(quiz.aggregateType()), eventCaptor.capture());
         assertEquals(0, eventCaptor.getValue().getVersion(), "First persisted event should have version 0");
 
         assertTrue(quiz.pullUncommittedChanges().isEmpty(), "Uncommitted changes must be cleared after save");

@@ -9,6 +9,7 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -18,7 +19,7 @@ public class KafkaEventBus implements EventBus {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    public void publish(String aggregateType, Iterable<? extends DomainEvent> events) {
+    public void publish(String aggregateType, List<? extends DomainEvent> events) {
         events.forEach(event -> publish(aggregateType, event));
     }
 

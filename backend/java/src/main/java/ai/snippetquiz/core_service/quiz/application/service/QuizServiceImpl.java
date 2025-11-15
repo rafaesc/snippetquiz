@@ -165,7 +165,7 @@ public class QuizServiceImpl implements QuizService {
             }
 
             var selectedOption = question.getQuizQuestionOptions().stream().filter(
-                    option -> response.getQuizQuestionOption().toString().equals(option.getOptionText())
+                    option -> response.getQuizQuestionOption().equals(option.getId())
             ).findFirst();
 
             if (selectedOption.isEmpty()) {

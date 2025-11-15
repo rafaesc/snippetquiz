@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.shared.domain.bus.event;
 
 import ai.snippetquiz.core_service.quiz.application.consumer.QuizProjectionHandler;
+import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.shared.adapter.in.TestQuizEventsSubscriber;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
@@ -27,11 +28,12 @@ class AggregateRootSubscribersInformationTest {
         AggregateRootSubscribersInformation info = new AggregateRootSubscribersInformation(ctx);
 
         // Act
-        List<AggregateEventSubscriber> subscribers = info.search("quiz-aggregate");
+        var aggregateType = (new Quiz()).aggregateType();
+        List<AggregateEventSubscriber> subscribers = info.search(aggregateType);
 
         // Assert
         assertNotNull(subscribers);
-        assertFalse(subscribers.isEmpty(), "Expected at least one subscriber for quiz-aggregate");
+        assertFalse(subscribers.isEmpty(), "Expected at least one subscriber for " + aggregateType);
         assertTrue(subscribers.stream().anyMatch(s -> s instanceof TestQuizEventsSubscriber),
                 "Expected an instance of TestQuizEventsSubscriber among search results");
         assertTrue(subscribers.stream().allMatch(s -> s instanceof AggregateEventSubscriber),
@@ -61,13 +63,14 @@ class AggregateRootSubscribersInformationTest {
 
         AggregateRootSubscribersInformation info = new AggregateRootSubscribersInformation(ctx);
 
+        var aggregateType = (new Quiz()).aggregateType();
         var subscribers = info.getSubscribers();
 
         assertNotNull(subscribers, "getSubscribers should not return null");
         assertFalse(subscribers.isEmpty(), "Subscribers map should not be empty");
-        assertTrue(subscribers.containsKey("quiz-aggregate"), "Map should contain 'quiz-aggregate' key");
+        assertTrue(subscribers.containsKey(aggregateType), "Map should contain 'quiz.aggregate' key");
 
-        List<AggregateEventSubscriber> quizSubscribers = subscribers.get("quiz-aggregate");
+        List<AggregateEventSubscriber> quizSubscribers = subscribers.get(aggregateType);
         assertNotNull(quizSubscribers, "List for 'quiz-aggregate' should not be null");
         assertFalse(quizSubscribers.isEmpty(), "List for 'quiz-aggregate' should not be empty");
         assertTrue(quizSubscribers.stream().anyMatch(s -> s instanceof QuizProjectionHandler),
