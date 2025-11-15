@@ -73,7 +73,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
         var primitives = new HashMap<String, Serializable>();
         primitives.put("quiz_topics", Utils.toJson(quizTopics));
         primitives.put("status", status);
-        primitives.put("updated_at", updatedAt);
+        primitives.put("updated_at", Utils.dateToString(updatedAt));
         primitives.put("content_entries_count", Utils.toJson(contentEntriesCount));
         primitives.put("quiz_questions", Utils.toJson(quizQuestions));
         return primitives;
@@ -95,8 +95,8 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
                 version,
                 Utils.fromJson((String) body.get("quiz_topics"), new TypeReference<Set<String>>() {
                 }),
-                (QuizStatus) body.get("status"),
-                (LocalDateTime) body.get("updated_at"),
+                QuizStatus.valueOf((String) body.get("status")),
+                Utils.stringToDate((String) body.get("updated_at")),
                 Utils.fromJson((String) body.get("content_entries_count"), ContentEntryCount.class),
                 Utils.fromJson((String) body.get("quiz_questions"), new TypeReference<List<QuizQuestion>>() {
                 }));

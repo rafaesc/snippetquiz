@@ -20,6 +20,8 @@ import   {
   CreateQuizResponse,
 } from './types';
 
+import { v4 as uuidv4 } from 'uuid';
+
 
 // Token management (now using cookies instead of localStorage)
 export const tokenService = {
@@ -487,12 +489,15 @@ export const apiService = {
   },
 
   createQuiz: async (data: CreateQuizRequest): Promise<CreateQuizResponse> => {
+    const clientQuizId = uuidv4();
+
     const response = await makeAuthenticatedRequest('/api/core/quiz', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      // include client-generated quizId in the payload
+      body: JSON.stringify({ ...data, quizId: clientQuizId }),
     });
 
     if (!response.ok) {
@@ -500,6 +505,8 @@ export const apiService = {
       throw new Error(error.error || 'Failed to create quiz');
     }
 
-    return response.json();
+    // Prefer server-provided quizId; fallback to client-generated if absent
+    const payload = await response.json();
+    return { quizId: payload.quizId };
   },
 };

@@ -181,6 +181,7 @@ export interface ValidateQuizInProgressResponse {
 }
 
 export interface CreateQuizRequest {
+  quizId: string;
   bankId: string;
 }
 
