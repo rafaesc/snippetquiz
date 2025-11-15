@@ -34,12 +34,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.lang.Double.doubleToLongBits;
-import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -111,6 +110,9 @@ class ContentEntryServiceImplTest {
                             null,
                             null,
                             null));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
@@ -153,9 +155,13 @@ class ContentEntryServiceImplTest {
             verify(contentEntryRepository, times(1)).save(existingEntry);
             verify(contentEntryEventPublisher, never()).emitGenerateTopicsEvent(any(), any(), any(), any(), any());
             assertThat(bank.getContentEntries()).isEmpty();
+
+            // Verify no events published to EventBus on update-only path
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void create_videoTranscript_whenChannelMissing_createsChannelAndEmitsTopics() {
             // Given
             var bank = new ContentBank(bankId, userId, "Bank");
@@ -164,7 +170,7 @@ class ContentEntryServiceImplTest {
             when(youtubeChannelRepository.save(any(YoutubeChannel.class)))
                     .thenAnswer(invocation -> {
                         var youtubeChannel = (YoutubeChannel) invocation.getArgument(0);
-                        youtubeChannel.setId(new YoutubeChannelId(doubleToLongBits(Math.random())));
+                        youtubeChannel.setId(new YoutubeChannelId(1L));
                         return youtubeChannel;
                     });
             // Return the same entry that is passed into save
@@ -195,6 +201,16 @@ class ContentEntryServiceImplTest {
             assertThat(savedEntry.getPageTitle()).isEqualTo("Video Title");
             verify(contentEntryEventPublisher, times(1)).emitGenerateTopicsEvent(
                     eq(userId), eq(savedEntry.getId()), eq("Transcript content"), eq("Video Title"), eq(""));
+
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
+            verify(eventBus, times(2)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+            var allEvents = eventsCaptor.getAllValues().stream()
+                    .flatMap(Collection::stream)
+                    .map(e -> e.getClass().getSimpleName())
+                    .toList();
+            assertThat(allEvents).anyMatch(n -> n.equals("ContentEntryCreatedDomainEvent"));
+            assertThat(allEvents).anyMatch(n -> n.equals("ContentBankEntriesUpdatedDomainEvent"));
         }
     }
 
@@ -230,8 +246,8 @@ class ContentEntryServiceImplTest {
             var t2 = new ContentEntryTopic();
             t1.setContentEntryId(entry.getId());
             t2.setContentEntryId(entry.getId());
-            t1.setTopicId(new TopicId(doubleToLongBits(Math.random())));
-            t2.setTopicId(new TopicId(doubleToLongBits(Math.random())));
+            t1.setTopicId(new TopicId(1L));
+            t2.setTopicId(new TopicId(2L));
             when(contentEntryTopicRepository.findByContentEntryId(entry.getId())).thenReturn(List.of(t1, t2));
 
             var topicA = mock(Topic.class);
@@ -289,7 +305,7 @@ class ContentEntryServiceImplTest {
 
             var t1 = new ContentEntryTopic();
             t1.setContentEntryId(entry.getId());
-            t1.setTopicId(new TopicId(doubleToLongBits(Math.random())));
+            t1.setTopicId(new TopicId(1L));
             when(contentEntryTopicRepository.findByContentEntryId(entry.getId())).thenReturn(List.of(t1));
 
             var topicA = mock(Topic.class);
@@ -320,6 +336,9 @@ class ContentEntryServiceImplTest {
             // When & Then
             assertThrows(NotFoundException.class, () ->
                     contentEntryService.clone(userId, entryId, bankId));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
@@ -342,6 +361,9 @@ class ContentEntryServiceImplTest {
             // When & Then
             assertThrows(NotFoundException.class, () ->
                     contentEntryService.clone(userId, entryId, bankId));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @SuppressWarnings("unchecked")
@@ -368,10 +390,10 @@ class ContentEntryServiceImplTest {
 
             var st1 = new ContentEntryTopic();
             st1.setContentEntryId(entryId);
-            st1.setTopicId(new TopicId(doubleToLongBits(Math.random())));
+            st1.setTopicId(new TopicId(1L));
             var st2 = new ContentEntryTopic();
             st2.setContentEntryId(entryId);
-            st2.setTopicId(new TopicId(doubleToLongBits(Math.random())));
+            st2.setTopicId(new TopicId(2L));
             when(contentEntryTopicRepository.findByContentEntryId(entryId)).thenReturn(List.of(st1, st2));
 
             // Replace mocked Topics with real instances
@@ -393,14 +415,18 @@ class ContentEntryServiceImplTest {
 
             // Verify domain event published via EventBus (events are drained from the aggregate)
             var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
-            var eventsCaptor = ArgumentCaptor.forClass(Iterable.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
             verify(eventBus, times(2)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
 
             boolean publishedTopicAdded = eventsCaptor.getAllValues().stream()
-                    .flatMap(iter -> stream(iter.spliterator(), false))
+                    .flatMap(Collection::stream)
                     .anyMatch(e -> e.getClass().getSimpleName().equals("ContentEntryTopicAddedDomainEvent"));
-
             assertThat(publishedTopicAdded).isTrue();
+
+            boolean publishedBankEntriesUpdated = eventsCaptor.getAllValues().stream()
+                    .flatMap(Collection::stream)
+                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentBankEntriesUpdatedDomainEvent"));
+            assertThat(publishedBankEntriesUpdated).isTrue();
         }
     }
 
@@ -414,6 +440,9 @@ class ContentEntryServiceImplTest {
 
             // When & Then
             assertThrows(NotFoundException.class, () -> contentEntryService.remove(userId, entryId));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
@@ -435,6 +464,9 @@ class ContentEntryServiceImplTest {
 
             // When & Then
             assertThrows(NotFoundException.class, () -> contentEntryService.remove(userId, entry.getId()));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @SuppressWarnings("unchecked")
@@ -462,12 +494,12 @@ class ContentEntryServiceImplTest {
             // Then
             // Assert domain events/state instead of spying
             verify(contentEntryRepository, times(1)).delete(entry);
-            var eventsCaptor = ArgumentCaptor.forClass(Iterable.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
             verify(eventBus, times(1)).publish(eq(entry.aggregateType()), eventsCaptor.capture());
-        
-            boolean publishedDelete = stream(eventsCaptor.getValue().spliterator(), false)
+
+            boolean publishedDelete = eventsCaptor.getValue().stream()
                     .anyMatch(e -> e.getClass().getSimpleName().equals("ContentEntryDeletedDomainEvent"));
-        
+
             assertThat(publishedDelete).isTrue();
         }
     }

@@ -78,6 +78,9 @@ class ContentBankServiceImplTest {
 
             // When & Then
             assertThrows(ConflictException.class, () -> contentBankService.create(contentBankId, userId, "Bank A"));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
@@ -91,9 +94,13 @@ class ContentBankServiceImplTest {
 
             // When & Then
             assertThrows(ConflictException.class, () -> contentBankService.create(contentBankId, userId, "Bank B"));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void create_whenIdExistsAndBelongsToUser_renamesAndSaves() {
             // Given
             ContentBank existing = new ContentBank(contentBankId, userId, "Old Name");
@@ -107,9 +114,18 @@ class ContentBankServiceImplTest {
             // Then
             assertThat(existing.getName()).isEqualTo("New Name");
             verify(contentBankRepository, times(1)).save(existing);
+
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
+            verify(eventBus, times(1)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+            boolean publishedRenamed = eventsCaptor.getAllValues().stream()
+                    .flatMap(list -> ((List<?>) list).stream())
+                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentBankRenamedDomainEvent"));
+            assertThat(publishedRenamed).isTrue();
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void create_whenIdNotExists_createsNewBankAndSaves() {
             // Given
             when(contentBankRepository.findByUserIdAndNameAndIdNot(userId, "Fresh Bank", contentBankId))
@@ -126,6 +142,14 @@ class ContentBankServiceImplTest {
             assertThat(saved.getId()).isEqualTo(contentBankId);
             assertThat(saved.getUserId()).isEqualTo(userId);
             assertThat(saved.getName()).isEqualTo("Fresh Bank");
+
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
+            verify(eventBus, times(1)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+            boolean publishedCreated = eventsCaptor.getAllValues().stream()
+                    .flatMap(list -> ((List<?>) list).stream())
+                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentBankCreatedDomainEvent"));
+            assertThat(publishedCreated).isTrue();
         }
     }
 
@@ -191,9 +215,13 @@ class ContentBankServiceImplTest {
 
             // When & Then
             assertThrows(NotFoundException.class, () -> contentBankService.remove(userId, contentBankId));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void remove_whenFound_callsDeleteOnDomainAndRepository() {
             // Given
             ContentBank bank = new ContentBank(contentBankId, userId, "Bank Name");
@@ -205,6 +233,14 @@ class ContentBankServiceImplTest {
             // Then
             // Using real domain object; verify repository deletion interaction
             verify(contentBankRepository, times(1)).deleteByIdAndUserId(contentBankId, userId);
+
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
+            verify(eventBus, times(1)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+            boolean publishedDeleted = eventsCaptor.getAllValues().stream()
+                    .flatMap(list -> ((List<?>) list).stream())
+                    .anyMatch(e -> e.getClass().getSimpleName().equals("ContentBankDeletedDomainEvent"));
+            assertThat(publishedDeleted).isTrue();
         }
     }
 
@@ -217,6 +253,9 @@ class ContentBankServiceImplTest {
 
             // When & Then
             assertThrows(NotFoundException.class, () -> contentBankService.duplicate(userId, contentBankId, "Copy Name"));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
@@ -229,9 +268,13 @@ class ContentBankServiceImplTest {
 
             // When & Then
             assertThrows(ConflictException.class, () -> contentBankService.duplicate(userId, contentBankId, "Copy Name"));
+
+            // Verify no events published
+            verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void duplicate_whenNameBlank_usesDefaultAndCreatesNewBank() {
             // Given
             ContentBank original = new ContentBank(contentBankId, userId, "Original Bank");
@@ -248,9 +291,20 @@ class ContentBankServiceImplTest {
             // Then
             verify(contentBankRepository, atLeastOnce()).save(any(ContentBank.class));
             verify(contentEntryRepository, times(1)).saveAll(anyList());
+
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
+            verify(eventBus, times(1)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+            var allEvents = eventsCaptor.getAllValues().stream()
+                    .flatMap(list -> ((List<?>) list).stream())
+                    .map(e -> e.getClass().getSimpleName())
+                    .toList();
+            assertThat(allEvents).anyMatch(n -> n.equals("ContentBankCreatedDomainEvent"));
+            assertThat(allEvents).anyMatch(n -> n.equals("ContentBankEntriesUpdatedDomainEvent"));
         }
 
         @Test
+        @SuppressWarnings("unchecked")
         void duplicate_withProvidedUniqueName_createsNewBank() {
             // Given
             ContentBank original = new ContentBank(contentBankId, userId, "Original Bank");
@@ -266,6 +320,16 @@ class ContentBankServiceImplTest {
             // Then
             verify(contentBankRepository, atLeastOnce()).save(any(ContentBank.class));
             verify(contentEntryRepository, times(1)).saveAll(anyList());
+
+            var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
+            var eventsCaptor = ArgumentCaptor.forClass(List.class);
+            verify(eventBus, times(1)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
+            var allEvents = eventsCaptor.getAllValues().stream()
+                    .flatMap(list -> ((List<?>) list).stream())
+                    .map(e -> e.getClass().getSimpleName())
+                    .toList();
+            assertThat(allEvents).anyMatch(n -> n.equals("ContentBankCreatedDomainEvent"));
+            assertThat(allEvents).anyMatch(n -> n.equals("ContentBankEntriesUpdatedDomainEvent"));
         }
     }
 }

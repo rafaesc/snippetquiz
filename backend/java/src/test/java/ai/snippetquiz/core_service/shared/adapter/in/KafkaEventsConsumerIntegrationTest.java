@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
 import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
+import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateRootSubscribersInformation;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
@@ -77,7 +78,7 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         consumer.start();
 
         // Produce a serialized domain event to the aggregate topic
-        String topic = "quiz-aggregate";
+        String topic = (new Quiz()).aggregateType();
         var userId = UUID.randomUUID();
         QuizDeletedDomainEvent event = new QuizDeletedDomainEvent("agg-123", new UserId(userId));
         String payload = DomainEventJsonSerializer.serialize(event);

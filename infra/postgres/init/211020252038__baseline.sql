@@ -47,4 +47,4 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT ON TABLES TO readonly;
 
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
-RAISE NOTICE 'Initiailize schema core and auth.';
+\echo Initialize schema core and auth.
