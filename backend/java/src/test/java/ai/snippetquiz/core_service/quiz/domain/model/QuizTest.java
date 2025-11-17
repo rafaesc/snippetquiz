@@ -169,4 +169,44 @@ class QuizTest {
         // After delete, applying a non-deactivation event should throw
         assertThrows(IllegalStateException.class, () -> quiz.updateStatus(QuizStatus.READY));
     }
+
+    @Test
+    void multipleAddQuestions_and_multipleAnswerMarked_lastIsAllQuestionsMarkedTrue() {
+        var quiz = newQuiz(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+        var topics1 = Set.of("Topic A");
+        quiz.addQuestions(QuizStatus.IN_PROGRESS, 0, topics1, new ArrayList<>());
+
+        var topics2 = Set.of("Topic B");
+        var questionsBatch = new ArrayList<QuizQuestion>();
+        questionsBatch.add(new QuizQuestion());
+        quiz.addQuestions(QuizStatus.IN_PROGRESS, 1, topics2, questionsBatch);
+
+        quiz.markChangesAsCommitted();
+
+        var questionsBatchReady = new ArrayList<QuizQuestion>();
+        questionsBatchReady.add(new QuizQuestion());
+        quiz.addQuestions(QuizStatus.READY, 1, topics2, questionsBatchReady);
+
+        quiz.markChangesAsCommitted();
+
+        var questionResponse = new QuizQuestionResponse();
+        questionResponse.setQuizQuestion(questionsBatch.get(0).getId());
+        quiz.answerMarked(questionResponse);
+
+        var questionReadyResponse = new QuizQuestionResponse();
+        questionReadyResponse.setQuizQuestion(questionsBatchReady.get(0).getId());
+        quiz.answerMarked(questionReadyResponse);
+
+        assertEquals(2, quiz.getQuizQuestions().size());
+        assertEquals(2, quiz.getQuizQuestionResponses().size());
+        assertEquals(Boolean.TRUE, quiz.getIsAllQuestionsMarked());
+
+        var events = quiz.pullUncommittedChanges();
+        assertEquals(2, events.size());
+        assertInstanceOf(QuizAnswerMarkedDomainEvent.class, events.getFirst());
+        assertFalse(((QuizAnswerMarkedDomainEvent) events.getFirst()).isAllQuestionsMarked());
+        assertInstanceOf(QuizAnswerMarkedDomainEvent.class, events.getLast());
+        assertTrue(((QuizAnswerMarkedDomainEvent) events.getLast()).isAllQuestionsMarked());
+    }
 }

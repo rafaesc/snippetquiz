@@ -3,32 +3,47 @@ package ai.snippetquiz.core_service.shared.adapter.out.repository;
 import ai.snippetquiz.core_service.shared.adapter.out.entities.DomainEventEntity;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
 import ai.snippetquiz.core_service.shared.domain.port.repository.DomainEventRepository;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements DomainEventRepository<T> {
-    private final DomainEventsInformation  domainEventsInformation;
+    private final DomainEventJsonDeserializer deserializer;
     private final JpaDomainEventRepository jpaDomainEventRepository;
 
 
     @SuppressWarnings("unchecked")
     @Override
+    @SneakyThrows
     public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, String aggregateId) {
         var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(), UUID.fromString(aggregateId));
 
         return domainEventEntities.stream()
                 .map(domainEventEntity -> {
-                    var DomainEventClass = domainEventsInformation.search(domainEventEntity.getEventName());
-
-                    return (T) Utils.fromJson(domainEventEntity.getPayload(), DomainEventClass);
+                    try {
+                        return (T) deserializer.deserializePrimitives(
+                                domainEventEntity.getEventId().toString(),
+                                domainEventEntity.getUserId().toString(),
+                                domainEventEntity.getAggregateId().toString(),
+                                domainEventEntity.getEventName(),
+                                Utils.dateToString(domainEventEntity.getOccurredOn()),
+                                domainEventEntity.getVersion(),
+                                domainEventEntity.getPayload()
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 })
                 .toList();
     }
@@ -42,7 +57,7 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
         domainEventEntity.setAggregateType(aggregateType);
         domainEventEntity.setVersion(domainEvent.getVersion());
         domainEventEntity.setOccurredOn(Utils.stringToDate(domainEvent.getOccurredOn()));
-        domainEventEntity.setPayload(Utils.toJson(domainEvent));        
+        domainEventEntity.setPayload(DomainEventJsonSerializer.serializePrimitives(domainEvent));
         domainEventEntity.setEventName(Utils.getEventName(domainEvent.getClass()));
 
         jpaDomainEventRepository.save(domainEventEntity);

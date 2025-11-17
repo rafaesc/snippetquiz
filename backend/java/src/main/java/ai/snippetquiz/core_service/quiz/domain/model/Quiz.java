@@ -13,6 +13,7 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import static java.util.Arrays.asList;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@Slf4j
 public class Quiz extends AggregateRoot<QuizId> {
     private UserId userId;
     private ContentBankId contentBankId;
@@ -108,7 +110,8 @@ public class Quiz extends AggregateRoot<QuizId> {
     }
 
     public void answerMarked(QuizQuestionResponse quizQuestionResponse) {
-        if (Objects.nonNull(this.isAllQuestionsMarked)) {
+        if (Boolean.TRUE.equals(this.isAllQuestionsMarked)) {
+            log.info("Quiz {} is already marked as all questions, ignore answer marked", getId());
             return;
         }
 

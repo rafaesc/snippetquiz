@@ -46,4 +46,39 @@ public class DomainEventJsonDeserializer {
                 (int) data.get("version"));
     }
 
+    @SuppressWarnings("unchecked")
+    public <T extends DomainEvent> T deserializePrimitives(
+            String eventId,
+            String userId,
+            String aggregateId,
+            String eventName,
+            String occurredOn,
+            int version,
+            String body
+    ) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+        HashMap<String, Serializable> attributes = Utils.fromJson(body, new TypeReference<>() {
+        });
+        Class<? extends DomainEvent> domainEventClass = information.search(eventName);
+
+        DomainEvent nullInstance = domainEventClass.getConstructor().newInstance();
+
+        Method fromPrimitivesMethod = domainEventClass.getMethod(
+                "fromPrimitives",
+                String.class,
+                String.class,
+                HashMap.class,
+                String.class,
+                String.class,
+                int.class);
+
+        return (T) fromPrimitivesMethod.invoke(
+                nullInstance,
+                aggregateId,
+                userId,
+                attributes,
+                eventId,
+                occurredOn,
+                version);
+    }
+
 }

@@ -13,6 +13,7 @@ import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriberFor;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +28,12 @@ public class QuizProjectionHandler implements AggregateEventSubscriber {
     @Override
     public void on(DomainEvent event) {
         var quizId = QuizId.map(event.getAggregateId());
+        var userId = UserId.map(event.getUserId());
         if (event instanceof QuizDeletedDomainEvent) {
             quizProjectionRepository.deleteById(quizId);
             return;
         }
-        var quizProjectionBuilder = QuizProjection.builder().id(quizId);
+        var quizProjectionBuilder = QuizProjection.builder().id(quizId).userId(userId);
         switch (event) {
             case QuizCreatedDomainEvent created -> quizProjectionBuilder
                     .contentBankId(ContentBankId.map(created.getContentBankId()))
