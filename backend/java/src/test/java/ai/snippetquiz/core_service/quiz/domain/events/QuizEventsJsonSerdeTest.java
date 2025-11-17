@@ -149,7 +149,7 @@ class QuizEventsJsonSerdeTest {
         assertNotNull(reconstructed.getQuizQuestions());
         assertEquals(1, reconstructed.getQuizQuestions().size());
 
-        QuizQuestion rq = reconstructed.getQuizQuestions().get(0);
+        QuizQuestion rq = reconstructed.getQuizQuestions().getFirst();
         assertEquals(question.getQuestion(), rq.getQuestion());
         assertEquals(question.getType(), rq.getType());
         assertEquals(question.getContentEntryType(), rq.getContentEntryType());
