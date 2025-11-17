@@ -27,8 +27,8 @@ public class QuizProjectionHandler implements AggregateEventSubscriber {
 
     @Override
     public void on(DomainEvent event) {
-        var quizId = QuizId.map(event.getAggregateId());
-        var userId = UserId.map(event.getUserId());
+        var quizId = new QuizId(event.getAggregateId());
+        var userId = new UserId(event.getUserId());
         if (event instanceof QuizDeletedDomainEvent) {
             quizProjectionRepository.deleteById(quizId);
             return;

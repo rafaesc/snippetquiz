@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
@@ -18,20 +19,20 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
     private String name;
     private LocalDateTime updatedAt;
 
-    public ContentBankRenamedDomainEvent(String aggregateId, UserId userId, String name, LocalDateTime updatedAt) {
-        super(aggregateId, userId.toString());
+    public ContentBankRenamedDomainEvent(UUID aggregateId, UserId userId, String name, LocalDateTime updatedAt) {
+        super(aggregateId, userId.getValue());
         this.name = name;
         this.updatedAt = updatedAt;
     }
 
     public ContentBankRenamedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             String name, LocalDateTime updatedAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.name = name;
         this.updatedAt = updatedAt;
     }
@@ -50,15 +51,15 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
 
     @Override
     public ContentBankRenamedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new ContentBankRenamedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

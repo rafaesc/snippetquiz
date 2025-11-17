@@ -30,8 +30,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentBankCreated() throws Exception {
-        String aggregateId = "content-bank-agg-1";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String name = "My Content Bank";
         LocalDateTime createdAt = LocalDateTime.of(2024, 1, 2, 3, 4, 5);
 
@@ -51,8 +51,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentBankDeleted() throws Exception {
-        String aggregateId = "content-bank-agg-2";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
 
         ContentBankDeletedDomainEvent original =
                 new ContentBankDeletedDomainEvent(aggregateId, userId);
@@ -68,8 +68,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentBankEntriesUpdated() throws Exception {
-        String aggregateId = "content-bank-agg-3";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String contentEntries = "[{\"id\":\"e1\"},{\"id\":\"e2\"}]";
         LocalDateTime updatedAt = LocalDateTime.of(2024, 2, 3, 4, 5, 6);
 
@@ -89,8 +89,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentBankRenamed() throws Exception {
-        String aggregateId = "content-bank-agg-4";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String name = "Renamed Content Bank";
         LocalDateTime updatedAt = LocalDateTime.of(2024, 5, 6, 7, 8, 9);
 
@@ -110,8 +110,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentEntryCreated() throws Exception {
-        String aggregateId = "content-entry-agg-1";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String contentBankId = "cb-123";
         String contentType = "article";
         String content = "Hello world!";
@@ -164,8 +164,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentEntryUpdated() throws Exception {
-        String aggregateId = "content-entry-agg-2";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String content = "Updated content";
         String pageTitle = "Updated Title";
         LocalDateTime createdAt = LocalDateTime.of(2024, 8, 7, 6, 5, 4);
@@ -190,8 +190,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentEntryTopicAdded() throws Exception {
-        String aggregateId = "content-entry-agg-3";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String topics = "[\"java\",\"spring\"]";
         LocalDateTime updatedAt = LocalDateTime.of(2024, 9, 10, 11, 12, 13);
 
@@ -211,8 +211,8 @@ class ContentBankEventsJsonSerdeTest {
 
     @Test
     void roundtrip_ContentEntryDeleted() throws Exception {
-        String aggregateId = "content-entry-agg-4";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
 
         ContentEntryDeletedDomainEvent original =
                 new ContentEntryDeletedDomainEvent(aggregateId, userId);

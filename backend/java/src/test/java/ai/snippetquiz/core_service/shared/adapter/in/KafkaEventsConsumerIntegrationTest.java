@@ -80,7 +80,8 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         // Produce a serialized domain event to the aggregate topic
         String topic = (new Quiz()).aggregateType();
         var userId = UUID.randomUUID();
-        QuizDeletedDomainEvent event = new QuizDeletedDomainEvent("agg-123", new UserId(userId));
+        var aggregateId = UUID.randomUUID();
+        QuizDeletedDomainEvent event = new QuizDeletedDomainEvent(aggregateId, new UserId(userId));
         String payload = DomainEventJsonSerializer.serialize(event);
 
         try (KafkaProducer<String, String> producer = buildStringProducer(kafka.getBootstrapServers())) {

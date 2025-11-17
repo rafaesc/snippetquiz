@@ -17,7 +17,7 @@ class DomainEventJsonSerializerTest {
     @SuppressWarnings("unchecked")
     void serialize_includes_expected_fields() {
         // Arrange
-        FirstTestEvent event = new FirstTestEvent("agg-1", "user-1");
+        FirstTestEvent event = new FirstTestEvent(java.util.UUID.randomUUID(), java.util.UUID.randomUUID());
 
         // Act
         String json = DomainEventJsonSerializer.serialize(event);
@@ -31,10 +31,10 @@ class DomainEventJsonSerializerTest {
         assertNotNull(attributes);
 
         assertEquals(FirstTestEvent.eventName(), data.get("type"));
-        assertEquals(event.getEventId(), data.get("event_id"));
+        assertEquals(event.getEventId().toString(), data.get("event_id"));
         assertEquals(event.getOccurredOn(), data.get("occurred_on"));
 
-        assertEquals(event.getAggregateId(), attributes.get("aggregate_id"));
-        assertEquals(event.getUserId(), attributes.get("user_id"));
+        assertEquals(event.getAggregateId().toString(), attributes.get("aggregate_id"));
+        assertEquals(event.getUserId().toString(), attributes.get("user_id"));
     }
 }

@@ -55,7 +55,7 @@ public class QuizGenerationConsumer {
     private void handleSaveEvent(QuizGenerationEventPayload data) {
         try {
             var userId = UUID.fromString(data.userId());
-            var quizId = data.quizId();
+            var quizId = UUID.fromString(data.quizId());
             var quiz = quizEventSourcingHandler.getById(new UserId(userId), quizId)
                     .orElseThrow(() -> new NotFoundException(
                             "Quiz not found or you do not have permission to access it"));

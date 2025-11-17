@@ -5,18 +5,19 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 @NoArgsConstructor
 public class FirstTestEvent extends DomainEvent {
 
-    public FirstTestEvent(String aggregateId, String userId) {
+    public FirstTestEvent(UUID aggregateId, UUID userId) {
         super(aggregateId, userId);
     }
 
     public FirstTestEvent(
-            String aggregateId,
-            String userId,
-            String eventId,
+            UUID aggregateId,
+            UUID userId,
+            UUID eventId,
             String occurredOn,
             int version
     ) {
@@ -34,10 +35,10 @@ public class FirstTestEvent extends DomainEvent {
 
     @Override
     public DomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new FirstTestEvent(aggregateId, userId, eventId, occurredOn, version);

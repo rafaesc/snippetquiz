@@ -26,8 +26,8 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
     @SuppressWarnings("unchecked")
     @Override
     @SneakyThrows
-    public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, String aggregateId) {
-        var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(), UUID.fromString(aggregateId));
+    public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, UUID aggregateId) {
+        var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(), aggregateId);
 
         return domainEventEntities.stream()
                 .map(domainEventEntity -> {
@@ -49,11 +49,11 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
     }
 
     @Override
-    public T save(UserId userId, String aggregateId, String aggregateType, T domainEvent) {
+    public T save(UserId userId, UUID aggregateId, String aggregateType, T domainEvent) {
         var domainEventEntity = new DomainEventEntity();
-        domainEventEntity.setEventId(UUID.fromString(domainEvent.getEventId()));
+        domainEventEntity.setEventId(domainEvent.getEventId());
         domainEventEntity.setUserId(userId.getValue());
-        domainEventEntity.setAggregateId(UUID.fromString(aggregateId));
+        domainEventEntity.setAggregateId(aggregateId);
         domainEventEntity.setAggregateType(aggregateType);
         domainEventEntity.setVersion(domainEvent.getVersion());
         domainEventEntity.setOccurredOn(Utils.stringToDate(domainEvent.getOccurredOn()));

@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -29,14 +30,14 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
 
 
     public QuizQuestionsAddedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
             Set<String> quizTopics,
             QuizStatus status,
             LocalDateTime updatedAt,
             ContentEntryCount contentEntriesCount,
             List<QuizQuestion> quizQuestions) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
         this.quizTopics = quizTopics;
         this.status = status;
         this.updatedAt = updatedAt;
@@ -45,9 +46,9 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
     }
 
     public QuizQuestionsAddedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             Set<String> quizTopics,
@@ -56,7 +57,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
             ContentEntryCount contentEntriesCount,
             List<QuizQuestion> quizQuestions
     ) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.quizTopics = quizTopics;
         this.status = status;
         this.updatedAt = updatedAt;
@@ -81,15 +82,15 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
 
     @Override
     public QuizQuestionsAddedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new QuizQuestionsAddedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

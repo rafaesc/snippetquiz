@@ -32,12 +32,12 @@ class JpaDomainEventRepositoryAdapterIT extends AbstractIntegrationTest {
 
     @Test
     void saveAndFind_returnsDeserializedEvent() {
-        var userId = UserId.map(UUID.randomUUID().toString());
-        var aggregateId = UUID.randomUUID().toString();
+        var userId = new UserId(UUID.randomUUID());
+        var aggregateId = UUID.randomUUID();
 
         var response = new QuizQuestionResponse(
-                QuizQuestionId.map(UUID.randomUUID().toString()),
-                QuizQuestionOptionId.map(UUID.randomUUID().toString()),
+                new QuizQuestionId(UUID.randomUUID()),
+                new QuizQuestionOptionId(UUID.randomUUID()),
                 true,
                 "Correct",
                 "PT5S");
@@ -56,27 +56,27 @@ class JpaDomainEventRepositoryAdapterIT extends AbstractIntegrationTest {
         assertInstanceOf(QuizAnswerMarkedDomainEvent.class, event);
         var deserialized = (QuizAnswerMarkedDomainEvent) event;
         assertEquals(aggregateId, deserialized.getAggregateId());
-        assertEquals(userId.toString(), deserialized.getUserId());
+        assertEquals(userId.getValue(), deserialized.getUserId());
         assertFalse(deserialized.isAllQuestionsMarked());
         assertEquals("Correct", deserialized.getQuizQuestionResponse().getCorrectAnswer());
     }
 
     @Test
     void find_filtersByUserAndAggregate() {
-        var userId = UserId.map(UUID.randomUUID().toString());
-        var aggregateId = UUID.randomUUID().toString();
-        var otherUser = UserId.map(UUID.randomUUID().toString());
-        var otherAggregate = UUID.randomUUID().toString();
+        var userId = new UserId(UUID.randomUUID());
+        var aggregateId = UUID.randomUUID();
+        var otherUser = new UserId(UUID.randomUUID());
+        var otherAggregate = UUID.randomUUID();
 
         var respA = new QuizQuestionResponse(
-                QuizQuestionId.map(UUID.randomUUID().toString()),
-                QuizQuestionOptionId.map(UUID.randomUUID().toString()),
+                new QuizQuestionId(UUID.randomUUID()),
+                new QuizQuestionOptionId(UUID.randomUUID()),
                 true,
                 "A",
                 "PT4S");
         var respB = new QuizQuestionResponse(
-                QuizQuestionId.map(UUID.randomUUID().toString()),
-                QuizQuestionOptionId.map(UUID.randomUUID().toString()),
+                new QuizQuestionId(UUID.randomUUID()),
+                new QuizQuestionOptionId(UUID.randomUUID()),
                 false,
                 "B",
                 "PT6S");
@@ -94,12 +94,12 @@ class JpaDomainEventRepositoryAdapterIT extends AbstractIntegrationTest {
 
     @Test
     void save_persistsAggregateTypeAndEventName() {
-        var userId = UserId.map(UUID.randomUUID().toString());
-        var aggregateId = UUID.randomUUID().toString();
+        var userId = new UserId(UUID.randomUUID());
+        var aggregateId = UUID.randomUUID();
 
         var response = new QuizQuestionResponse(
-                QuizQuestionId.map(UUID.randomUUID().toString()),
-                QuizQuestionOptionId.map(UUID.randomUUID().toString()),
+                new QuizQuestionId(UUID.randomUUID()),
+                new QuizQuestionOptionId(UUID.randomUUID()),
                 true,
                 "Bank C",
                 "PT3S");
@@ -112,7 +112,7 @@ class JpaDomainEventRepositoryAdapterIT extends AbstractIntegrationTest {
 
         adapter.save(userId, aggregateId, "quiz", created);
 
-        List<DomainEventEntity> stored = jpaRepository.findAllByUserIdAndAggregateId(userId.getValue(), UUID.fromString(aggregateId));
+        List<DomainEventEntity> stored = jpaRepository.findAllByUserIdAndAggregateId(userId.getValue(), aggregateId);
         assertFalse(stored.isEmpty());
         var entity = stored.getFirst();
         assertEquals("quiz", entity.getAggregateType());

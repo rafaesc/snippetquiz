@@ -41,10 +41,10 @@ class QuizEventSourcingHandlerTest {
         EventStore eventStore = new EventStore(repo, eventBus);
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
-        when(repo.findAllByUserIdAndAggregateIdAndAggregateType(any(UserId.class), anyString()))
+        when(repo.findAllByUserIdAndAggregateIdAndAggregateType(any(UserId.class), any(UUID.class)))
                 .thenReturn(new ArrayList<>());
 
-        when(repo.save(any(UserId.class), anyString(), anyString(), any(DomainEvent.class)))
+        when(repo.save(any(UserId.class), any(UUID.class), anyString(), any(DomainEvent.class)))
                 .thenAnswer(invocation -> invocation.getArgument(3));
 
         var quizId = new QuizId(UUID.randomUUID());
@@ -57,7 +57,7 @@ class QuizEventSourcingHandlerTest {
         handler.save(quiz);
 
         ArgumentCaptor<DomainEvent> eventCaptor = ArgumentCaptor.forClass(DomainEvent.class);
-        verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().toString()), eq(quiz.aggregateType()), eventCaptor.capture());
+        verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().getValue()), eq(quiz.aggregateType()), eventCaptor.capture());
         assertEquals(0, eventCaptor.getValue().getVersion(), "First persisted event should have version 0");
 
         assertTrue(quiz.pullUncommittedChanges().isEmpty(), "Uncommitted changes must be cleared after save");
@@ -72,7 +72,7 @@ class QuizEventSourcingHandlerTest {
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
         var userId = new UserId(UUID.randomUUID());
-        var quizId = UUID.randomUUID().toString();
+        var quizId = UUID.randomUUID();
 
         when(repo.findAllByUserIdAndAggregateIdAndAggregateType(eq(userId), eq(quizId)))
                 .thenReturn(List.of());
@@ -92,12 +92,11 @@ class QuizEventSourcingHandlerTest {
 
         var userId = new UserId(UUID.randomUUID());
         var quizUuid = UUID.randomUUID();
-        var quizIdStr = quizUuid.toString();
         var bankIdStr = UUID.randomUUID().toString();
         var bankName = "Bank Name";
 
         var created = new QuizCreatedDomainEvent(
-                quizIdStr,
+                quizUuid,
                 userId,
                 bankIdStr,
                 bankName,
@@ -106,20 +105,20 @@ class QuizEventSourcingHandlerTest {
         created.setVersion(0);
 
         var statusUpdated = new QuizStatusUpdatedDomainEvent(
-                quizIdStr,
+                quizUuid,
                 userId,
                 QuizStatus.READY);
         statusUpdated.setVersion(1);
 
-        when(repo.findAllByUserIdAndAggregateIdAndAggregateType(eq(userId), eq(quizIdStr)))
+        when(repo.findAllByUserIdAndAggregateIdAndAggregateType(eq(userId), eq(quizUuid)))
                 .thenReturn(List.of(created, statusUpdated));
 
-        var result = handler.getById(userId, quizIdStr);
+        var result = handler.getById(userId, quizUuid);
 
         assertTrue(result.isPresent(), "Aggregate should be reconstructed from events");
 
         var quiz = result.get();
-        assertEquals(quizIdStr, quiz.getId().toString(), "Aggregate ID should match");
+        assertEquals(quizUuid, quiz.getId().getValue(), "Aggregate ID should match");
         assertEquals(bankName, quiz.getBankName(), "Bank name should be applied from creation event");
         assertEquals(QuizStatus.READY, quiz.getStatus(), "Status should reflect latest event");
         assertEquals(1, quiz.getVersion(), "Aggregate version should be latest version in stream");

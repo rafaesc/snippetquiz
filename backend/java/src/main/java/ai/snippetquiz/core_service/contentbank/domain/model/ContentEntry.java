@@ -63,7 +63,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         }
 
         record(new ContentEntryCreatedDomainEvent(
-                contentEntryId.toString(),
+                contentEntryId,
                 userId,
                 contentBankId.toString(),
                 type.toString(),
@@ -79,8 +79,8 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     }
 
     public void apply(ContentEntryCreatedDomainEvent event) {
-        this.setId(ContentEntryId.map(event.getAggregateId()));
-        this.userId = UserId.map(event.getUserId());
+        this.setId(new ContentEntryId(event.getAggregateId()));
+        this.userId = new UserId(event.getUserId());
         this.contentBankId = ContentBankId.map(event.getContentBankId());
         this.contentType = ContentType.valueOf(event.getContentType());
         this.content = event.getContent();
@@ -102,7 +102,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         }
 
         record(new ContentEntryUpdatedDomainEvent(
-                getId().getValue().toString(),
+                getId().getValue(),
                 userId,
                 content,
                 pageTitle,
@@ -120,7 +120,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     public void updatedTopics(List<Topic> topics) {
         var now = LocalDateTime.now();
         record(new ContentEntryTopicAddedDomainEvent(
-            getId().getValue().toString(),
+            getId().getValue(),
             userId,
             Utils.toJson(topics),
             now));
@@ -132,7 +132,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
 
     public void delete() {
         record(new ContentEntryDeletedDomainEvent(
-            getId().getValue().toString(),
+            getId().getValue(),
             userId));
     }
 

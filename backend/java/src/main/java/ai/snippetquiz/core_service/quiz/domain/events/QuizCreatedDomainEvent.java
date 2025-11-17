@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -22,13 +23,13 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     private LocalDateTime createdAt;
 
     public QuizCreatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
             String contentBankId,
             String bankName,
             QuizStatus status,
             LocalDateTime createdAt) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;
@@ -36,15 +37,15 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     }
 
     public QuizCreatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             String contentBankId, String bankName,
             QuizStatus status,
             LocalDateTime createdAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;
@@ -67,15 +68,15 @@ public class QuizCreatedDomainEvent extends DomainEvent {
 
     @Override
     public QuizCreatedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new QuizCreatedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

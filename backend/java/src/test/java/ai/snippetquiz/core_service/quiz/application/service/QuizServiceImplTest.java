@@ -140,7 +140,7 @@ class QuizServiceImplTest {
         @Test
         void findOne_whenQuizNotFound_throwsNotFoundException() {
             // Given
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.empty());
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.empty());
 
             // When & Then
             assertThrows(NotFoundException.class, () -> quizService.findOne(userId, quizId));
@@ -150,7 +150,7 @@ class QuizServiceImplTest {
         void findOne_whenQuizFound_returnsQuizDetails() {
             // Given
             Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(quiz));
 
             // When
             FindOneQuizResponse response = quizService.findOne(userId, quizId);
@@ -203,7 +203,7 @@ class QuizServiceImplTest {
         @Test
         void delete_whenQuizNotFound_throwsNotFoundException() {
             // Given
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.empty());
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.empty());
 
             // When & Then
             assertThrows(NotFoundException.class, () -> quizService.delete(userId, quizId));
@@ -213,7 +213,7 @@ class QuizServiceImplTest {
         void delete_whenQuizFound_callsDeleteOnQuiz() {
             // Given
             Quiz quiz = mock(Quiz.class);
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(quiz));
 
             // When
             quizService.delete(userId, quizId);
@@ -256,7 +256,7 @@ class QuizServiceImplTest {
                     .thenReturn(Collections.emptyList());
             ContentBank contentBank = new ContentBank(contentBankId, userId, "Test Bank");
             when(contentBankRepository.findByIdAndUserIdWithContentEntries(contentBankId, userId)).thenReturn(Optional.of(contentBank));
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(new Quiz()));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(new Quiz()));
 
             // When & Then
             assertThrows(ConflictException.class, () -> quizService.createQuiz(userId, contentBankId, quizId));
@@ -269,7 +269,7 @@ class QuizServiceImplTest {
             when(quizProjectionRepository.findAllByUserIdAndStatus(userId, QuizStatus.IN_PROGRESS))
                     .thenReturn(Collections.emptyList());
             when(contentBankRepository.findByIdAndUserIdWithContentEntries(contentBankId, userId)).thenReturn(Optional.of(contentBank));
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.empty());
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.empty());
             when(contentBankRepository.findByIdAndUserId(contentBankId, userId)).thenReturn(Optional.of(contentBank));
             when(contentEntryRepository.findAllByContentBankId(contentBankId)).thenReturn(Collections.emptyList());
             when(quizGenerationInstructionRepository.findFirstByUserId(userId)).thenReturn(Optional.of(new QuizGenerationInstruction()));
@@ -293,7 +293,7 @@ class QuizServiceImplTest {
         void updateQuiz_whenQuizNotFound_throwsNotFoundException() {
             // Given
             QuizQuestionOptionId optionId = new QuizQuestionOptionId(UUID.randomUUID());
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.empty());
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.empty());
 
             // When & Then
             assertThrows(NotFoundException.class, () -> quizService.updateQuiz(userId, quizId, optionId));
@@ -305,7 +305,7 @@ class QuizServiceImplTest {
             Quiz quiz = mock(Quiz.class);
             when(quiz.getQuizQuestionResponses()).thenReturn(List.of());
             when(quiz.getQuizQuestions()).thenReturn(List.of());
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(quiz));
             QuizQuestionOptionId optionId = new QuizQuestionOptionId(UUID.randomUUID());
 
             // When
@@ -329,7 +329,7 @@ class QuizServiceImplTest {
             question.getQuizQuestionOptions().add(correctOption);
             quiz.addQuestions(QuizStatus.IN_PROGRESS, 1, Collections.emptySet(), List.of(question));
 
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(quiz));
 
             // When
             UpdateQuizResponse response = quizService.updateQuiz(userId, quizId, correctOption.getId());
@@ -352,7 +352,7 @@ class QuizServiceImplTest {
             question.getQuizQuestionOptions().add(correctOption);
             quiz.addQuestions(QuizStatus.READY, 1, Collections.emptySet(), List.of(question));
 
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(quiz));
 
             // When
             UpdateQuizResponse response = quizService.updateQuiz(userId, quizId, correctOption.getId());
@@ -369,7 +369,7 @@ class QuizServiceImplTest {
         @Test
         void findQuizSummary_whenQuizNotFound_throwsNotFoundException() {
             // Given
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.empty());
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.empty());
 
             // When & Then
             assertThrows(NotFoundException.class, () -> quizService.findQuizSummary(quizId, userId));
@@ -380,7 +380,7 @@ class QuizServiceImplTest {
             // Given
             Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
             // You would add questions and responses to the quiz object here
-            when(quizEventSourcingHandler.getById(userId, quizId.toString())).thenReturn(Optional.of(quiz));
+            when(quizEventSourcingHandler.getById(userId, quizId.getValue())).thenReturn(Optional.of(quiz));
 
             // When
             QuizSummaryResponseDto summary = quizService.findQuizSummary(quizId, userId);

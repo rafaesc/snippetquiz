@@ -48,8 +48,8 @@ class QuizProjectionHandlerTest {
 
     @Test
     void onQuizCreated_upsertsNewProjectionWithInitialValues() {
-        var quizId = UUID.randomUUID().toString();
-        var userId = UserId.map(UUID.randomUUID().toString());
+        var quizId = UUID.randomUUID();
+        var userId = new UserId(UUID.randomUUID());
         var contentBankId = UUID.randomUUID().toString();
         var bankName = "Sample Bank";
         var createdAt = LocalDateTime.now();
@@ -71,7 +71,7 @@ class QuizProjectionHandlerTest {
         verify(repository).upsert(captor.capture());
         var projection = captor.getValue();
 
-        assertEquals(QuizId.map(quizId), projection.getId());
+        assertEquals(new QuizId(quizId), projection.getId());
         assertEquals(userId, projection.getUserId());
         assertEquals(bankName, projection.getBankName());
         assertEquals(status, projection.getStatus());
@@ -84,8 +84,8 @@ class QuizProjectionHandlerTest {
 
     @Test
     void onQuizStatusUpdated_setsStatus() {
-        var quizId = UUID.randomUUID().toString();
-        var userId = UserId.map(UUID.randomUUID().toString());
+        var quizId = UUID.randomUUID();
+        var userId = new UserId(UUID.randomUUID());
         var status = QuizStatus.IN_PROGRESS;
 
         DomainEvent event = new QuizStatusUpdatedDomainEvent(
@@ -101,15 +101,15 @@ class QuizProjectionHandlerTest {
         verify(repository).upsert(captor.capture());
         var projection = captor.getValue();
 
-        assertEquals(QuizId.map(quizId), projection.getId());
+        assertEquals(new QuizId(quizId), projection.getId());
         assertEquals(status, projection.getStatus());
     }
 
     @Test
     void onQuizQuestionsAdded_updatesQuestionsTopicsCountAndStatus() {
-        var quizIdStr = UUID.randomUUID().toString();
-        var quizId = QuizId.map(quizIdStr);
-        var userId = UserId.map(UUID.randomUUID().toString());
+        var quizUuid = UUID.randomUUID();
+        var quizId = new QuizId(quizUuid);
+        var userId = new UserId(UUID.randomUUID());
 
         // existing projection with one question
         var existingQuestionId = UUID.randomUUID().toString();
@@ -131,7 +131,7 @@ class QuizProjectionHandlerTest {
         var contentEntriesCount = new ContentEntryCount(5);
 
         DomainEvent event = new QuizQuestionsAddedDomainEvent(
-                quizIdStr,
+                quizUuid,
                 userId,
                 topics,
                 status,
@@ -164,9 +164,9 @@ class QuizProjectionHandlerTest {
 
     @Test
     void onQuizAnswerMarked_updatesResponsesAndCompletedCount() {
-        var quizIdStr = UUID.randomUUID().toString();
-        var quizId = QuizId.map(quizIdStr);
-        var userId = UserId.map(UUID.randomUUID().toString());
+        var quizUuid = UUID.randomUUID();
+        var quizId = new QuizId(quizUuid);
+        var userId = new UserId(UUID.randomUUID());
 
         var existingResponseQuestionId = UUID.randomUUID().toString();
         var current = QuizProjection.builder()
@@ -187,7 +187,7 @@ class QuizProjectionHandlerTest {
         );
 
         DomainEvent event = new QuizAnswerMarkedDomainEvent(
-                quizIdStr,
+                quizUuid,
                 userId,
                 response,
                 false
@@ -208,8 +208,8 @@ class QuizProjectionHandlerTest {
 
     @Test
     void onQuizDeleted_callsDeleteAndNoUpsert() {
-        var quizId = UUID.randomUUID().toString();
-        var userId = UserId.map(UUID.randomUUID().toString());
+        var quizId = UUID.randomUUID();
+        var userId = new UserId(UUID.randomUUID());
 
         DomainEvent event = new QuizDeletedDomainEvent(
                 quizId,
@@ -218,7 +218,7 @@ class QuizProjectionHandlerTest {
 
         handler.on(event);
 
-        verify(repository).deleteById(QuizId.map(quizId));
+        verify(repository).deleteById(new QuizId(quizId));
         verify(repository, never()).upsert(any());
     }
 }

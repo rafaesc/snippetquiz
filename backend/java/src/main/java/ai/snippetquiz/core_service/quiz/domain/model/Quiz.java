@@ -49,7 +49,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         var now = LocalDateTime.now();
 
         record(new QuizCreatedDomainEvent(
-                quizId.toString(),
+                quizId.getValue(),
                 userId,
                 contentBankId.getValue().toString(),
                 bankName,
@@ -58,8 +58,8 @@ public class Quiz extends AggregateRoot<QuizId> {
     }
 
     public void apply(QuizCreatedDomainEvent event) {
-        setId(QuizId.map(event.getAggregateId()));
-        this.userId = UserId.map(event.getUserId());
+        setId(new QuizId(event.getAggregateId()));
+        this.userId = new UserId(event.getUserId());
         this.contentBankId = ContentBankId.map(event.getContentBankId());
         this.contentEntriesCount = new ContentEntryCount(0);
         this.bankName = event.getBankName();
@@ -70,7 +70,7 @@ public class Quiz extends AggregateRoot<QuizId> {
     }
 
     public void delete() {
-        record(new QuizDeletedDomainEvent(getId().toString(), userId));
+        record(new QuizDeletedDomainEvent(getId().getValue(), userId));
     }
 
     public void apply(QuizDeletedDomainEvent event) {
@@ -78,7 +78,7 @@ public class Quiz extends AggregateRoot<QuizId> {
     }
 
     public void updateStatus(QuizStatus newStatus) {
-        record(new QuizStatusUpdatedDomainEvent(getId().toString(), userId, newStatus));
+        record(new QuizStatusUpdatedDomainEvent(getId().getValue(), userId, newStatus));
     }
 
     public void apply(QuizStatusUpdatedDomainEvent event) {
@@ -92,7 +92,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         List<QuizQuestion> quizQuestions
     ) {
         record(new QuizQuestionsAddedDomainEvent(
-                getId().toString(),
+                getId().getValue(),
                 userId,
                 quizTopics,
                 status,
@@ -119,7 +119,7 @@ public class Quiz extends AggregateRoot<QuizId> {
                 asList(QuizStatus.READY, QuizStatus.READY_WITH_ERROR).contains(getStatus());
 
         record(new QuizAnswerMarkedDomainEvent(
-                getId().toString(), userId, quizQuestionResponse, willBeAllQuestionsMarked));
+                getId().getValue(), userId, quizQuestionResponse, willBeAllQuestionsMarked));
     }
 
     public void apply(QuizAnswerMarkedDomainEvent event) {

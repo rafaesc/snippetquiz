@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -18,24 +19,24 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
     private LocalDateTime updatedAt;
 
     public ContentEntryTopicAddedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
             String topics,
             LocalDateTime updatedAt) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
         this.topics = topics;
         this.updatedAt = updatedAt;
     }
 
     public ContentEntryTopicAddedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             String topics,
             LocalDateTime updatedAt) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
         this.updatedAt = updatedAt;
     }
@@ -54,15 +55,15 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
 
     @Override
     public ContentEntryTopicAddedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new ContentEntryTopicAddedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

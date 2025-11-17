@@ -46,8 +46,8 @@ class QuizEventsJsonSerdeTest {
 
     @Test
     void roundtrip_QuizCreated() throws Exception {
-        String aggregateId = "quiz-agg-1";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         String contentBankId = UUID.randomUUID().toString();
         String bankName = "Bank A";
         QuizStatus status = QuizStatus.PREPARE;
@@ -72,8 +72,8 @@ class QuizEventsJsonSerdeTest {
 
     @Test
     void roundtrip_QuizDeleted() throws Exception {
-        String aggregateId = "quiz-agg-2";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
 
         QuizDeletedDomainEvent original = new QuizDeletedDomainEvent(aggregateId, userId);
 
@@ -88,8 +88,8 @@ class QuizEventsJsonSerdeTest {
 
     @Test
     void roundtrip_QuizStatusUpdated() throws Exception {
-        String aggregateId = "quiz-agg-3";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         QuizStatus status = QuizStatus.IN_PROGRESS;
 
         QuizStatusUpdatedDomainEvent original = new QuizStatusUpdatedDomainEvent(aggregateId, userId, status);
@@ -106,8 +106,8 @@ class QuizEventsJsonSerdeTest {
 
     @Test
     void roundtrip_QuizQuestionsAdded() throws Exception {
-        String aggregateId = "quiz-agg-4";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
         Set<String> quizTopics = new HashSet<>(Arrays.asList("java", "spring"));
         QuizStatus status = QuizStatus.READY;
         LocalDateTime updatedAt = LocalDateTime.of(2024, 3, 4, 5, 6, 7);
@@ -167,8 +167,8 @@ class QuizEventsJsonSerdeTest {
 
     @Test
     void roundtrip_QuizAnswerMarked() throws Exception {
-        String aggregateId = "quiz-agg-5";
-        UserId userId = UserId.map(UUID.randomUUID().toString());
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
 
         QuizQuestionResponse response = new QuizQuestionResponse(
                 new QuizQuestionId(UUID.randomUUID()),

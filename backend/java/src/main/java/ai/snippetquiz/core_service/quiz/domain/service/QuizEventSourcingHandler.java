@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,13 +22,13 @@ public class QuizEventSourcingHandler implements EventSourcingHandler<Quiz> {
     @Transactional
     public void save(Quiz aggregate) {
         String aggregateType = aggregate.aggregateType();
-        eventStore.saveEvents(aggregate.getUserId(), aggregate.getId().toString(), aggregateType, aggregate.pullUncommittedChanges(), aggregate.getVersion());
+        eventStore.saveEvents(aggregate.getUserId(), aggregate.getId().getValue(), aggregateType, aggregate.pullUncommittedChanges(), aggregate.getVersion());
         aggregate.markChangesAsCommitted();
     }
 
     @Override
-    public Optional<Quiz> getById(UserId userId, String id) {
-        var eventStream = eventStore.getEvents(userId, id);
+    public Optional<Quiz> getById(UserId userId, UUID aggregateId) {
+        var eventStream = eventStore.getEvents(userId, aggregateId);
 
         if (eventStream == null || eventStream.isEmpty()) {
             return Optional.empty();
