@@ -11,6 +11,7 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
@@ -63,10 +64,10 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
 
         // Build a ConsumerFactory pointing to Testcontainers Kafka
         Map<String, Object> consumerProps = new HashMap<>();
-        consumerProps.put(BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        consumerProps.put(BOOTSTRAP_SERVERS_CONFIG, KafkaContainerBase.KAFKA.getBootstrapServers());
         consumerProps.put(GROUP_ID_CONFIG, "kec-it-group");
-        consumerProps.put(KEY_DESERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringDeserializer.class);
-        consumerProps.put(VALUE_DESERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringDeserializer.class);
+        consumerProps.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        consumerProps.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ENABLE_AUTO_COMMIT_CONFIG, false);
 
@@ -84,7 +85,7 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         QuizDeletedDomainEvent event = new QuizDeletedDomainEvent(aggregateId, new UserId(userId));
         String payload = DomainEventJsonSerializer.serialize(event);
 
-        try (KafkaProducer<String, String> producer = buildStringProducer(kafka.getBootstrapServers())) {
+        try (KafkaProducer<String, String> producer = buildStringProducer(KafkaContainerBase.KAFKA.getBootstrapServers())) {
             producer.send(new ProducerRecord<>(topic, payload)).get();
         }
 

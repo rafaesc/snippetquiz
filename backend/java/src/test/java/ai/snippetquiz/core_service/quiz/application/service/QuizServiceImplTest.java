@@ -128,7 +128,7 @@ class QuizServiceImplTest {
             // Then
             assertThat(result.getMetadata().totalElements()).isEqualTo(1);
             assertThat(result.getContent()).hasSize(1);
-            QuizResponse quizResponse = result.getContent().get(0);
+            QuizResponse quizResponse = result.getContent().getFirst();
             assertThat(quizResponse.id()).isEqualTo(quizId.toString());
             assertThat(quizResponse.name()).isEqualTo("Test Bank");
             assertThat(quizResponse.topics()).contains("Java", "Spring");

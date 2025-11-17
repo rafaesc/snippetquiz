@@ -5,14 +5,12 @@ import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
 import ai.snippetquiz.core_service.shared.domain.port.repository.DomainEventRepository;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.UUID;
 

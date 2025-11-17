@@ -94,12 +94,12 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                Utils.fromJson((String) body.get("quiz_topics"), new TypeReference<Set<String>>() {
+                Utils.fromJson((String) body.get("quiz_topics"), new TypeReference<>() {
                 }),
                 QuizStatus.valueOf((String) body.get("status")),
                 Utils.stringToDate((String) body.get("updated_at")),
                 Utils.fromJson((String) body.get("content_entries_count"), ContentEntryCount.class),
-                Utils.fromJson((String) body.get("quiz_questions"), new TypeReference<List<QuizQuestion>>() {
+                Utils.fromJson((String) body.get("quiz_questions"), new TypeReference<>() {
                 }));
     }
 }

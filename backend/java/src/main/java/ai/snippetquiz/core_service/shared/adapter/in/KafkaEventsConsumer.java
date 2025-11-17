@@ -116,8 +116,6 @@ public class KafkaEventsConsumer implements SmartLifecycle {
     }
 
     private Set<String> resolveTopicsFromSubscribers() {
-        Set<String> topics = new HashSet<>();
-        topics.addAll(subscribersInformation.getSubscribers().keySet());
-        return topics;
+        return new HashSet<>(subscribersInformation.getSubscribers().keySet());
     }
 }

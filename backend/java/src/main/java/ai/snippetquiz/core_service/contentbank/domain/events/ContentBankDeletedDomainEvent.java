@@ -35,7 +35,7 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
 
     @Override
     public HashMap<String, Serializable> toPrimitives() {
-        return new HashMap<String, Serializable>();
+        return new HashMap<>();
     }
 
     @Override
