@@ -46,8 +46,8 @@ public class QuizProjectionHandler implements AggregateEventSubscriber {
             case QuizStatusUpdatedDomainEvent statusUpdated -> quizProjectionBuilder.status(statusUpdated.getStatus());
             case QuizQuestionsAddedDomainEvent questionsAdded -> {
                 var currentProjection = quizProjectionRepository.findById(quizId);
-                currentProjection.getQuestions()
-                        .addAll(questionsAdded.getQuizQuestions()
+                var questions = currentProjection != null ? currentProjection.getQuestions() : new HashSet<String>();
+                questions.addAll(questionsAdded.getQuizQuestions()
                                 .stream()
                                 .map(question -> question.getId().toString()).toList()
                         );
@@ -56,15 +56,16 @@ public class QuizProjectionHandler implements AggregateEventSubscriber {
                         .status(questionsAdded.getStatus())
                         .questionUpdatedAt(questionsAdded.getUpdatedAt())
                         .contentEntriesCount(questionsAdded.getContentEntriesCount().getValue())
-                        .questions(currentProjection.getQuestions())
-                        .questionsCount(currentProjection.getQuestions().size());
+                        .questions(questions)
+                        .questionsCount(questions.size());
             }
             case QuizAnswerMarkedDomainEvent answerMarked -> {
                 var currentProjection = quizProjectionRepository.findById(quizId);
-                currentProjection.getResponses().add(answerMarked.getQuizQuestionResponse().getQuizQuestion().toString());
+                var responses = currentProjection != null ? currentProjection.getResponses() : new HashSet<String>();
+                responses.add(answerMarked.getQuizQuestionResponse().getQuizQuestion().toString());
 
-                quizProjectionBuilder.responses(currentProjection.getResponses())
-                        .questionsCompleted(currentProjection.getResponses().size());
+                quizProjectionBuilder.responses(responses)
+                        .questionsCompleted(responses.size());
             }
             default -> {
             }

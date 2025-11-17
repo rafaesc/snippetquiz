@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS content_entries__projection (
 );
 
 CREATE INDEX IF NOT EXISTS idx_content_entries__projection_user_id_bank_id
-    ON content_entries__projection (LEFT("user_id"::text, 4), LEFT("content_banks_id"::text, 4));
+    ON content_entries__projection ("user_id", "content_banks_id");
 
 CREATE INDEX IF NOT EXISTS idx_content_entries__projection_created_at
     ON content_entries__projection (created_at);

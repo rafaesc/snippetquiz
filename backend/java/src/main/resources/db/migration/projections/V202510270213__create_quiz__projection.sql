@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS quiz__projection (
 
 -- Index on user_id prefix for efficient sharding or partition-like scans
 CREATE INDEX IF NOT EXISTS idx_quiz__projection_user_id_prefix
-    ON quiz__projection (LEFT("user_id"::text, 4));
+    ON quiz__projection ("user_id");
