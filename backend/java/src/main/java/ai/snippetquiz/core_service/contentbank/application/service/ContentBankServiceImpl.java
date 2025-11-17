@@ -4,12 +4,9 @@ import ai.snippetquiz.core_service.contentbank.application.ContentBankItemRespon
 import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
-import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -23,10 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +30,6 @@ public class ContentBankServiceImpl implements ContentBankService {
 
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryRepository contentEntryRepository;
-    private final YoutubeChannelRepository youtubeChannelRepository;
     private final EventBus eventBus;
 
     @Override

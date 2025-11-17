@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -161,7 +162,7 @@ class ContentBankEventsJsonSerdeTest {
         assertEquals(youtubeVideoId, reconstructed.getYoutubeVideoId());
         assertEquals(youtubeChannelId, reconstructed.getYoutubeChannelId());
         assertEquals(existsTopics, reconstructed.getExistsTopics());
-        assertEquals(false, reconstructed.isDuplicated());
+        assertFalse(reconstructed.isDuplicated());
     }
 
     @Test
