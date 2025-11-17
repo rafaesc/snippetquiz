@@ -121,8 +121,8 @@ class ContentBankEventsJsonSerdeTest {
         Integer wordCount = 1234;
         Integer videoDuration = 456;
         String youtubeVideoId = "YTv123";
-        String youtubeChannelName = "SampleChannel";
         Long youtubeChannelId = 9_876_543_210L; // ensure Long type on deserialize
+        String existsTopics = "java,spring";
 
         ContentEntryCreatedDomainEvent original =
                 new ContentEntryCreatedDomainEvent(
@@ -137,8 +137,9 @@ class ContentBankEventsJsonSerdeTest {
                         wordCount,
                         videoDuration,
                         youtubeVideoId,
-                        youtubeChannelName,
-                        youtubeChannelId
+                        youtubeChannelId,
+                        existsTopics,
+                        false
                 );
 
         ContentEntryCreatedDomainEvent reconstructed = roundtrip(original);
@@ -158,8 +159,26 @@ class ContentBankEventsJsonSerdeTest {
         assertEquals(wordCount, reconstructed.getWordCount());
         assertEquals(videoDuration, reconstructed.getVideoDuration());
         assertEquals(youtubeVideoId, reconstructed.getYoutubeVideoId());
-        assertEquals(youtubeChannelName, reconstructed.getYoutubeChannelName());
         assertEquals(youtubeChannelId, reconstructed.getYoutubeChannelId());
+        assertEquals(existsTopics, reconstructed.getExistsTopics());
+        assertEquals(false, reconstructed.isDuplicated());
+    }
+
+    @Test
+    void roundtrip_ContentEntryQuestionCreated() throws Exception {
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
+
+        ContentEntryQuestionCreatedDomainEvent original =
+                new ContentEntryQuestionCreatedDomainEvent(aggregateId, userId);
+
+        ContentEntryQuestionCreatedDomainEvent reconstructed = roundtrip(original);
+
+        assertInstanceOf(ContentEntryQuestionCreatedDomainEvent.class, reconstructed);
+        assertEquals(original.getAggregateId(), reconstructed.getAggregateId());
+        assertEquals(original.getUserId(), reconstructed.getUserId());
+        assertEquals(original.getEventId(), reconstructed.getEventId());
+        assertEquals(original.getOccurredOn(), reconstructed.getOccurredOn());
     }
 
     @Test

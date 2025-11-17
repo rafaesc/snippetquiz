@@ -12,6 +12,7 @@ import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.SendFanoutMessageQuizLoadingEvent;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
@@ -37,6 +38,8 @@ public class QuizGenerationConsumer {
     private final ContentEntryRepository contentEntryRepository;
     private final QuestionService questionService;
     private final SendFanoutMessageQuizLoadingEvent sendFanoutMessageQuizLoadingEvent;
+    private final EventBus eventBus;
+
 
     @KafkaListener(topics = "quiz-generation", containerFactory = "kafkaListenerContainerFactory")
     @Transactional
@@ -93,8 +96,12 @@ public class QuizGenerationConsumer {
                     questionService.createQuestion(questionRequest, userId);
                 }
 
-                contentEntry.setQuestionsGenerated(true);
+                if (!contentEntry.getQuestionsGenerated()) {
+                    contentEntry.questionsGenerated();
+                }
+                
                 contentEntryRepository.save(contentEntry);
+                eventBus.publish(contentEntry.aggregateType(), contentEntry.drainDomainEvents());
 
                 log.info("Quiz - {} Content entry {} updated. Progress: {}/{}",
                         quizId, contentEntryId, data.currentChunkIndex() + 1, data.totalChunks());

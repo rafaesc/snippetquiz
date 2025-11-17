@@ -134,31 +134,13 @@ public class ContentBankServiceImpl implements ContentBankService {
     private void duplicateContentBankWithEntries(ContentBank originalBank, UserId userId, String newName) {
         var newBank = new ContentBank(ContentBankId.create(), userId, newName);
         newBank = contentBankRepository.save(newBank);
-        var channelIds = originalBank.getContentEntries().stream()
-                .map(ContentEntry::getYoutubeChannelId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Map<YoutubeChannelId, YoutubeChannel> channelsById = youtubeChannelRepository.findAllByIds(channelIds)
-                .stream()
-                .collect(Collectors.toMap(YoutubeChannel::getId, Function.identity()));
 
         List<ContentEntry> newContentEntries = new ArrayList<>();
         for (ContentEntry association : originalBank.getContentEntries()) {
-            var newAssociation = new ContentEntry(
-                    association.getUserId(),
-                    association.getContentBankId(),
-                    association.getContentType(),
-                    association.getContent(),
-                    association.getSourceUrl(),
-                    association.getPageTitle(),
-                    association.getVideoDuration(),
-                    association.getYoutubeVideoId(),
-                    association.getYoutubeChannelId() != null ? channelsById.get(association.getYoutubeChannelId()) : null
-            );
-            newAssociation.setContentBankId(newBank.getId());
+            var newAssociation = new ContentEntry(association, newBank.getId());
             newContentEntries.add(newAssociation);
         }
+
         newBank.updatedContentEntries(newContentEntries);
         contentEntryRepository.saveAll(newContentEntries);
         eventBus.publish(newBank.aggregateType(), newBank.drainDomainEvents());

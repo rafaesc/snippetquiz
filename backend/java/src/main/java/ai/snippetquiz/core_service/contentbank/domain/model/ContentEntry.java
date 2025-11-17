@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.contentbank.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryCreatedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryDeletedDomainEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryQuestionCreatedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryTopicAddedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryUpdatedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
@@ -13,9 +14,12 @@ import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -23,10 +27,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-@Data
+@Getter
+@AllArgsConstructor
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @JsonSerialize
 @NoArgsConstructor
+@Slf4j
 public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private UserId userId;
     private ContentBankId contentBankId;
@@ -46,9 +53,18 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         return "content-entry.events";
     }
 
-    public ContentEntry(UserId userId, ContentBankId contentBankId, ContentType type, String processedContent, String sourceUrl,
-            String pageTitle, Integer youtubeVideoDuration, String youtubeVideoId, 
-            YoutubeChannel youtubeChannel) {
+    public ContentEntry(
+            UserId userId,
+            ContentBankId contentBankId,
+            ContentType type,
+            String processedContent,
+            String sourceUrl,
+            String pageTitle,
+            Integer youtubeVideoDuration,
+            String youtubeVideoId,
+            YoutubeChannel youtubeChannel,
+            String existsTopics
+    ) {
         var contentEntryId = UUID.randomUUID();
         var now = LocalDateTime.now();
         Integer wordCount = null;
@@ -73,8 +89,31 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 wordCount,
                 youtubeVideoDuration,
                 youtubeVideoId,
-                youtubeChannel != null ? youtubeChannel.getChannelName() : null,
-                youtubeChannel != null ? youtubeChannel.getId().getValue() : null));
+                youtubeChannel != null ? youtubeChannel.getId().getValue() : null,
+                existsTopics,
+                false));
+    }
+
+    public ContentEntry(ContentEntry contentEntry, ContentBankId contentBankId) {
+        var contentEntryId = UUID.randomUUID();
+        var now = LocalDateTime.now();
+
+
+        record(new ContentEntryCreatedDomainEvent(
+                contentEntryId,
+                contentEntry.getUserId(),
+                contentBankId.toString(),
+                contentEntry.getContentType().toString(),
+                contentEntry.getContent(),
+                contentEntry.getSourceUrl(),
+                contentEntry.getPageTitle(),
+                now,
+                contentEntry.getWordCount(),
+                contentEntry.getVideoDuration(),
+                contentEntry.getYoutubeVideoId(),
+                contentEntry.getYoutubeChannelId().getValue(),
+                null,
+                true));
     }
 
     public void apply(ContentEntryCreatedDomainEvent event) {
@@ -127,6 +166,20 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
 
     public void apply(ContentEntryTopicAddedDomainEvent event) {
         this.createdAt = event.getUpdatedAt();
+    }
+
+    public void questionsGenerated() {
+        if (questionsGenerated) {
+            log.info("Questions already generated for content entry {}", getId().getValue());
+            return;
+        }
+        record(new ContentEntryQuestionCreatedDomainEvent(
+            getId().getValue(),
+            userId));
+    }
+
+    public void apply(ContentEntryQuestionCreatedDomainEvent event) {
+        this.questionsGenerated = true;
     }
 
     public void delete() {

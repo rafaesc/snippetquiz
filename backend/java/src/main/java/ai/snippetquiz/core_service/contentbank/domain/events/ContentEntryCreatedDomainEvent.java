@@ -24,8 +24,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     private Integer wordCount;
     private Integer videoDuration;
     private String youtubeVideoId;
-    private String youtubeChannelName;
     private Long youtubeChannelId;
+    private String existsTopics;
+    private boolean duplicated;
 
     public ContentEntryCreatedDomainEvent(
             UUID aggregateId,
@@ -39,8 +40,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             Integer wordCount,
             Integer videoDuration,
             String youtubeVideoId,
-            String youtubeChannelName,
-            Long youtubeChannelId) {
+            Long youtubeChannelId,
+            String existsTopics,
+            boolean duplicated) {
         super(aggregateId, userId.getValue());
         this.contentBankId = contentBankId;
         this.contentType = contentType;
@@ -51,8 +53,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.wordCount = wordCount;
         this.videoDuration = videoDuration;
         this.youtubeVideoId = youtubeVideoId;
-        this.youtubeChannelName = youtubeChannelName;
         this.youtubeChannelId = youtubeChannelId;
+        this.existsTopics = existsTopics;
+        this.duplicated = duplicated;
     }
 
     public ContentEntryCreatedDomainEvent(
@@ -70,8 +73,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             Integer wordCount,
             Integer videoDuration,
             String youtubeVideoId,
-            String youtubeChannelName,
-            Long youtubeChannelId) {
+            Long youtubeChannelId,
+            String existsTopics,
+            boolean duplicated) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
         this.contentType = contentType;
@@ -82,8 +86,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.wordCount = wordCount;
         this.videoDuration = videoDuration;
         this.youtubeVideoId = youtubeVideoId;
-        this.youtubeChannelName = youtubeChannelName;
         this.youtubeChannelId = youtubeChannelId;
+        this.existsTopics = existsTopics;
+        this.duplicated = duplicated;
     }
 
     public static String eventName() {
@@ -102,8 +107,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         primitives.put("word_count", wordCount);
         primitives.put("video_duration", videoDuration);
         primitives.put("youtube_video_id", youtubeVideoId);
-        primitives.put("youtube_channel_name", youtubeChannelName);
         primitives.put("youtube_channel_id", youtubeChannelId);
+        primitives.put("existsTopics", existsTopics);
+        primitives.put("duplicated", duplicated);
         return primitives;
     }
 
@@ -130,7 +136,8 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 (Integer) body.get("word_count"),
                 (Integer) body.get("video_duration"),
                 (String) body.get("youtube_video_id"),
-                (String) body.get("youtube_channel_name"),
-                (Long) body.get("youtube_channel_id"));
+                (Long) body.get("youtube_channel_id"),
+                (String) body.get("existsTopics"),
+                (Boolean) body.get("duplicated"));
     }
 }

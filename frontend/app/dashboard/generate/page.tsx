@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { v4 as uuidv4 } from 'uuid';
 import {
   ExternalLink,
   Sparkles,
@@ -108,8 +109,10 @@ export default function GenerateQuiz() {
       setCreateQuizError(null);
 
       // Step 1: Create the quiz using the new API endpoint
+    const clientQuizId = uuidv4();
       const createdQuiz = await apiService.createQuiz({
         bankId: selectedBankId!,
+        quizId: clientQuizId,
       });
 
       // Step 2: If quiz creation is successful, start WebSocket generation

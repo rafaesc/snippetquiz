@@ -3,10 +3,6 @@ package ai.snippetquiz.core_service.contentbank.application.service;
 import ai.snippetquiz.core_service.contentbank.application.ContentEntryDTOResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
-import ai.snippetquiz.core_service.shared.domain.ContentType;
-import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
-import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
-import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
@@ -15,6 +11,10 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepo
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.shared.domain.ContentType;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
+import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
+import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
@@ -60,6 +60,8 @@ public class ContentEntryServiceImpl implements ContentEntryService {
             String youtubeAvatarUrl) {
         var contentBank = contentBankRepository.findByIdAndUserId(bankId, userId)
                 .orElseThrow(() -> new NotFoundException("Content bank not found or does not belong to user"));
+        var existingTopics = topicRepository.findAllByUserId(userId).stream().map(Topic::getTopic)
+                .collect(joining(","));
 
         // Process HTML content if type is FULL_HTML
         var processedContent = content;
@@ -114,7 +116,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
         // Create new entry
         var contentEntry = new ContentEntry(userId, bankId, type, processedContent, sourceUrl, pageTitle,
-                youtubeVideoDuration, youtubeVideoId, youtubeChannel);
+                youtubeVideoDuration, youtubeVideoId, youtubeChannel, existingTopics);
 
         var savedEntry = contentEntryRepository.save(contentEntry);
         eventBus.publish(contentEntry.aggregateType(), contentEntry.drainDomainEvents());
@@ -192,16 +194,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         var targetBank = contentBankRepository.findByIdAndUserId(cloneTargetBankId, userId)
                 .orElseThrow(() -> new NotFoundException("Target content bank not found or does not belong to user"));
 
-        YoutubeChannel youtubeChannel = null;
-        if (Objects.nonNull(sourceEntry.getYoutubeChannelId())) {
-            youtubeChannel = youtubeChannelRepository.findById(sourceEntry.getYoutubeChannelId()).orElse(null);
-        }
-
-        var clonedEntry = new ContentEntry(userId, targetBank.getId(), sourceEntry.getContentType(),
-                sourceEntry.getContent(),
-                sourceEntry.getSourceUrl(), sourceEntry.getPageTitle(), sourceEntry.getVideoDuration(),
-                sourceEntry.getYoutubeVideoId(),
-                youtubeChannel);
+        var clonedEntry = new ContentEntry(sourceEntry, targetBank.getId());
 
         contentEntryRepository.save(clonedEntry);
 

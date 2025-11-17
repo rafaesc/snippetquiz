@@ -128,7 +128,8 @@ class ContentEntryServiceImplTest {
                     "Old Title",
                     null,
                     null,
-                    null
+                    null,
+                    ""
             );
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.of(bank));
             when(contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
@@ -238,7 +239,8 @@ class ContentEntryServiceImplTest {
                     "Title",
                     null,
                     null,
-                    null
+                    null,
+                    ""
             );
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));
 
@@ -297,7 +299,8 @@ class ContentEntryServiceImplTest {
                     "Title",
                     null,
                     null,
-                    null
+                    null,
+                    ""
             );
             Page<ContentEntry> page = new PageImpl<>(List.of(entry));
             Pageable pageable = PageRequest.of(0, 10);
@@ -353,7 +356,8 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null
+                    null,
+                    ""
             );
             when(contentEntryRepository.findByIdAndUserId(entryId, userId)).thenReturn(Optional.of(source));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.empty());
@@ -379,7 +383,8 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null
+                    null,
+                    ""
             );
             entryId = source.getId(); // align test entryId with real source
             var targetBank = new ContentBank(bankId, userId, "Target Bank");
@@ -457,7 +462,8 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null
+                    null,
+                    ""
             );
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.empty());
@@ -482,7 +488,8 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null
+                    null,
+                    ""
             );
             var bank = new ContentBank(bankId, userId, "Bank");
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));

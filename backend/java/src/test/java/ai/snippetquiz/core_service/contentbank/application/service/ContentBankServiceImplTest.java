@@ -283,7 +283,6 @@ class ContentBankServiceImplTest {
                     .thenReturn(Optional.empty());
             when(contentBankRepository.save(any(ContentBank.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
-            when(youtubeChannelRepository.findAllByIds(any())).thenReturn(Collections.emptyList());
 
             // When
             contentBankService.duplicate(userId, contentBankId, "   ");
@@ -312,7 +311,6 @@ class ContentBankServiceImplTest {
             when(contentBankRepository.findByUserIdAndName(eq(userId), eq("My Copy"))).thenReturn(Optional.empty());
             when(contentBankRepository.save(any(ContentBank.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
-            when(youtubeChannelRepository.findAllByIds(any())).thenReturn(Collections.emptyList());
 
             // When
             contentBankService.duplicate(userId, contentBankId, "My Copy");
