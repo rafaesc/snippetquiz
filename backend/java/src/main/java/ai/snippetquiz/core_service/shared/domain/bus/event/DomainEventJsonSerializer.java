@@ -24,4 +24,7 @@ public class DomainEventJsonSerializer {
             put("meta", new HashMap<String, Serializable>());
         }});
     }
+    public static <T extends DomainEvent> String serializePrimitives(T domainEvent) {
+        return Utils.toJson(domainEvent.toPrimitives());
+    }
 }

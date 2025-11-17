@@ -72,6 +72,7 @@ class QuizProjectionHandlerTest {
         var projection = captor.getValue();
 
         assertEquals(QuizId.map(quizId), projection.getId());
+        assertEquals(userId, projection.getUserId());
         assertEquals(bankName, projection.getBankName());
         assertEquals(status, projection.getStatus());
         assertEquals(createdAt, projection.getCreatedAt());
