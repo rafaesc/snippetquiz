@@ -35,15 +35,15 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     public ContentBank(ContentBankId id, UserId userId, String name) {
         var now = LocalDateTime.now();
         record(new ContentBankCreatedDomainEvent(
-                id.toString(),
+                id.getValue(),
                 userId,
                 name,
                 now));
     }
 
     public void apply(ContentBankCreatedDomainEvent event) {
-        this.setId(ContentBankId.map(event.getAggregateId()));
-        this.userId = UserId.map(event.getUserId());
+        this.setId(new ContentBankId(event.getAggregateId()));
+        this.userId = new UserId(event.getUserId());
         this.name = event.getName();
         this.createdAt = event.getCreatedAt();
         this.updatedAt = event.getCreatedAt();
@@ -51,7 +51,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
 
     public void delete() {
         record(new ContentBankDeletedDomainEvent(
-                getId().toString(),
+                getId().getValue(),
                 userId));
     }
 
@@ -62,7 +62,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     public void rename(String name) {
         var now = LocalDateTime.now();
         record(new ContentBankRenamedDomainEvent(
-                getId().toString(),
+                getId().getValue(),
                 userId,
                 name,
                 now));
@@ -76,7 +76,7 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
     public void updatedContentEntries(List<ContentEntry> contentEntries) {
         var now = LocalDateTime.now();
         record(new ContentBankEntriesUpdatedDomainEvent(
-                getId().toString(),
+                getId().getValue(),
                 userId,
                 Utils.toJson(new HashSet<>(contentEntries)),
                 now));

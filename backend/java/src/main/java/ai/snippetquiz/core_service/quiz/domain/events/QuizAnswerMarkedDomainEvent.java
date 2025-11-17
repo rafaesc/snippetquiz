@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -19,24 +20,24 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
     private boolean isAllQuestionsMarked;
 
     public QuizAnswerMarkedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
             QuizQuestionResponse quizQuestionResponse,
             boolean isAllQuestionsMarked) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
         this.quizQuestionResponse = quizQuestionResponse;
         this.isAllQuestionsMarked = isAllQuestionsMarked;
     }
 
     public QuizAnswerMarkedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             QuizQuestionResponse quizQuestionResponse,
             boolean isAllQuestionsMarked) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.quizQuestionResponse = quizQuestionResponse;
         this.isAllQuestionsMarked = isAllQuestionsMarked;
     }
@@ -56,15 +57,15 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
 
     @Override
     public QuizAnswerMarkedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new QuizAnswerMarkedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

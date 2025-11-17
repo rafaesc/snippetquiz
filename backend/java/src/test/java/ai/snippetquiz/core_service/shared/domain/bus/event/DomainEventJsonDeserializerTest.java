@@ -19,7 +19,7 @@ class DomainEventJsonDeserializerTest {
     void deserialize_reconstructs_event_instance() throws Exception {
         // Arrange
         var valueObject = UUID.randomUUID().toString();
-        SecondTestEvent original = new SecondTestEvent("agg-2", "user-2", valueObject);
+        SecondTestEvent original = new SecondTestEvent(UUID.randomUUID(), UUID.randomUUID(), valueObject);
         String json = DomainEventJsonSerializer.serialize(original);
 
         DomainEventsInformation info = new DomainEventsInformation();

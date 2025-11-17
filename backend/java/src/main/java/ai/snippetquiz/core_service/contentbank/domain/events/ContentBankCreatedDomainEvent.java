@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
@@ -18,22 +19,22 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
     private String name;
     private LocalDateTime createdAt;
 
-    public ContentBankCreatedDomainEvent(String aggregateId, UserId userId, String name, LocalDateTime createdAt) {
-        super(aggregateId, userId.toString());
+    public ContentBankCreatedDomainEvent(UUID aggregateId, UserId userId, String name, LocalDateTime createdAt) {
+        super(aggregateId, userId.getValue());
         this.name = name;
         this.createdAt = createdAt;
     }
 
     public ContentBankCreatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             String name,
             LocalDateTime createdAt
     ) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.name = name;
         this.createdAt = createdAt;
     }
@@ -52,15 +53,15 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
 
     @Override
     public ContentBankCreatedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new ContentBankCreatedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

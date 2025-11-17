@@ -29,21 +29,21 @@ public class DomainEventJsonDeserializer {
 
         Method fromPrimitivesMethod = domainEventClass.getMethod(
                 "fromPrimitives",
-                String.class,
-                String.class,
+                java.util.UUID.class,
+                java.util.UUID.class,
                 HashMap.class,
-                String.class,
+                java.util.UUID.class,
                 String.class,
                 int.class);
 
         return (T) fromPrimitivesMethod.invoke(
                 nullInstance,
-                (String) attributes.get("aggregate_id"),
-                (String) attributes.get("user_id"),
+                java.util.UUID.fromString((String) attributes.get("aggregate_id")),
+                java.util.UUID.fromString((String) attributes.get("user_id")),
                 attributes,
-                (String) data.get("event_id"),
+                java.util.UUID.fromString((String) data.get("event_id")),
                 (String) data.get("occurred_on"),
-                (int) data.get("version"));
+                (Integer) data.get("version"));
     }
 
     @SuppressWarnings("unchecked")
@@ -64,19 +64,19 @@ public class DomainEventJsonDeserializer {
 
         Method fromPrimitivesMethod = domainEventClass.getMethod(
                 "fromPrimitives",
-                String.class,
-                String.class,
+                java.util.UUID.class,
+                java.util.UUID.class,
                 HashMap.class,
-                String.class,
+                java.util.UUID.class,
                 String.class,
                 int.class);
 
         return (T) fromPrimitivesMethod.invoke(
                 nullInstance,
-                aggregateId,
-                userId,
+                java.util.UUID.fromString(aggregateId),
+                java.util.UUID.fromString(userId),
                 attributes,
-                eventId,
+                java.util.UUID.fromString(eventId),
                 occurredOn,
                 version);
     }

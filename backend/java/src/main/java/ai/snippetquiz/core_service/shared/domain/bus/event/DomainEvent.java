@@ -13,11 +13,11 @@ import static java.time.ZoneOffset.UTC;
 
 public abstract class DomainEvent {
     @Getter
-    private String aggregateId;
+    private UUID aggregateId;
     @Getter
-    private String userId;
+    private UUID userId;
     @Getter
-    private String eventId;
+    private UUID eventId;
     @Getter
     @Setter
     private String occurredOn;
@@ -25,17 +25,17 @@ public abstract class DomainEvent {
     @Setter
     private int version;
 
-    public DomainEvent(String aggregateId, String userId) {
+    public DomainEvent(UUID aggregateId, UUID userId) {
         this.aggregateId = aggregateId;
         this.userId = userId;
-        this.eventId = UUID.randomUUID().toString();
+        this.eventId = UUID.randomUUID();
         this.occurredOn = Utils.dateToString(LocalDateTime.now(UTC));
     }
 
     public DomainEvent(
-            String aggregateId,
-            String userId,
-            String eventId,
+            UUID aggregateId,
+            UUID userId,
+            UUID eventId,
             String occurredOn,
             int version
     ) {
@@ -52,10 +52,10 @@ public abstract class DomainEvent {
     public abstract HashMap<String, Serializable> toPrimitives();
 
     public abstract DomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version);
 }

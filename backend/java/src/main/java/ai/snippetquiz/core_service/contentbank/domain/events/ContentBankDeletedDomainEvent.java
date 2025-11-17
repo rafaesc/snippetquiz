@@ -2,6 +2,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 import ai.snippetquiz.core_service.shared.domain.bus.event.DeactivationDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
@@ -15,17 +16,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ContentBankDeletedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
 
-    public ContentBankDeletedDomainEvent(String aggregateId, UserId userId) {
-        super(aggregateId, userId.toString());
+    public ContentBankDeletedDomainEvent(UUID aggregateId, UserId userId) {
+        super(aggregateId, userId.getValue());
     }
 
     public ContentBankDeletedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
     }
 
     public static String eventName() {
@@ -39,15 +40,15 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
 
     @Override
     public ContentBankDeletedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new ContentBankDeletedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version);

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -16,19 +17,19 @@ import java.util.HashMap;
 public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationDomainEvent {
 
     public QuizDeletedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
     }
 
     public QuizDeletedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version
     ) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
     }
 
     public static String eventName() {
@@ -42,15 +43,15 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
 
     @Override
     public QuizDeletedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new QuizDeletedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version);

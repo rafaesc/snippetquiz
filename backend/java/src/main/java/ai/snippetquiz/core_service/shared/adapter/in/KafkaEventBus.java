@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -25,11 +26,11 @@ public class KafkaEventBus implements EventBus {
 
     private void publish(final String aggregateType, DomainEvent domainEvent) {
         try {
-            log.info("Publishing domain event {} to topic {}", domainEvent.toPrimitives().toString(), aggregateType);
+            log.info("Publishing domain event {} - {} to topic {}", Utils.getEventName(domainEvent.getClass()), domainEvent.toPrimitives().toString(), aggregateType);
             String serializedDomainEvent =  DomainEventJsonSerializer.serialize(domainEvent);
 
             kafkaTemplate
-                    .send(aggregateType, domainEvent.getAggregateId(), serializedDomainEvent)
+                    .send(aggregateType, domainEvent.getAggregateId().toString(), serializedDomainEvent)
                     .whenComplete((result, ex) -> {
                         if (ex != null) {
                             log.error("Failed to publish domain event: userId {}, {}", domainEvent.getUserId(), domainEvent, ex);

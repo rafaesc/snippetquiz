@@ -60,7 +60,8 @@ class KafkaEventBusIntegrationTest extends KafkaContainerBase {
 
             // Prepare a domain event and publish
             var userId = new UserId(UUID.randomUUID());
-            QuizDeletedDomainEvent event = new QuizDeletedDomainEvent("agg-123", userId);
+            var aggregateId = UUID.randomUUID();
+            QuizDeletedDomainEvent event = new QuizDeletedDomainEvent(aggregateId, userId);
             String expectedPayload = DomainEventJsonSerializer.serialize(event);
 
             eventBus.publish(topic, Collections.singletonList(event));
@@ -75,7 +76,7 @@ class KafkaEventBusIntegrationTest extends KafkaContainerBase {
 
             assertFalse(records.isEmpty(), "Expected to receive at least one record from Kafka");
             var record = records.iterator().next();
-            assertEquals("agg-123", record.key(), "Kafka key should be the aggregateId");
+            assertEquals(aggregateId.toString(), record.key(), "Kafka key should be the aggregateId");
             assertEquals(expectedPayload, record.value(), "Kafka value should match serialized domain event");
         } finally {
             // Cleanup resources

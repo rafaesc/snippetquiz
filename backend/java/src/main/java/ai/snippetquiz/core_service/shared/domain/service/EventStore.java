@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,9 +17,9 @@ public class EventStore {
     private final DomainEventRepository<DomainEvent> domainEventRepository;
     private final EventBus eventBus;
 
-    public void saveEvents(UserId userId, String aggregateId, String aggregateType, List<? extends DomainEvent> events, int expectedVersion){
+    public void saveEvents(UserId userId, UUID aggregateId, String aggregateType, List<? extends DomainEvent> events, int expectedVersion){
         var eventStream = domainEventRepository.findAllByUserIdAndAggregateIdAndAggregateType(userId, aggregateId);
-        if (expectedVersion != -1 && eventStream.getLast().getVersion() != expectedVersion) {
+        if (expectedVersion != -1 && !eventStream.isEmpty() && eventStream.getLast().getVersion() != expectedVersion) {
             throw new ConcurrencyException(
                 "Concurrency conflict: expected version " + expectedVersion +
                 " but found " + eventStream.getLast().getVersion()
@@ -33,7 +34,7 @@ public class EventStore {
         eventBus.publish(aggregateType, events);
     }
 
-    public List<DomainEvent> getEvents(UserId userId, String aggregateId) {
+    public List<DomainEvent> getEvents(UserId userId, UUID aggregateId) {
         return domainEventRepository.findAllByUserIdAndAggregateIdAndAggregateType(userId, aggregateId);
     }
 }

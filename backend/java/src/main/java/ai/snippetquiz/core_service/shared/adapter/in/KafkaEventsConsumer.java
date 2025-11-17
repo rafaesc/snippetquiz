@@ -98,7 +98,7 @@ public class KafkaEventsConsumer implements SmartLifecycle {
             List<AggregateEventSubscriber> subscribers = subscribersInformation.search(topic);
 
             if (subscribers.isEmpty()) {
-                log.debug("No subscribers found for topic {}", topic);
+                log.info("No subscribers found for topic {}", topic);
                 return;
             }
 

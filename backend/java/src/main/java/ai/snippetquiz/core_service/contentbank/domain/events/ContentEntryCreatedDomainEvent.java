@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -27,7 +28,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     private Long youtubeChannelId;
 
     public ContentEntryCreatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
             String contentBankId,
             String contentType,
@@ -40,7 +41,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String youtubeVideoId,
             String youtubeChannelName,
             Long youtubeChannelId) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
@@ -55,9 +56,9 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     }
 
     public ContentEntryCreatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             String contentBankId,
@@ -71,7 +72,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             String youtubeVideoId,
             String youtubeChannelName,
             Long youtubeChannelId) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
@@ -108,15 +109,15 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
 
     @Override
     public ContentEntryCreatedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new ContentEntryCreatedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,
@@ -126,7 +127,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 (String) body.get("source_url"),
                 (String) body.get("page_title"),
                 Utils.stringToDate((String) body.get("created_at")),
-                (int) body.get("word_count"),
+                (Integer) body.get("word_count"),
                 (Integer) body.get("video_duration"),
                 (String) body.get("youtube_video_id"),
                 (String) body.get("youtube_channel_name"),

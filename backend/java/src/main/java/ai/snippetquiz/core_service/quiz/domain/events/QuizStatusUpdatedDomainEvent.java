@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -16,19 +17,19 @@ import java.util.HashMap;
 public class QuizStatusUpdatedDomainEvent extends DomainEvent {
     private QuizStatus status;
 
-    public QuizStatusUpdatedDomainEvent(String aggregateId, UserId userId, QuizStatus status) {
-        super(aggregateId, userId.toString());
+    public QuizStatusUpdatedDomainEvent(UUID aggregateId, UserId userId, QuizStatus status) {
+        super(aggregateId, userId.getValue());
         this.status = status;
     }
 
     public QuizStatusUpdatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             QuizStatus status) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.status = status;
     }
 
@@ -45,15 +46,15 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent {
 
     @Override
     public QuizStatusUpdatedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new QuizStatusUpdatedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,

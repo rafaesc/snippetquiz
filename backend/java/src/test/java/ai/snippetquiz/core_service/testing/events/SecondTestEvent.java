@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -14,15 +15,15 @@ import java.util.HashMap;
 public class SecondTestEvent extends DomainEvent {
     private String valueObject;
 
-    public SecondTestEvent(String aggregateId, String userId, String valueObject) {
+    public SecondTestEvent(UUID aggregateId, UUID userId, String valueObject) {
         super(aggregateId, userId);
         this.valueObject = valueObject;
     }
 
     public SecondTestEvent(
-            String aggregateId,
-            String userId,
-            String eventId,
+            UUID aggregateId,
+            UUID userId,
+            UUID eventId,
             String occurredOn,
             int version,
             String valueObject) {
@@ -43,10 +44,10 @@ public class SecondTestEvent extends DomainEvent {
 
     @Override
     public DomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new SecondTestEvent(aggregateId, userId, eventId, occurredOn, version,

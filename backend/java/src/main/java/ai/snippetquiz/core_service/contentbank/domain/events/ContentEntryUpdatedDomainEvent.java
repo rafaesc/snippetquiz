@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.UUID;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -20,13 +21,13 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     private Integer wordCount;
 
     public ContentEntryUpdatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
             String content,
             String pageTitle,
             LocalDateTime createdAt,
             Integer wordCount) {
-        super(aggregateId, userId.toString());
+        super(aggregateId, userId.getValue());
         this.content = content;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -34,16 +35,16 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     }
 
     public ContentEntryUpdatedDomainEvent(
-            String aggregateId,
+            UUID aggregateId,
             UserId userId,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version,
             String content,
             String pageTitle,
             LocalDateTime createdAt,
             Integer wordCount) {
-        super(aggregateId, userId.toString(), eventId, occurredOn, version);
+        super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.content = content;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -66,21 +67,21 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
 
     @Override
     public ContentEntryUpdatedDomainEvent fromPrimitives(
-            String aggregateId,
-            String userId,
+            UUID aggregateId,
+            UUID userId,
             HashMap<String, Serializable> body,
-            String eventId,
+            UUID eventId,
             String occurredOn,
             int version) {
         return new ContentEntryUpdatedDomainEvent(
                 aggregateId,
-                UserId.map(userId),
+                new UserId(userId),
                 eventId,
                 occurredOn,
                 version,
                 (String) body.get("content"),
                 (String) body.get("page_title"),
                 Utils.stringToDate((String) body.get("created_at")),
-                (int) body.get("word_count"));
+                (Integer) body.get("word_count"));
     }
 }

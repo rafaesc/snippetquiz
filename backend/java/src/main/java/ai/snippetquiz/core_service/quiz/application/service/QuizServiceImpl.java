@@ -100,7 +100,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public FindOneQuizResponse findOne(UserId userId, QuizId quizId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.getValue())
                 .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
 
         Set<String> topics = quiz.getQuizTopics();
@@ -149,7 +149,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public PagedModelResponse<QuizResponseItemDto> findQuizResponses(UserId userId, QuizId quizId, Pageable pageable) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.getValue())
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
         var questionsByQuestionId = quiz.getQuizQuestions().stream()
                 .collect(Collectors.toMap(QuizQuestion::getId, Function.identity()));
@@ -186,7 +186,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     public QuizSummaryResponseDto findQuizSummary(QuizId quizId, UserId userId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.getValue())
                 .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
 
         Set<String> topics = quiz.getQuizTopics();
@@ -267,7 +267,7 @@ public class QuizServiceImpl implements QuizService {
             }
 
             if (QuizStatus.READY_WITH_ERROR.getValue().equals(finalStatus)) {
-                var quiz = quizEventSourcingHandler.getById(userId, quizProjection.getId().toString())
+                var quiz = quizEventSourcingHandler.getById(userId, quizProjection.getId().getValue())
                         .orElseThrow(() -> new NotFoundException("Quiz not found " + quizProjection.getId()));
                 quiz.updateStatus(QuizStatus.READY_WITH_ERROR);
                 quizEventSourcingHandler.save(quiz);
@@ -279,7 +279,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public void delete(UserId userId, QuizId quizId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.getValue())
                 .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
         quiz.delete();
@@ -298,7 +298,7 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new NotFoundException(
                         "Content bank not found or you do not have permission to access it"));
 
-        quizEventSourcingHandler.getById(userId, quizId.toString())
+        quizEventSourcingHandler.getById(userId, quizId.getValue())
                 .ifPresent(quiz -> {
                     throw new ConflictException("Quiz already exists");
                 });
@@ -405,7 +405,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, QuizQuestionOptionId optionSelectedId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId.toString())
+        var quiz = quizEventSourcingHandler.getById(userId, quizId.getValue())
                 .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
         var questionsCompleted = quiz.getQuizQuestionResponses().size();
 
