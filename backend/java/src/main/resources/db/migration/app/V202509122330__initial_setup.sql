@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "content_banks" (
 );
 
 CREATE INDEX "content_banks_user_id_prefix_idx"
-ON "content_banks" (LEFT("user_id"::text, 4));
+ON "content_banks" ("user_id");
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "topics" (
@@ -72,7 +72,7 @@ CREATE INDEX "idx_questions_chunk_index" ON "questions"("chunk_index");
 CREATE INDEX "idx_questions_question_index_in_chunk" ON "questions"("question_index_in_chunk");
 
 CREATE INDEX "questions_content_entry_id_prefix_idx"
-ON "questions" (LEFT("content_entry_id"::text, 4));
+ON "questions" ("content_entry_id");
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "question_options" (
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS "quiz_generation_instructions" (
 );
 
 CREATE INDEX "quiz_generation_instructions_user_id_prefix_idx"
-ON "quiz_generation_instructions" (LEFT("user_id"::text, 4));
+ON "quiz_generation_instructions" ("user_id");
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "content_entry_topics" (
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "content_entry_topics" (
 );
 
 CREATE INDEX "content_entry_topics_content_entry_id_prefix_idx"
-ON "content_entry_topics" (LEFT("content_entry_id"::text, 4));
+ON "content_entry_topics" ("content_entry_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "topics"("user_id", "topic");
@@ -117,7 +117,7 @@ CREATE UNIQUE INDEX "topics_user_id_topic_key" ON "topics"("user_id", "topic");
 CREATE UNIQUE INDEX "youtube_channels_channel_id_key" ON "youtube_channels"("channel_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "content_entry_topics"(LEFT("content_entry_id"::text, 4), "topic_id");
+CREATE UNIQUE INDEX "content_entry_topics_content_entry_id_topic_id_key" ON "content_entry_topics"("content_entry_id", "topic_id");
 
 -- AddForeignKey
 ALTER TABLE "content_entries" ADD CONSTRAINT "content_entries_youtube_channel_id_fkey" FOREIGN KEY ("youtube_channel_id") REFERENCES "youtube_channels"("id") ON DELETE SET NULL ON UPDATE CASCADE;

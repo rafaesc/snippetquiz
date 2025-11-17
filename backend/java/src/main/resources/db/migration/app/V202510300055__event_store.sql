@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS "event_store" (
 );
 
 CREATE INDEX "idx_event_store_user_id_aggregate_id_aggregate_type"
-ON "event_store" (LEFT("user_id"::text, 4), LEFT("aggregate_id"::text, 4), aggregate_type);
+ON "event_store" ("user_id", "aggregate_id", aggregate_type);
