@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.quiz.domain.service;
 
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.service.EventStore;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class QuizEventSourcingHandler implements EventSourcingHandler<Quiz> {
+public class QuizEventSourcingHandler implements EventSourcingHandler<Quiz, QuizId> {
     private final EventStore eventStore;
 
     @Override
@@ -27,8 +28,8 @@ public class QuizEventSourcingHandler implements EventSourcingHandler<Quiz> {
     }
 
     @Override
-    public Optional<Quiz> getById(UserId userId, UUID aggregateId) {
-        var eventStream = eventStore.getEvents(userId, aggregateId);
+    public Optional<Quiz> getById(UserId userId, QuizId aggregateId) {
+        var eventStream = eventStore.getEvents(userId, aggregateId.getValue());
 
         if (eventStream == null || eventStream.isEmpty()) {
             return Optional.empty();

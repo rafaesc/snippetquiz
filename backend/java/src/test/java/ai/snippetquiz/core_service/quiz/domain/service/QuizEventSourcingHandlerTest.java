@@ -72,12 +72,12 @@ class QuizEventSourcingHandlerTest {
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
         var userId = new UserId(UUID.randomUUID());
-        var quizId = UUID.randomUUID();
+        var quizId =  UUID.randomUUID();
 
         when(repo.findAllByUserIdAndAggregateIdAndAggregateType(eq(userId), eq(quizId)))
                 .thenReturn(List.of());
 
-        var result = handler.getById(userId, quizId);
+        var result = handler.getById(userId, new QuizId(quizId));
 
         assertTrue(result.isEmpty(), "Should return Optional.empty when no events exist");
     }
@@ -113,7 +113,7 @@ class QuizEventSourcingHandlerTest {
         when(repo.findAllByUserIdAndAggregateIdAndAggregateType(eq(userId), eq(quizUuid)))
                 .thenReturn(List.of(created, statusUpdated));
 
-        var result = handler.getById(userId, quizUuid);
+        var result = handler.getById(userId, new QuizId(quizUuid));
 
         assertTrue(result.isPresent(), "Aggregate should be reconstructed from events");
 
