@@ -5,7 +5,6 @@ import ai.snippetquiz.core_service.contentbank.application.ContentBankResponse;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentBank;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
