@@ -50,7 +50,7 @@ function VerifyEmailContent() {
       
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/dashboard/content');
       }, 2000);
     },
     onError: (error: Error) => {
@@ -162,7 +162,7 @@ function VerifyEmailContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
-              <Button onClick={() => router.push('/dashboard')} className="w-full">
+              <Button onClick={() => router.push('/dashboard/content')} className="w-full">
                 Go to Dashboard
               </Button>
             </CardContent>

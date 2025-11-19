@@ -3,35 +3,56 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Button } from '@/components/ui/button';
-import { LogOut, Moon, Sun, Menu, Home, Sparkles, FileText, Database, Settings } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useTheme } from 'next-themes';
-import { apiService } from '@/lib/api-service';
+import { Button } from "@/components/ui/button";
+import {
+  LogOut,
+  Moon,
+  Sun,
+  Menu,
+  Home,
+  Sparkles,
+  FileText,
+  Database,
+  Settings,
+} from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useTheme } from "next-themes";
+import { apiService } from "@/lib/api-service";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navigation = [{
-  name: 'Home',
-  href: '/dashboard',
-  icon: Home
-}, {
-  name: 'Generate Quiz',
-  href: '/dashboard/generate',
-  icon: Sparkles,
-  highlighted: true
-}, {
-  name: 'Generated Quizzes',
-  href: '/dashboard/quizzes',
-  icon: FileText
-}, {
-  name: 'Content Banks',
-  href: '/dashboard/content',
-  icon: Database
-}, {
-  name: 'Settings',
-  href: '/dashboard/settings',
-  icon: Settings
-}];
+const navigation = [
+  // {
+  //   name: 'Home',
+  //   href: '/dashboard',
+  //   icon: Home
+  // },
+  {
+    name: "Content Banks",
+    href: "/dashboard/content",
+    icon: Database,
+  },
+  {
+    name: "Generate Quiz",
+    href: "/dashboard/generate",
+    icon: Sparkles,
+    highlighted: true,
+  },
+  {
+    name: "Generated Quizzes",
+    href: "/dashboard/quizzes",
+    icon: FileText,
+  },
+  {
+    name: "Content Banks",
+    href: "/dashboard/content",
+    icon: Database,
+  },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+  },
+];
 
 function NavItems() {
   return (
@@ -42,13 +63,14 @@ function NavItems() {
           <Link
             key={item.name}
             href={item.href}
-            className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${item.highlighted
-              ? 'bg-primary text-primary-foreground font-medium'
-              : 'hover:bg-accent hover:text-accent-foreground'
-              }`}
+            className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
+              item.highlighted
+                ? "bg-primary text-primary-foreground font-medium"
+                : "hover:bg-accent hover:text-accent-foreground"
+            }`}
           >
             <Icon className="h-4 w-4" />
-            <span >{item.name}</span>
+            <span>{item.name}</span>
           </Link>
         );
       })}
@@ -70,11 +92,10 @@ export default function DashboardHeader() {
   }, []);
 
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   return (
-
     <header className="sticky top-0 z-40 w-full bg-gray-900/95 backdrop-blur shadow-lg">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Mobile menu and Logo */}
@@ -93,8 +114,10 @@ export default function DashboardHeader() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-display font-bold text-white">SnippetQuiz</span>
+          <Link href="/dashboard/content" className="flex items-center space-x-2">
+            <span className="text-xl font-display font-bold text-white">
+              SnippetQuiz
+            </span>
           </Link>
         </div>
 
@@ -108,7 +131,7 @@ export default function DashboardHeader() {
               onClick={toggleTheme}
               className="h-9 w-9 text-white"
             >
-              {theme === 'dark' ? (
+              {theme === "dark" ? (
                 <Sun className="h-4 w-4" />
               ) : (
                 <Moon className="h-4 w-4" />
@@ -129,7 +152,6 @@ export default function DashboardHeader() {
             size="sm"
             onClick={handleLogout}
             className="flex items-center space-x-1 text-black dark:text-white rounded-full"
-
           >
             <LogOut className="h-4" />
             <span className="hidden sm:inline">Logout</span>
@@ -139,4 +161,3 @@ export default function DashboardHeader() {
     </header>
   );
 }
-

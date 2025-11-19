@@ -7,10 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const navigation = [
+//  {
+//    name: 'Home',
+//    href: '/dashboard',
+//    icon: Home
+//  },
   {
-    name: 'Home',
-    href: '/dashboard',
-    icon: Home
+    name: 'Content Banks',
+    href: '/dashboard/content-banks',
+    icon: Database
   },
   {
     name: 'Generate Quiz',
@@ -22,11 +27,6 @@ const navigation = [
     name: 'Generated Quizzes',
     href: '/dashboard/quizzes',
     icon: FileText
-  },
-  {
-    name: 'Content Banks',
-    href: '/dashboard/content-banks',
-    icon: Database
   },
   {
     name: 'Settings',
