@@ -88,7 +88,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const { user } = await apiService.getUserProfile();
             setUser(user);
             setIsAuthenticated(true);
-            router.push('/dashboard/content');
+            router.push('/dashboard/content-banks');
         } catch (error) {
             console.error('Login failed:', error);
             throw error;

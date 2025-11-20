@@ -84,7 +84,7 @@ export default function AuthPage() {
         title: "Success!",
         description: "You have been logged in successfully.",
       });
-      router.push('/dashboard/content');
+      router.push('/dashboard/content-banks');
     },
     onError: (error: Error) => {
       toast({

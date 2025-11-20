@@ -28,7 +28,7 @@ const navigation = [
   // },
   {
     name: "Content Banks",
-    href: "/dashboard/content",
+    href: "/dashboard/content-banks",
     icon: Database,
   },
   {
@@ -41,11 +41,6 @@ const navigation = [
     name: "Generated Quizzes",
     href: "/dashboard/quizzes",
     icon: FileText,
-  },
-  {
-    name: "Content Banks",
-    href: "/dashboard/content",
-    icon: Database,
   },
   {
     name: "Settings",
@@ -114,7 +109,7 @@ export default function DashboardHeader() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/dashboard/content" className="flex items-center space-x-2">
+          <Link href="/dashboard/content-banks" className="flex items-center space-x-2">
             <span className="text-xl font-display font-bold text-white">
               SnippetQuiz
             </span>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import {
   ExternalLink,
   Sparkles,
@@ -77,7 +77,11 @@ export default function GenerateQuiz() {
   } = useQuery({
     queryKey: ["contentEntries", selectedBankId, currentPage],
     queryFn: () =>
-      apiService.getContentEntries(selectedBankId!, currentPage, entriesPerPage),
+      apiService.getContentEntries(
+        selectedBankId!,
+        currentPage,
+        entriesPerPage
+      ),
     enabled: !!selectedBankId, // Only run when a bank is selected
     staleTime: 0,
   });
@@ -109,7 +113,7 @@ export default function GenerateQuiz() {
       setCreateQuizError(null);
 
       // Step 1: Create the quiz using the new API endpoint
-    const clientQuizId = uuidv4();
+      const clientQuizId = uuidv4();
       const createdQuiz = await apiService.createQuiz({
         bankId: selectedBankId!,
         quizId: clientQuizId,
@@ -217,7 +221,10 @@ export default function GenerateQuiz() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedBankId ? selectedBankId.toString() : undefined} onValueChange={handleBankChange}>
+          <Select
+            value={selectedBankId ? selectedBankId.toString() : undefined}
+            onValueChange={handleBankChange}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose a content bank..." />
             </SelectTrigger>
