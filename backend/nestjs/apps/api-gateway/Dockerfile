@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile to optimize build and production images
 
 # Base image used across all stages
-FROM node:21-alpine3.19 AS base
+FROM node:20-alpine3.21 AS base
 
 # -------------------------------
 # Stage 1: Install dependencies
@@ -9,11 +9,11 @@ FROM node:21-alpine3.19 AS base
 FROM base AS deps
 
 # Set working directory
-WORKDIR /usr/src/app/nestjs
+WORKDIR /usr/src/app
 
 # Copy package manifest files
-COPY /nestjs/package.json .
-COPY /nestjs/package-lock.json .
+COPY package.json .
+COPY package-lock.json .
 
 # Install all dependencies (including devDependencies, needed for build)
 RUN npm ci
@@ -24,13 +24,13 @@ RUN npm ci
 FROM base AS builder
 
 # Set working directory
-WORKDIR /usr/src/app/nestjs
+WORKDIR /usr/src/app
 
 # Copy installed dependencies from previous stage
-COPY --from=deps /usr/src/app/nestjs/node_modules ./node_modules
+COPY --from=deps /usr/src/app/node_modules ./node_modules
 
 # Copy full application source code and config
-COPY ./nestjs .
+COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/db-postgres/schema.prisma
@@ -49,9 +49,6 @@ ENV NODE_ENV=production
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy proto files
-COPY ./protos ./protos
-
 # Install dumb-init to handle container signals properly (e.g., SIGTERM)
 RUN apk add --no-cache dumb-init
 
@@ -60,12 +57,12 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S backend -u 1001
 
 # Copy compiled application from build stage
-COPY --from=builder /usr/src/app/nestjs/dist ./nestjs/dist
+COPY --from=builder /usr/src/app/dist ./dist
 
 # Copy package manifest files for installing production dependencies
-WORKDIR /usr/src/app/nestjs
+WORKDIR /usr/src/app
 
-COPY /nestjs/package*.json ./
+COPY /package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force

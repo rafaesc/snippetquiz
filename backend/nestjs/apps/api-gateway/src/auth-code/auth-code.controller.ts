@@ -17,7 +17,7 @@ import {
   GenerateCodeResponseDto,
   ResolveCodeDto,
   AuthResponseDto,
-} from 'apps/commons';
+} from 'apps/commons/types';
 
 @Controller('code')
 export class AuthCodeController {

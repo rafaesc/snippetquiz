@@ -4,7 +4,7 @@ import type {
   GenerateCodeResponseDto,
   ResolveCodeDto,
   AuthResponseDto,
-} from 'apps/commons';
+} from 'apps/commons/types';
 import { AUTH_SERVICE } from '../config/services';
 import { Observable } from 'rxjs';
 

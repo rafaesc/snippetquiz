@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile to optimize build and production images
 
 # Base image used across all stages
-FROM node:21-alpine3.19 AS base
+FROM node:20-alpine3.21 AS base
 
 # -------------------------------
 # Stage 1: Install dependencies

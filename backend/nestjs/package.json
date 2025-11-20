@@ -26,7 +26,6 @@
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
     "@grpc/grpc-js": "^1.13.4",
-    "@grpc/proto-loader": "^0.8.0",
     "@keyv/redis": "^5.1.0",
     "@mozilla/readability": "^0.6.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",

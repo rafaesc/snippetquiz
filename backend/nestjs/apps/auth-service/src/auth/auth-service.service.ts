@@ -16,7 +16,7 @@ import {
   UserResponseDto,
   AuthResponseDto,
   TokensDto,
-} from 'apps/commons';
+} from 'apps/commons/types';
 import { RedisService, PrismaService } from 'apps/commons/services';
 import { UsersService } from '../users/users.service';
 import { envs } from '../config/envs';

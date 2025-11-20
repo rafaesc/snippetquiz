@@ -47,6 +47,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{secrets.PACKAGE_TOKEN}}
 
+      - name: Setup Node.js for NestJS
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/nestjs/package-lock.json
+
+      - name: Install NestJS dependencies
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
+        run: npm ci
+        working-directory: ./backend/nestjs
+
+      - name: Build NestJS Apps
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
+        run: |
+          npx nest build api-gateway
+          npx nest build auth-service
+        working-directory: ./backend/nestjs
+
       - name: Build and push API Gateway
         if: ${{ needs.changes.outputs.nestjs == 'true' }}
         uses: docker/build-push-action@v5
@@ -65,6 +85,18 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
 
+      - name: Setup Java
+        if: ${{ needs.changes.outputs.java == 'true' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build Java Service
+        if: ${{ needs.changes.outputs.java == 'true' }}
+        run: ./gradlew build
+        working-directory: ./backend/java
+
       - name: Build and push Core Service
         if: ${{ needs.changes.outputs.java == 'true' }}
         uses: docker/build-push-action@v5
@@ -82,6 +114,24 @@ jobs:
           file: ./backend/python/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-python-service:latest
+
+      - name: Setup Node.js
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build Frontend
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        run: npm run build
+        working-directory: ./frontend
 
       - name: Build and push Frontend
         if: ${{ needs.changes.outputs.frontend == 'true' }}

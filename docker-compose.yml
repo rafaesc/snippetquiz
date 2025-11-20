@@ -31,22 +31,19 @@ x-common-environment: &common-env
 services:
   api-gateway:
     build: 
-      context: ./backend
-      dockerfile: nestjs/apps/api-gateway/Dockerfile.dev
+      context: ./backend/nestjs
+      dockerfile: apps/api-gateway/Dockerfile
     volumes:
       - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
-      - ./backend/protos:/usr/src/backend/protos
     ports:
       - "5000:5000"
     environment:
       <<: *common-env
-    command: npm run start:dev api-gateway
 
   auth-service:
     build: 
       context: ./backend/nestjs
-      dockerfile: apps/auth-service/Dockerfile.dev
+      dockerfile: apps/auth-service/Dockerfile
     volumes:
       - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
       - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
@@ -54,7 +51,6 @@ services:
       - "6000:6000"
     environment:
       <<: *common-env
-    command: sh -c "npx prisma migrate deploy --schema=prisma/db-postgres/schema.prisma || true && npm run start:dev auth-service"
 
   core-service:
     build: 

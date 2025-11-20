@@ -10,7 +10,7 @@ import {
   GenerateCodeResponseDto,
   ResolveCodeDto,
   AuthResponseDto,
-} from 'apps/commons';
+} from 'apps/commons/types';
 
 import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';

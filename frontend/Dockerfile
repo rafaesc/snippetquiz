@@ -1,5 +1,5 @@
 # Use the official Node.js 18 Alpine image as base
-FROM node:18-alpine AS base
+FROM node:20-alpine3.21 AS base
 
 # Install dependencies only when needed
 FROM base AS deps
