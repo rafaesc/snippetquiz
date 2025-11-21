@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+WORKDIR /usr/src/frontend
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production=false
+
+# Copy source code (make sure .dockerignore excludes node_modules)
+COPY . .
+
+EXPOSE 3000
