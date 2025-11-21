@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: redis-cluster
+  name: redis-cluster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-cluster
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: redis-cluster
+    spec:
+      containers:
+      - image: redis:6.2-alpine
+        name: redis
+        resources: {}
+status: {}

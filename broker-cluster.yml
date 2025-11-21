@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: broker-cluster
+  name: broker-cluster
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: broker-cluster
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: broker-cluster
+    spec:
+      containers:
+      - image: apache/kafka:4.0.0
+        name: kafka
