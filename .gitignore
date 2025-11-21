@@ -144,3 +144,9 @@ local/
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+### VS Code ###
+.vscode/
+
+### k8s ###
+secret*.yaml
