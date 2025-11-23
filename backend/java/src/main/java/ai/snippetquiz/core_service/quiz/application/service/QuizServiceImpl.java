@@ -19,13 +19,11 @@ import ai.snippetquiz.core_service.quiz.application.response.QuizResponse;
 import ai.snippetquiz.core_service.quiz.application.response.QuizResponseItemDto;
 import ai.snippetquiz.core_service.quiz.application.response.QuizSummaryResponseDto;
 import ai.snippetquiz.core_service.quiz.application.response.UpdateQuizResponse;
-import ai.snippetquiz.core_service.quiz.domain.events.CreateQuizGenerationEventPayload;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionOption;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionResponse;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
-import ai.snippetquiz.core_service.quiz.domain.port.messaging.CreateQuizEventPublisher;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizProjectionRepository;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
@@ -68,7 +66,6 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final TopicRepository topicRepository;
-    private final CreateQuizEventPublisher createQuizEventPublisher;
     private final EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
     private final QuizProjectionRepository quizProjectionRepository;
 
@@ -215,7 +212,7 @@ public class QuizServiceImpl implements QuizService {
                 log.warn("No content entries found for bankId: {}", bankId);
             }
 
-            var entriesToGenerate = new ArrayList<GetContentEntriesResponse.ContentEntryDto>();
+            var entriesToGenerate = new ArrayList<ContentEntryId>();
             var entriesSkipped = 0;
 
             for (var entry : contentEntries) {
@@ -223,11 +220,7 @@ public class QuizServiceImpl implements QuizService {
                     entriesSkipped++;
                     continue;
                 }
-                entriesToGenerate.add(new GetContentEntriesResponse.ContentEntryDto(
-                        entry.getId().toString(),
-                        entry.getPageTitle() != null ? entry.getPageTitle() : "",
-                        entry.getContent() != null ? entry.getContent() : "",
-                        entry.getWordCount() != null ? entry.getWordCount() : 0));
+                entriesToGenerate.add(entry.getId());
             }
 
             var instruction = quizGenerationInstructionRepository
@@ -303,13 +296,15 @@ public class QuizServiceImpl implements QuizService {
                     throw new ConflictException("Quiz already exists");
                 });
 
-        var quiz = new Quiz(quizId, userId, contentBank.getId(), contentBank.getName());
-
         var contentEntriesResponse = getContentEntriesByBankId(
                 contentBank.getId(), userId);
         var quizRequest = contentEntriesResponse.request();
-        var entries = quizRequest.contentEntries();
+        var entries = quizRequest.newContentEntries();
         var isReady = (isNull(entries) || entries.isEmpty());
+
+        var quiz = new Quiz(quizId, userId, contentBank.getId(), contentBank.getName(),
+                quizRequest.instructions(), entries,
+                contentEntriesResponse.entriesSkipped());
 
         createQuizQuestions(quiz, isReady ? QuizStatus.READY : QuizStatus.PREPARE);
 
@@ -317,8 +312,6 @@ public class QuizServiceImpl implements QuizService {
             log.warn("No content entries found for quizId: {}, bankId: {}, userId: {}", quiz.getId(),
                     contentBank.getId(), userId);
         }
-
-        emitCreateQuizEvent(userId, quiz.getId(), contentBank.getId(), contentEntriesResponse);
     }
 
     @Override
@@ -472,41 +465,5 @@ public class QuizServiceImpl implements QuizService {
                 true,
                 quiz.getIsAllQuestionsMarked(),
                 correctOption.getId().toString());
-    }
-
-    private void emitCreateQuizEvent(UserId userId, QuizId quizId, ContentBankId bankId,
-                                     GetContentEntriesResponse contentEntriesResponse) {
-        try {
-            var quizRequest = contentEntriesResponse.request();
-            var entriesSkipped = contentEntriesResponse.entriesSkipped();
-            var entries = quizRequest.contentEntries();
-
-            var payload = new CreateQuizGenerationEventPayload(
-                    quizRequest.instructions(),
-                    entries.stream()
-                            .map(entry -> new CreateQuizGenerationEventPayload.ContentEntryEvent(
-                                    entry.id(),
-                                    entry.pageTitle(),
-                                    entry.content(),
-                                    entry.wordCountAnalyzed()))
-                            .toList(),
-                    entriesSkipped,
-                    quizId.getValue().toString(),
-                    userId.getValue().toString(),
-                    bankId.getValue());
-
-            createQuizEventPublisher.emitCreateQuizEvent(
-                    payload,
-                    userId,
-                    quizId,
-                    bankId,
-                    entriesSkipped);
-
-            log.info("Create quiz event emitted for quizId: {}, bankId: {}, userId: {}", quizId, bankId, userId);
-        } catch (Exception error) {
-            log.error("Failed to emit create quiz event for quizId: {}, bankId: {}, userId: {}",
-                    quizId, bankId, userId, error);
-            throw new RuntimeException("Failed to emit create quiz event", error);
-        }
     }
 }

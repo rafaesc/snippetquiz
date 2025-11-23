@@ -39,7 +39,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String content,
             String pageTitle,
             LocalDateTime createdAt,
@@ -72,7 +72,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentEntryUpdatedDomainEvent(
                 aggregateId,
                 new UserId(userId),

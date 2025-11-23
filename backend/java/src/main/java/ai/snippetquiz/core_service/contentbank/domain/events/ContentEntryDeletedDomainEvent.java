@@ -25,7 +25,7 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
     }
 
@@ -45,7 +45,7 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentEntryDeletedDomainEvent(
                 aggregateId,
                 new UserId(userId),

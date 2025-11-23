@@ -30,7 +30,7 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String name,
             LocalDateTime createdAt
     ) {
@@ -58,7 +58,7 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentBankCreatedDomainEvent(
                 aggregateId,
                 new UserId(userId),

@@ -24,17 +24,7 @@ public class KafkaTopicConfig {
     }
 
     @Bean
-    NewTopic createQuizTopic() {
-        return new NewTopic("create-quiz", 1, (short) 1);
-    }
-
-    @Bean
     NewTopic contentEntryEventsTopic() {
-        return new NewTopic("content-entry-events", 1, (short) 1);
-    }
-
-    @Bean
-    NewTopic quizGenerationTopic() {
-        return new NewTopic("quiz-generation", 1, (short) 1);
+        return new NewTopic("content-entry.events", 1, (short) 1);
     }
 }

@@ -19,7 +19,7 @@ public class FirstTestEvent extends DomainEvent {
             UUID userId,
             UUID eventId,
             String occurredOn,
-            int version
+            Integer version
     ) {
         super(aggregateId, userId, eventId, occurredOn, version);
     }
@@ -40,7 +40,7 @@ public class FirstTestEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new FirstTestEvent(aggregateId, userId, eventId, occurredOn, version);
     }
 }

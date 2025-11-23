@@ -5,7 +5,6 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
@@ -42,7 +41,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
     private final ContentBankRepository contentBankRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final YoutubeChannelRepository youtubeChannelRepository;
-    private final ContentEntryEventPublisher contentEntryEventPublisher;
     private final TopicRepository topicRepository;
     private final EventBus eventBus;
 
@@ -123,15 +121,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
 
         contentBank.addContentEntry(savedEntry);
         eventBus.publish(contentBank.aggregateType(), contentBank.drainDomainEvents());
-
-        resultEntry = savedEntry;
-
-        try {
-            this.generateTopicsForContentEntry(userId, resultEntry);
-        } catch (Exception error) {
-            log.error("Failed to generate topics for content entry {}: {}",
-                    Optional.ofNullable(resultEntry).map(ContentEntry::getId).orElse(null), error.getMessage(), error);
-        }
     }
 
     @Override
@@ -228,20 +217,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         
         contentEntryRepository.delete(contentEntry);
         eventBus.publish(contentEntry.aggregateType(), contentEntry.drainDomainEvents());
-    }
-
-    private void generateTopicsForContentEntry(UserId userId, ContentEntry contentEntry) {
-        var entryId = contentEntry.getId();
-
-        var existingTopics = topicRepository.findAllByUserId(userId).stream().map(Topic::getTopic)
-                .collect(joining(","));
-
-        try {
-            contentEntryEventPublisher.emitGenerateTopicsEvent(userId, entryId,
-                    contentEntry.getContent(), contentEntry.getPageTitle(), existingTopics);
-        } catch (Exception e) {
-            log.error("Failed to emit Kafka event: " + e.getMessage());
-        }
     }
 
     private String truncateContent(String content, int maxLength) {

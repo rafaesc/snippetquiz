@@ -3,7 +3,7 @@ package ai.snippetquiz.core_service.shared.adapter.out.repository;
 import ai.snippetquiz.core_service.shared.adapter.out.entities.DomainEventEntity;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
 import ai.snippetquiz.core_service.shared.domain.port.repository.DomainEventRepository;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements DomainEventRepository<T> {
-    private final DomainEventJsonDeserializer deserializer;
+    private final EventJsonDeserializer deserializer;
     private final JpaDomainEventRepository jpaDomainEventRepository;
 
 

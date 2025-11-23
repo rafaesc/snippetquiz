@@ -12,9 +12,9 @@ import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionId;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventsInformation;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class QuizEventsJsonSerdeTest {
 
     private <T extends DomainEvent> T roundtrip(T event) throws Exception {
-        DomainEventsInformation info = new DomainEventsInformation();
-        DomainEventJsonDeserializer deserializer = new DomainEventJsonDeserializer(info);
+        EventsInformation info = new EventsInformation();
+        EventJsonDeserializer deserializer = new EventJsonDeserializer(info);
 
         String json = DomainEventJsonSerializer.serialize(event);
         DomainEvent deserialized = deserializer.deserialize(json);
@@ -52,9 +52,13 @@ class QuizEventsJsonSerdeTest {
         String bankName = "Bank A";
         QuizStatus status = QuizStatus.PREPARE;
         LocalDateTime createdAt = LocalDateTime.of(2024, 1, 2, 3, 4, 5);
+        String instructions = "Generate quiz";
+        String contentEntryId = UUID.randomUUID().toString();
+        List<String> entries = List.of(contentEntryId);
+        Integer entriesSkipped = 0;
 
         QuizCreatedDomainEvent original = new QuizCreatedDomainEvent(
-                aggregateId, userId, contentBankId, bankName, status, createdAt);
+                aggregateId, userId, contentBankId, bankName, status, createdAt, instructions, entries, entriesSkipped);
 
         QuizCreatedDomainEvent reconstructed = roundtrip(original);
 
@@ -68,6 +72,44 @@ class QuizEventsJsonSerdeTest {
         assertEquals(bankName, reconstructed.getBankName());
         assertEquals(status, reconstructed.getStatus());
         assertEquals(createdAt, reconstructed.getCreatedAt());
+        assertEquals(instructions, reconstructed.getInstructions());
+        assertNotNull(reconstructed.getNewContentEntries());
+        assertEquals(1, reconstructed.getNewContentEntries().size());
+        assertEquals(entriesSkipped, reconstructed.getEntriesSkipped());
+        var ce = reconstructed.getNewContentEntries().getFirst();
+        assertEquals(entries.getFirst(), ce);
+    }
+
+    @Test
+    void roundtrip_QuizCreated_withMultipleEntries() throws Exception {
+        UUID aggregateId = UUID.randomUUID();
+        UserId userId = new UserId(UUID.randomUUID());
+        String contentBankId = UUID.randomUUID().toString();
+        String bankName = "Bank B";
+        QuizStatus status = QuizStatus.PREPARE;
+        LocalDateTime createdAt = LocalDateTime.of(2024, 6, 7, 8, 9, 10);
+        String instructions = "Generate quiz with multiple entries";
+        List<String> entries = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        Integer entriesSkipped = 1;
+
+        QuizCreatedDomainEvent original = new QuizCreatedDomainEvent(
+                aggregateId, userId, contentBankId, bankName, status, createdAt, instructions, entries, entriesSkipped);
+
+        QuizCreatedDomainEvent reconstructed = roundtrip(original);
+
+        assertInstanceOf(QuizCreatedDomainEvent.class, reconstructed);
+        assertEquals(aggregateId, reconstructed.getAggregateId());
+        assertEquals(userId.getValue(), reconstructed.getUserId());
+        assertEquals(bankName, reconstructed.getBankName());
+        assertEquals(createdAt, reconstructed.getCreatedAt());
+        assertEquals(instructions, reconstructed.getInstructions());
+        assertEquals(entriesSkipped, reconstructed.getEntriesSkipped());
+        assertNotNull(reconstructed.getNewContentEntries());
+        assertEquals(2, reconstructed.getNewContentEntries().size());
+        var ce1 = reconstructed.getNewContentEntries().get(0);
+        var ce2 = reconstructed.getNewContentEntries().get(1);
+        assertEquals(entries.getFirst(), ce1);
+        assertEquals(entries.get(1), ce2);
     }
 
     @Test

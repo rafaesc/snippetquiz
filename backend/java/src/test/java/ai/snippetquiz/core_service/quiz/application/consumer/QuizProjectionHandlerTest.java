@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +62,10 @@ class QuizProjectionHandlerTest {
                 contentBankId,
                 bankName,
                 status,
-                createdAt
+                createdAt,
+                "",
+                new ArrayList<>(),
+                0
         );
 
         var captor = ArgumentCaptor.forClass(QuizProjection.class);

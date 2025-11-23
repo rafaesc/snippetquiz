@@ -1,5 +1,7 @@
 package ai.snippetquiz.core_service.quiz.application.response;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+
 import java.util.List;
 
 public record GetContentEntriesResponse(
@@ -8,13 +10,6 @@ public record GetContentEntriesResponse(
 ) {
     public record GenerateQuizRequest(
         String instructions,
-        List<ContentEntryDto> contentEntries
-    ) {}
-    
-    public record ContentEntryDto(
-        String id,
-        String pageTitle,
-        String content,
-        Integer wordCountAnalyzed
+        List<ContentEntryId> newContentEntries
     ) {}
 }

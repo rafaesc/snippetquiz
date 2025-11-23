@@ -30,7 +30,7 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String name, LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.name = name;
@@ -56,7 +56,7 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentBankRenamedDomainEvent(
                 aggregateId,
                 new UserId(userId),

@@ -63,7 +63,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String contentBankId,
             String contentType,
             String content,
@@ -108,7 +108,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         primitives.put("video_duration", videoDuration);
         primitives.put("youtube_video_id", youtubeVideoId);
         primitives.put("youtube_channel_id", youtubeChannelId);
-        primitives.put("existsTopics", existsTopics);
+        primitives.put("exists_topics", existsTopics);
         primitives.put("duplicated", duplicated);
         return primitives;
     }
@@ -120,7 +120,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentEntryCreatedDomainEvent(
                 aggregateId,
                 new UserId(userId),
@@ -137,7 +137,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 (Integer) body.get("video_duration"),
                 (String) body.get("youtube_video_id"),
                 (Long) body.get("youtube_channel_id"),
-                (String) body.get("existsTopics"),
+                (String) body.get("exists_topics"),
                 (Boolean) body.get("duplicated"));
     }
 }

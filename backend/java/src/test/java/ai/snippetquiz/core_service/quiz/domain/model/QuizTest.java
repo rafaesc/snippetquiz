@@ -30,7 +30,10 @@ class QuizTest {
                 QuizId.map(quizUuid.toString()),
                 UserId.map(userUuid.toString()),
                 ContentBankId.map(bankUuid.toString()),
-                "Test Bank");
+                "Test Bank",
+                "",
+                new ArrayList<>(),
+                0);
     }
 
     @Test

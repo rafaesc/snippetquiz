@@ -2,8 +2,13 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import ai.snippetquiz.core_service.shared.domain.Utils;
+import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,45 +17,42 @@ import lombok.NoArgsConstructor;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ContentEntryQuestionCreatedDomainEvent extends DomainEvent {
+public class TopicsAddedIntegrationEvent extends IntegrationEvent {
+    private List<String> topics;
 
-    public ContentEntryQuestionCreatedDomainEvent(
-            UUID aggregateId,
-            UserId userId) {
-        super(aggregateId, userId.getValue());
-    }
-
-    public ContentEntryQuestionCreatedDomainEvent(
+    public TopicsAddedIntegrationEvent(
             UUID aggregateId,
             UserId userId,
             UUID eventId,
             String occurredOn,
-            Integer version) {
+            Integer version,
+            List<String> topics
+    ) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
+        this.topics = topics;
     }
 
     public static String eventName() {
-        return "content_entry.question.created";
+        return "ai-processor.topics.added";
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        return new HashMap<String, Serializable>();
-    }
-
-    @Override
-    public ContentEntryQuestionCreatedDomainEvent fromPrimitives(
+    public TopicsAddedIntegrationEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            Integer version) {
-        return new ContentEntryQuestionCreatedDomainEvent(
+            Integer version
+    ) {
+        return new TopicsAddedIntegrationEvent(
                 aggregateId,
                 new UserId(userId),
                 eventId,
                 occurredOn,
-                version);
+                version,
+                Utils.fromJson((String) body.get("topics"), new TypeReference<List<String>>() {
+                })
+        );
     }
 }

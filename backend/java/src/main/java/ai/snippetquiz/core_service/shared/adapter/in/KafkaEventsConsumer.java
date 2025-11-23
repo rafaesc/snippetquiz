@@ -3,7 +3,11 @@ package ai.snippetquiz.core_service.shared.adapter.in;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateRootSubscribersInformation;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
+import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriber;
+import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscribersInformation;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -23,7 +27,8 @@ import java.util.Set;
 public class KafkaEventsConsumer implements SmartLifecycle {
 
     private final AggregateRootSubscribersInformation subscribersInformation;
-    private final DomainEventJsonDeserializer deserializer;
+    private final EventJsonDeserializer deserializer;
+    private final IntegrationEventSubscribersInformation integrationSubscribersInformation;
     private final ConsumerFactory<String, String> consumerFactory;
     private KafkaConsumer<String, String> consumer;
     private Thread thread;
@@ -31,12 +36,14 @@ public class KafkaEventsConsumer implements SmartLifecycle {
 
     public KafkaEventsConsumer(
             AggregateRootSubscribersInformation subscribersInformation,
-            DomainEventJsonDeserializer deserializer,
-            ConsumerFactory<String, String> consumerFactory
+            EventJsonDeserializer deserializer,
+            ConsumerFactory<String, String> consumerFactory,
+            IntegrationEventSubscribersInformation integrationSubscribersInformation
     ) {
         this.subscribersInformation = subscribersInformation;
         this.deserializer = deserializer;
         this.consumerFactory = consumerFactory;
+        this.integrationSubscribersInformation = integrationSubscribersInformation;
     }
 
     @Override
@@ -94,21 +101,43 @@ public class KafkaEventsConsumer implements SmartLifecycle {
         String payload = record.value();
 
         try {
-            DomainEvent event = deserializer.deserialize(payload);
-            List<AggregateEventSubscriber> subscribers = subscribersInformation.search(topic);
+            var event = deserializer.deserialize(payload);
 
-            if (subscribers.isEmpty()) {
-                log.info("No subscribers found for topic {}", topic);
-                return;
-            }
+            if (event instanceof DomainEvent domainEvent) {
+                List<AggregateEventSubscriber> subscribers = subscribersInformation.search(topic);
 
-            for (AggregateEventSubscriber subscriber : subscribers) {
-                try {
-                    subscriber.on(event);
-                } catch (Exception ex) {
-                    log.error("Error dispatching event to subscriber {} for topic {}",
-                            subscriber.getClass().getName(), topic, ex);
+                if (subscribers.isEmpty()) {
+                    log.info("No aggregate subscribers found for topic {}", topic);
+                    return;
                 }
+
+                for (AggregateEventSubscriber subscriber : subscribers) {
+                    try {
+                        subscriber.on(domainEvent);
+                    } catch (Exception ex) {
+                        log.error("Error dispatching domain event to subscriber {} for topic {}",
+                                subscriber.getClass().getName(), topic, ex);
+                    }
+                }
+            } else if (event instanceof IntegrationEvent integrationEvent) {
+                String eventName = Utils.getEventName(integrationEvent.getClass());
+                List<IntegrationEventSubscriber> subscribers = integrationSubscribersInformation.search(eventName);
+
+                if (subscribers.isEmpty()) {
+                    log.info("No integration subscribers found for event {}", eventName);
+                    return;
+                }
+
+                for (IntegrationEventSubscriber subscriber : subscribers) {
+                    try {
+                        subscriber.on(integrationEvent);
+                    } catch (Exception ex) {
+                        log.error("Error dispatching integration event to subscriber {} for event {}",
+                                subscriber.getClass().getName(), eventName, ex);
+                    }
+                }
+            } else {
+                log.warn("Unknown event type received: {}", event.getClass().getName());
             }
         } catch (Exception e) {
             log.error("Failed to deserialize or process event from topic {}", topic, e);
@@ -116,6 +145,8 @@ public class KafkaEventsConsumer implements SmartLifecycle {
     }
 
     private Set<String> resolveTopicsFromSubscribers() {
-        return new HashSet<>(subscribersInformation.getSubscribers().keySet());
+        Set<String> topics = new HashSet<>(subscribersInformation.getSubscribers().keySet());
+        topics.addAll(integrationSubscribersInformation.getSubscribers().keySet());
+        return topics;
     }
 }

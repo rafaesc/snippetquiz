@@ -2,7 +2,7 @@ package ai.snippetquiz.core_service.quiz.adapter.out.messaging;
 
 import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationFanoutEventPayload;
-import ai.snippetquiz.core_service.quiz.domain.port.messaging.SendFanoutMessageQuizLoadingEvent;
+import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SendFanoutMessageQuizLoadingEventImpl  implements SendFanoutMessageQuizLoadingEvent {
+public class EventPubSubBusImpl implements EventPubSubBus {
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void sendFanoutMessageQuizGenerationEvent(String userId, QuizGenerationEventPayload event) {
+    public void publish(String userId, QuizGenerationEventPayload event) {
         if (!event.userId().equals(userId)) {
             return;
         }

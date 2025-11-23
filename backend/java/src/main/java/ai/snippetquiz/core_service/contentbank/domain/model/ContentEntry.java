@@ -169,7 +169,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     }
 
     public void questionsGenerated() {
-        if (questionsGenerated) {
+        if (Boolean.TRUE.equals(questionsGenerated)) {
             log.info("Questions already generated for content entry {}", getId().getValue());
             return;
         }

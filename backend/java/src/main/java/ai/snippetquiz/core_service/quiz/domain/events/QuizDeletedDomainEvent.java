@@ -27,7 +27,7 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version
+            Integer version
     ) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
     }
@@ -48,7 +48,7 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new QuizDeletedDomainEvent(
                 aggregateId,
                 new UserId(userId),
