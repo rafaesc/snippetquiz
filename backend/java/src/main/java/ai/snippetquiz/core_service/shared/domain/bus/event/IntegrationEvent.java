@@ -4,12 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
-public abstract class DomainEvent extends BaseEvent {
-    public DomainEvent(UUID aggregateId, UUID userId) {
-        super(aggregateId, userId);
-    }
-
-    public DomainEvent(
+public abstract class IntegrationEvent extends BaseEvent {
+    public IntegrationEvent(
             UUID aggregateId,
             UUID userId,
             UUID eventId,
@@ -19,17 +15,16 @@ public abstract class DomainEvent extends BaseEvent {
         super(aggregateId, userId, eventId, occurredOn, version);
     }
 
-    protected DomainEvent() {
+    protected IntegrationEvent() {
         super();
     }
 
-    public abstract HashMap<String, Serializable> toPrimitives();
-
-    public abstract DomainEvent fromPrimitives(
+    public abstract IntegrationEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            Integer version);
+            Integer version
+    );
 }

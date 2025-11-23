@@ -25,7 +25,7 @@ public class SecondTestEvent extends DomainEvent {
             UUID userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String valueObject) {
         super(aggregateId, userId, eventId, occurredOn, version);
         this.valueObject = valueObject;
@@ -49,7 +49,7 @@ public class SecondTestEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new SecondTestEvent(aggregateId, userId, eventId, occurredOn, version,
                 (String) body.get("value_object"));
     }

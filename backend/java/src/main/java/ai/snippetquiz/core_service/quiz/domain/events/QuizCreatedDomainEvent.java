@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -21,6 +23,9 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     private String bankName;
     private QuizStatus status;
     private LocalDateTime createdAt;
+    private String instructions;
+    private List<String> newContentEntries;
+    private Integer entriesSkipped;
 
     public QuizCreatedDomainEvent(
             UUID aggregateId,
@@ -28,12 +33,18 @@ public class QuizCreatedDomainEvent extends DomainEvent {
             String contentBankId,
             String bankName,
             QuizStatus status,
-            LocalDateTime createdAt) {
+            LocalDateTime createdAt,
+            String instructions,
+            List<String> newContentEntries,
+            Integer entriesSkipped) {
         super(aggregateId, userId.getValue());
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;
         this.createdAt = createdAt;
+        this.instructions = instructions;
+        this.newContentEntries = newContentEntries;
+        this.entriesSkipped = entriesSkipped;
     }
 
     public QuizCreatedDomainEvent(
@@ -41,15 +52,21 @@ public class QuizCreatedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String contentBankId, String bankName,
             QuizStatus status,
-            LocalDateTime createdAt) {
+            LocalDateTime createdAt,
+            String instructions,
+            List<String> newContentEntries,
+            Integer entriesSkipped) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
         this.bankName = bankName;
         this.status = status;
         this.createdAt = createdAt;
+        this.instructions = instructions;
+        this.newContentEntries = newContentEntries;
+        this.entriesSkipped = entriesSkipped;
     }
 
     public static String eventName() {
@@ -63,6 +80,9 @@ public class QuizCreatedDomainEvent extends DomainEvent {
         primitives.put("bank_name", bankName);
         primitives.put("status", status);
         primitives.put("created_at", Utils.dateToString(createdAt));
+        primitives.put("instructions", instructions);
+        primitives.put("new_content_entries", Utils.toJson(newContentEntries));
+        primitives.put("entries_skipped", entriesSkipped);
         return primitives;
     }
 
@@ -73,7 +93,7 @@ public class QuizCreatedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new QuizCreatedDomainEvent(
                 aggregateId,
                 new UserId(userId),
@@ -83,6 +103,10 @@ public class QuizCreatedDomainEvent extends DomainEvent {
                 (String) body.get("content_bank_id"),
                 (String) body.get("bank_name"),
                 QuizStatus.valueOf((String) body.get("status")),
-                Utils.stringToDate((String) body.get("created_at")));
+                Utils.stringToDate((String) body.get("created_at")),
+                (String) body.get("instructions"),
+                Utils.fromJson((String) body.get("new_content_entries"), new TypeReference<>() {
+                }),
+                (Integer) body.get("entries_skipped"));
     }
 }

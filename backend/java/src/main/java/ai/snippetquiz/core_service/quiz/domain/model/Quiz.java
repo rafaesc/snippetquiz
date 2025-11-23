@@ -1,6 +1,7 @@
 package ai.snippetquiz.core_service.quiz.domain.model;
 
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizAnswerMarkedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizCreatedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
@@ -39,12 +40,20 @@ public class Quiz extends AggregateRoot<QuizId> {
     private LocalDateTime questionUpdatedAt;
     private List<QuizQuestion> quizQuestions;
     private List<QuizQuestionResponse>  quizQuestionResponses;
+    private List<ContentEntryId> newContentEntries;
 
     public String aggregateType() {
         return "quiz.aggregate";
     }
 
-    public Quiz(QuizId quizId, UserId userId, ContentBankId contentBankId, String bankName) {
+    public Quiz(
+            QuizId quizId,
+            UserId userId,
+            ContentBankId contentBankId,
+            String bankName,
+            String instructions,
+            List<ContentEntryId> newContentEntries,
+            Integer entriesSkipped) {
         var now = LocalDateTime.now();
 
         record(new QuizCreatedDomainEvent(
@@ -53,7 +62,10 @@ public class Quiz extends AggregateRoot<QuizId> {
                 contentBankId.getValue().toString(),
                 bankName,
                 QuizStatus.PREPARE,
-                now));
+                now,
+                instructions,
+                newContentEntries.stream().map(ContentEntryId::toString).toList(),
+                entriesSkipped));
     }
 
     public void apply(QuizCreatedDomainEvent event) {
@@ -66,6 +78,7 @@ public class Quiz extends AggregateRoot<QuizId> {
         this.quizQuestionResponses = new ArrayList<>();
         this.quizQuestions = new ArrayList<>();
         this.status = event.getStatus();
+        this.newContentEntries = event.getNewContentEntries().stream().map(ContentEntryId::map).toList();
     }
 
     public void delete() {

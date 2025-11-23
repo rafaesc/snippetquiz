@@ -1,9 +1,9 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventsInformation;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class ContentBankEventsJsonSerdeTest {
 
     private <T extends DomainEvent> T roundtrip(T event) throws Exception {
-        DomainEventsInformation info = new DomainEventsInformation();
-        DomainEventJsonDeserializer deserializer = new DomainEventJsonDeserializer(info);
+        EventsInformation info = new EventsInformation();
+        EventJsonDeserializer deserializer = new EventJsonDeserializer(info);
 
         String json = DomainEventJsonSerializer.serialize(event);
         DomainEvent deserialized = deserializer.deserialize(json);

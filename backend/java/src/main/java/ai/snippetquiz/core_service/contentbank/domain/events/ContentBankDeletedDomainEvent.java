@@ -25,7 +25,7 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
     }
 
@@ -45,7 +45,7 @@ public class ContentBankDeletedDomainEvent extends DomainEvent implements Deacti
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentBankDeletedDomainEvent(
                 aggregateId,
                 new UserId(userId),

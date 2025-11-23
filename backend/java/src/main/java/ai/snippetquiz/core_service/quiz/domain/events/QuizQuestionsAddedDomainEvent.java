@@ -50,7 +50,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             Set<String> quizTopics,
             QuizStatus status,
             LocalDateTime updatedAt,
@@ -87,7 +87,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new QuizQuestionsAddedDomainEvent(
                 aggregateId,
                 new UserId(userId),

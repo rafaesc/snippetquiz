@@ -1,30 +1,33 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventsInformation;
 import ai.snippetquiz.core_service.testing.events.FirstTestEvent;
 import ai.snippetquiz.core_service.testing.events.SecondTestEvent;
+import ai.snippetquiz.core_service.testing.events.IntegrationTestEvent;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DomainEventsInformationTest {
+class EventsInformationTest {
 
     @Test
     void search_returns_correct_classes_for_multiple_events() {
-        DomainEventsInformation info = new DomainEventsInformation();
+        EventsInformation info = new EventsInformation();
 
         Class<?> first = info.search(FirstTestEvent.eventName());
         Class<?> second = info.search(SecondTestEvent.eventName());
+        Class<?> integration = info.search(IntegrationTestEvent.eventName());
 
         assertEquals(FirstTestEvent.class, first);
         assertEquals(SecondTestEvent.class, second);
+        assertEquals(IntegrationTestEvent.class, integration);
     }
 
     @Test
     void search_throws_for_unknown_event() {
-        DomainEventsInformation info = new DomainEventsInformation();
+        EventsInformation info = new EventsInformation();
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,

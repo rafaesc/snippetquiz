@@ -34,7 +34,7 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             QuizQuestionResponse quizQuestionResponse,
             boolean isAllQuestionsMarked) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
@@ -62,7 +62,7 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new QuizAnswerMarkedDomainEvent(
                 aggregateId,
                 new UserId(userId),

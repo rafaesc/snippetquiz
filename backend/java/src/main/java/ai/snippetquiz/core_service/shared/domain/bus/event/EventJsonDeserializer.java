@@ -12,29 +12,29 @@ import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
-public class DomainEventJsonDeserializer {
-    private final DomainEventsInformation information;
+public class EventJsonDeserializer {
+    private final EventsInformation information;
 
     @SuppressWarnings("unchecked")
-    public <T extends DomainEvent> T deserialize(String body)
+    public <T extends BaseEvent> T deserialize(String body)
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException,
             InstantiationException {
         HashMap<String, Serializable> eventData = Utils.fromJson(body, new TypeReference<>() {
         });
         HashMap<String, Serializable> data = (HashMap<String, Serializable>) eventData.get("data");
         HashMap<String, Serializable> attributes = (HashMap<String, Serializable>) data.get("attributes");
-        Class<? extends DomainEvent> domainEventClass = information.search((String) data.get("type"));
+        Class<? extends BaseEvent> eventClass = information.search((String) data.get("type"));
 
-        DomainEvent nullInstance = domainEventClass.getConstructor().newInstance();
+        BaseEvent nullInstance = eventClass.getConstructor().newInstance();
 
-        Method fromPrimitivesMethod = domainEventClass.getMethod(
+        Method fromPrimitivesMethod = eventClass.getMethod(
                 "fromPrimitives",
                 java.util.UUID.class,
                 java.util.UUID.class,
                 HashMap.class,
                 java.util.UUID.class,
                 String.class,
-                int.class);
+                Integer.class);
 
         return (T) fromPrimitivesMethod.invoke(
                 nullInstance,
@@ -47,29 +47,29 @@ public class DomainEventJsonDeserializer {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends DomainEvent> T deserializePrimitives(
+    public <T extends BaseEvent> T deserializePrimitives(
             String eventId,
             String userId,
             String aggregateId,
             String eventName,
             String occurredOn,
-            int version,
+            Integer version,
             String body
     ) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         HashMap<String, Serializable> attributes = Utils.fromJson(body, new TypeReference<>() {
         });
-        Class<? extends DomainEvent> domainEventClass = information.search(eventName);
+        Class<? extends BaseEvent> eventClass = information.search(eventName);
 
-        DomainEvent nullInstance = domainEventClass.getConstructor().newInstance();
+        BaseEvent nullInstance = eventClass.getConstructor().newInstance();
 
-        Method fromPrimitivesMethod = domainEventClass.getMethod(
+        Method fromPrimitivesMethod = eventClass.getMethod(
                 "fromPrimitives",
                 java.util.UUID.class,
                 java.util.UUID.class,
                 HashMap.class,
                 java.util.UUID.class,
                 String.class,
-                int.class);
+                Integer.class);
 
         return (T) fromPrimitivesMethod.invoke(
                 nullInstance,

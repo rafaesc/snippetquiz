@@ -50,7 +50,7 @@ class QuizEventSourcingHandlerTest {
         var quizId = new QuizId(UUID.randomUUID());
         var userId = new UserId(UUID.randomUUID());
         var bankId = new ContentBankId(UUID.randomUUID());
-        var quiz = new Quiz(quizId, userId, bankId, "Bank Name");
+        var quiz = new Quiz(quizId, userId, bankId, "Bank Name", "", new ArrayList<>(), 0);
 
         assertFalse(quiz.pullUncommittedChanges().isEmpty(), "Precondition: there should be 1 uncommitted event");
 
@@ -101,7 +101,10 @@ class QuizEventSourcingHandlerTest {
                 bankIdStr,
                 bankName,
                 QuizStatus.PREPARE,
-                LocalDateTime.now());
+                LocalDateTime.now(),
+                "",
+                new ArrayList<>(),
+                0);
         created.setVersion(0);
 
         var statusUpdated = new QuizStatusUpdatedDomainEvent(

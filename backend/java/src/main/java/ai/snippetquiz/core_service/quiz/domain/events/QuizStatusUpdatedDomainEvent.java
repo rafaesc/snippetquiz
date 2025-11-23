@@ -27,7 +27,7 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             QuizStatus status) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.status = status;
@@ -51,7 +51,7 @@ public class QuizStatusUpdatedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new QuizStatusUpdatedDomainEvent(
                 aggregateId,
                 new UserId(userId),

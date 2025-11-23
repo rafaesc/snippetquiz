@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.bus.event.BaseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,7 +57,7 @@ public class Utils {
         }
     }
 
-    public static String getEventName(Class<? extends DomainEvent> eventClass) {
+    public static String getEventName(Class<? extends BaseEvent> eventClass) {
         try {
             java.lang.reflect.Method method = eventClass.getDeclaredMethod("eventName");
             method.setAccessible(true);

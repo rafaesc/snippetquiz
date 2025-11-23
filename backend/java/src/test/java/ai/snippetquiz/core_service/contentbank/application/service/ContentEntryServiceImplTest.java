@@ -6,7 +6,6 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.model.YoutubeChannel;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository;
-import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryEventPublisher;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
@@ -64,9 +63,6 @@ class ContentEntryServiceImplTest {
 
     @Mock
     private YoutubeChannelRepository youtubeChannelRepository;
-
-    @Mock
-    private ContentEntryEventPublisher contentEntryEventPublisher;
 
     @Mock
     private TopicRepository topicRepository;
@@ -154,7 +150,6 @@ class ContentEntryServiceImplTest {
             assertThat(existingEntry.getContent()).isEqualTo("<html>content</html>");
             assertThat(existingEntry.getPageTitle()).isEqualTo("Title");
             verify(contentEntryRepository, times(1)).save(existingEntry);
-            verify(contentEntryEventPublisher, never()).emitGenerateTopicsEvent(any(), any(), any(), any(), any());
             assertThat(bank.getContentEntries()).isEmpty();
 
             // Verify no events published to EventBus on update-only path
@@ -200,8 +195,6 @@ class ContentEntryServiceImplTest {
             var savedEntry = bank.getContentEntries().getFirst();
             assertThat(savedEntry.getContent()).isEqualTo("Transcript content");
             assertThat(savedEntry.getPageTitle()).isEqualTo("Video Title");
-            verify(contentEntryEventPublisher, times(1)).emitGenerateTopicsEvent(
-                    eq(userId), eq(savedEntry.getId()), eq("Transcript content"), eq("Video Title"), eq(""));
 
             var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
             var eventsCaptor = ArgumentCaptor.forClass(List.class);

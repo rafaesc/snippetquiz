@@ -4,9 +4,12 @@ import ai.snippetquiz.core_service.quiz.domain.events.QuizDeletedDomainEvent;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateRootSubscribersInformation;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonDeserializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventsInformation;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventsInformation;
+import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscribersInformation;
+import ai.snippetquiz.core_service.contentbank.domain.events.TopicsAddedIntegrationEvent;
+import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -59,8 +62,8 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         AggregateRootSubscribersInformation subscribersInformation = new AggregateRootSubscribersInformation(ctx);
 
         // Real deserializer using reflections-based event registry
-        DomainEventsInformation eventsInformation = new DomainEventsInformation();
-        DomainEventJsonDeserializer deserializer = new DomainEventJsonDeserializer(eventsInformation);
+        EventsInformation eventsInformation = new EventsInformation();
+        EventJsonDeserializer deserializer = new EventJsonDeserializer(eventsInformation);
 
         // Build a ConsumerFactory pointing to Testcontainers Kafka
         Map<String, Object> consumerProps = new HashMap<>();
@@ -74,7 +77,8 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         ConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
 
         // Start manual consumer
-        consumer = new KafkaEventsConsumer(subscribersInformation, deserializer, consumerFactory);
+        IntegrationEventSubscribersInformation integrationInfo = new IntegrationEventSubscribersInformation(ctx);
+        consumer = new KafkaEventsConsumer(subscribersInformation, deserializer, consumerFactory, integrationInfo);
         TestQuizEventsSubscriber.reset();
         consumer.start();
 
@@ -102,6 +106,65 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         assertFalse(topicSubscribers.isEmpty(), "Subscribers for 'quiz-aggregate' should not be empty");
         assertTrue(topicSubscribers.stream().allMatch(s -> s instanceof AggregateEventSubscriber),
                 "All subscribers must implement AggregateEventSubscriber");
+    }
+
+    @Test
+    void consumer_processes_integration_event_and_dispatches_to_integration_subscriber() throws Exception {
+        GenericApplicationContext ctx = new GenericApplicationContext();
+        ctx.registerBean(TestIntegrationEventsSubscriber.class);
+        ctx.refresh();
+
+        AggregateRootSubscribersInformation aggInfo = new AggregateRootSubscribersInformation(ctx);
+        IntegrationEventSubscribersInformation integrationInfo = new IntegrationEventSubscribersInformation(ctx);
+
+        EventsInformation eventsInformation = new EventsInformation();
+        EventJsonDeserializer deserializer = new EventJsonDeserializer(eventsInformation);
+
+        Map<String, Object> consumerProps = new HashMap<>();
+        consumerProps.put(BOOTSTRAP_SERVERS_CONFIG, KafkaContainerBase.KAFKA.getBootstrapServers());
+        consumerProps.put(GROUP_ID_CONFIG, "kec-it-group-int");
+        consumerProps.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        consumerProps.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        consumerProps.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
+        consumerProps.put(ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        ConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
+
+        consumer = new KafkaEventsConsumer(aggInfo, deserializer, consumerFactory, integrationInfo);
+        TestIntegrationEventsSubscriber.reset();
+        consumer.start();
+
+        String topic = Utils.getEventName(TopicsAddedIntegrationEvent.class);
+
+        java.util.List<String> topics = java.util.List.of("java", "spring");
+        java.util.HashMap<String, java.io.Serializable> attributes = new java.util.HashMap<>();
+        attributes.put("aggregate_id", java.util.UUID.randomUUID().toString());
+        attributes.put("user_id", java.util.UUID.randomUUID().toString());
+        attributes.put("topics", Utils.toJson(topics));
+
+        java.util.HashMap<String, java.io.Serializable> data = new java.util.HashMap<>();
+        data.put("event_id", java.util.UUID.randomUUID().toString());
+        data.put("version", 0);
+        data.put("type", topic);
+        data.put("occurred_on", "2024-01-01T00:00:00");
+        data.put("attributes", attributes);
+
+        java.util.HashMap<String, java.io.Serializable> root = new java.util.HashMap<>();
+        root.put("data", data);
+        root.put("meta", new java.util.HashMap<>());
+
+        String payload = Utils.toJson(root);
+
+        try (KafkaProducer<String, String> producer = buildStringProducer(KafkaContainerBase.KAFKA.getBootstrapServers())) {
+            producer.send(new ProducerRecord<>(topic, payload)).get();
+        }
+
+        boolean received = TestIntegrationEventsSubscriber.await(10, TimeUnit.SECONDS);
+        assertTrue(received, "Integration subscriber should receive the event within timeout");
+
+        var dispatched = TestIntegrationEventsSubscriber.lastEvent();
+        assertNotNull(dispatched, "Dispatched integration event should not be null");
+        assertInstanceOf(TopicsAddedIntegrationEvent.class, dispatched, "Dispatched integration event type should match produced one");
     }
 
     private KafkaProducer<String, String> buildStringProducer(String bootstrapServers) {

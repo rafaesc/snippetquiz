@@ -6,6 +6,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentBankRepository
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.instruction.domain.QuizGenerationInstruction;
 import ai.snippetquiz.core_service.instruction.domain.port.QuizGenerationInstructionRepository;
 import ai.snippetquiz.core_service.question.domain.Question;
@@ -20,10 +21,10 @@ import ai.snippetquiz.core_service.quiz.domain.model.QuizProjection;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestion;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizQuestionOption;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
-import ai.snippetquiz.core_service.quiz.domain.port.messaging.CreateQuizEventPublisher;
 import ai.snippetquiz.core_service.quiz.domain.port.repository.QuizProjectionRepository;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizQuestionOptionId;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizCreatedDomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -44,6 +45,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -79,9 +81,6 @@ class QuizServiceImplTest {
 
     @Mock
     private TopicRepository topicRepository;
-
-    @Mock
-    private CreateQuizEventPublisher createQuizEventPublisher;
 
     @Mock
     private EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
@@ -149,7 +148,14 @@ class QuizServiceImplTest {
         @Test
         void findOne_whenQuizFound_returnsQuizDetails() {
             // Given
-            Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
+            Quiz quiz = new Quiz(
+                    quizId,
+                    userId,
+                    contentBankId,
+                    "Test Bank",
+                    "",
+                    new ArrayList<>(),
+                    0);
             when(quizEventSourcingHandler.getById(userId, quizId)).thenReturn(Optional.of(quiz));
 
             // When
@@ -285,6 +291,50 @@ class QuizServiceImplTest {
             assertThat(savedQuiz.getId()).isEqualTo(quizId);
             assertThat(savedQuiz.getStatus()).isEqualTo(QuizStatus.PREPARE);
         }
+
+        @Test
+        void createQuiz_withContentEntries_emitsQuizCreatedEvent() {
+            ContentBank contentBank = new ContentBank(contentBankId, userId, "Test Bank");
+            when(quizProjectionRepository.findAllByUserIdAndStatus(userId, QuizStatus.IN_PROGRESS))
+                    .thenReturn(Collections.emptyList());
+            when(contentBankRepository.findByIdAndUserIdWithContentEntries(contentBankId, userId)).thenReturn(Optional.of(contentBank));
+            when(quizEventSourcingHandler.getById(userId, quizId)).thenReturn(Optional.empty());
+            when(contentBankRepository.findByIdAndUserId(contentBankId, userId)).thenReturn(Optional.of(contentBank));
+
+            ContentEntry entry = new ContentEntry();
+            entry.setId(new ContentEntryId(UUID.randomUUID()));
+            entry.setPageTitle("Entry Title");
+            entry.setContent("Some content");
+            entry.setWordCount(123);
+            entry.setQuestionsGenerated(false);
+            when(contentEntryRepository.findAllByContentBankId(contentBankId)).thenReturn(List.of(entry));
+
+            QuizGenerationInstruction instruction = new QuizGenerationInstruction();
+            instruction.setInstruction("Generate quiz");
+            when(quizGenerationInstructionRepository.findFirstByUserId(userId)).thenReturn(Optional.of(instruction));
+
+            when(questionRepository.findByContentEntryIdIn(any())).thenReturn(Collections.emptyList());
+
+            quizService.createQuiz(userId, contentBankId, quizId);
+
+            ArgumentCaptor<Quiz> quizCaptor = ArgumentCaptor.forClass(Quiz.class);
+            verify(quizEventSourcingHandler, times(1)).save(quizCaptor.capture());
+            Quiz savedQuiz = quizCaptor.getValue();
+
+            var events = savedQuiz.pullUncommittedChanges();
+            assertThat(events).isNotEmpty();
+            var createdEvent = events.stream()
+                    .filter(e -> e instanceof QuizCreatedDomainEvent)
+                    .map(e -> (QuizCreatedDomainEvent) e)
+                    .findFirst()
+                    .orElse(null);
+
+            assertThat(createdEvent).isNotNull();
+            assertThat(createdEvent.getNewContentEntries()).hasSize(1);
+            var ce = createdEvent.getNewContentEntries().getFirst();
+            assertThat(ce).isEqualTo(entry.getId().toString());
+            assertThat(createdEvent.getInstructions()).isEqualTo("Generate quiz");
+        }
     }
 
     @Nested
@@ -319,7 +369,14 @@ class QuizServiceImplTest {
         @Test
         void updateQuiz_withValidAnswer() {
             // Given
-            Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
+            Quiz quiz = new Quiz(
+                    quizId,
+                    userId,
+                    contentBankId,
+                    "Test Bank",
+                    "",
+                    new ArrayList<>(),
+                    0);
             QuizQuestion question = new QuizQuestion();
             question.setQuestion("What is Java?");
             QuizQuestionOption correctOption = new QuizQuestionOption();
@@ -342,7 +399,14 @@ class QuizServiceImplTest {
         @Test
         void updateQuizCompleted_withValidAnswer() {
             // Given
-            Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
+            Quiz quiz = new Quiz(
+                    quizId,
+                    userId,
+                    contentBankId,
+                    "Test Bank",
+                    "",
+                    new ArrayList<>(),
+                    0);
             QuizQuestion question = new QuizQuestion();
             question.setQuestion("What is Java?");
             QuizQuestionOption correctOption = new QuizQuestionOption();
@@ -378,7 +442,14 @@ class QuizServiceImplTest {
         @Test
         void findQuizSummary_returnsSummary() {
             // Given
-            Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
+            Quiz quiz = new Quiz(
+                    quizId,
+                    userId,
+                    contentBankId,
+                    "Test Bank",
+                    "",
+                    new ArrayList<>(),
+                    0);
             // You would add questions and responses to the quiz object here
             when(quizEventSourcingHandler.getById(userId, quizId)).thenReturn(Optional.of(quiz));
 
@@ -398,9 +469,16 @@ class QuizServiceImplTest {
         @Test
         void processNewQuizQuestions_addsQuestionsToQuiz() {
             // Given
-            Quiz quiz = new Quiz(quizId, userId, contentBankId, "Test Bank");
+            Quiz quiz = new Quiz(
+                    quizId,
+                    userId,
+                    contentBankId,
+                    "Test Bank",
+                    "",
+                    new ArrayList<>(),
+                    0);
             ContentEntry contentEntry = new ContentEntry();
-            contentEntry.setId(new ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId(UUID.randomUUID()));
+            contentEntry.setId(new ContentEntryId(UUID.randomUUID()));
             Question question = new Question();
             question.setContentEntryId(contentEntry.getId());
 

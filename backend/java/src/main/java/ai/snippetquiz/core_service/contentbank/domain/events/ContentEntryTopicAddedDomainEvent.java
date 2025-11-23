@@ -33,7 +33,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             UserId userId,
             UUID eventId,
             String occurredOn,
-            int version,
+            Integer version,
             String topics,
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
@@ -60,7 +60,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             HashMap<String, Serializable> body,
             UUID eventId,
             String occurredOn,
-            int version) {
+            Integer version) {
         return new ContentEntryTopicAddedDomainEvent(
                 aggregateId,
                 new UserId(userId),

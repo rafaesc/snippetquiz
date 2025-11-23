@@ -36,7 +36,8 @@ public class DomainEventEntity {
     @Column(columnDefinition = "jsonb")
     private String payload;
 
-    private int version;
+    @Column(name="version", nullable = true)
+    private Integer version;
 
     private LocalDateTime occurredOn;
 }
