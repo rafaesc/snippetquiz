@@ -28,6 +28,8 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { X_USER_ID_HEADER } from 'apps/commons/config/constants';
+import { EventBusService } from 'apps/commons/event-bus/event-bus.service';
+import { AuthUserVerifiedEvent } from './events/auth-user-verified.event';
 
 @Injectable()
 export class AuthServiceService {
@@ -40,6 +42,7 @@ export class AuthServiceService {
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
     private readonly httpService: HttpService,
+    private readonly eventBusService: EventBusService,
   ) {
     this.setupEmailTransporter();
   }
@@ -166,21 +169,7 @@ export class AuthServiceService {
       // Generate tokens for automatic login after verification
       const tokens = this.tokenService.generateTokens(updatedUser);
 
-      // Create a default content bank for the new user
-      await firstValueFrom(
-        this.httpService.post(
-          `${envs.coreBaseUrl}/content-bank`,
-          {
-            name: 'Default',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              [X_USER_ID_HEADER]: user.id,
-            },
-          },
-        ),
-      );
+      this.eventBusService.publish(new AuthUserVerifiedEvent(user.id));
 
       return {
         message: 'Email verified successfully',

@@ -1,6 +1,6 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
-import ai.snippetquiz.core_service.contentbank.domain.events.TopicsAddedIntegrationEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.AITopicsAddedIntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriberFor;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-@IntegrationEventSubscriberFor({TopicsAddedIntegrationEvent.class})
+@IntegrationEventSubscriberFor({AITopicsAddedIntegrationEvent.class})
 @Service
 @AllArgsConstructor
 public class TestIntegrationEventsSubscriber implements IntegrationEventSubscriber {

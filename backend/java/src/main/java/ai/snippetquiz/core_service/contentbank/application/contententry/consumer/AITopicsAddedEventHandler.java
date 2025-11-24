@@ -1,6 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.application.contententry.consumer;
 
-import ai.snippetquiz.core_service.contentbank.domain.events.TopicsAddedIntegrationEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.AITopicsAddedIntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriberFor;
@@ -22,8 +22,8 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@IntegrationEventSubscriberFor({TopicsAddedIntegrationEvent.class})
-public class TopicsAddedIntegrationEventConsumer implements IntegrationEventSubscriber {
+@IntegrationEventSubscriberFor({AITopicsAddedIntegrationEvent.class})
+public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
 
     private final TopicRepository topicRepository;
     private final ContentEntryRepository contentEntryRepository;
@@ -31,7 +31,7 @@ public class TopicsAddedIntegrationEventConsumer implements IntegrationEventSubs
 
     @Override
     public void on(IntegrationEvent event) {
-        if (!(event instanceof TopicsAddedIntegrationEvent e)) {
+        if (!(event instanceof AITopicsAddedIntegrationEvent e)) {
             log.warn("Received unexpected integration event type: {}", event.getClass().getName());
             return;
         }

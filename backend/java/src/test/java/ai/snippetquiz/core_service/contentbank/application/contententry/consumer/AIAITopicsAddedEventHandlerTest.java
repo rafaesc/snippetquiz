@@ -1,6 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.application.contententry.consumer;
 
-import ai.snippetquiz.core_service.contentbank.domain.events.TopicsAddedIntegrationEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.AITopicsAddedIntegrationEvent;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TopicsAddedIntegrationEventConsumerTest {
+class AIAITopicsAddedEventHandlerTest {
 
     @Mock
     private TopicRepository topicRepository;
@@ -39,7 +39,7 @@ class TopicsAddedIntegrationEventConsumerTest {
     private ContentEntryTopicRepository contentEntryTopicRepository;
 
     @InjectMocks
-    private TopicsAddedIntegrationEventConsumer consumer;
+    private AITopicsAddedEventHandler consumer;
 
     @Test
     void onTopicsAdded_createsTopicsAndAssociations() {
@@ -47,7 +47,7 @@ class TopicsAddedIntegrationEventConsumerTest {
         UserId userId = new UserId(UUID.randomUUID());
         List<String> topics = List.of("java", "spring");
 
-        TopicsAddedIntegrationEvent event = new TopicsAddedIntegrationEvent(
+        AITopicsAddedIntegrationEvent event = new AITopicsAddedIntegrationEvent(
                 contentId,
                 userId,
                 UUID.randomUUID(),

@@ -8,6 +8,8 @@ import { RedisModule } from '../../commons/services/redis.module';
 import { CodeModule } from './code/code.module';
 import { TokenService } from './utils/token.service';
 import { envs } from './config/envs';
+import { EventBusModule } from 'apps/commons/event-bus/event-bus.module';
+import { getKafkaConfig } from 'apps/commons/event-bus/kafka.config';
 
 @Module({
   imports: [
@@ -20,9 +22,10 @@ import { envs } from './config/envs';
       signOptions: { expiresIn: envs.jwtAuthExpiresIn },
     }),
     CodeModule,
+    EventBusModule.register(getKafkaConfig(envs, 'auth-service-producer').options),
   ],
   controllers: [AuthServiceController],
   providers: [AuthServiceService, TokenService],
   exports: [AuthServiceService, TokenService],
 })
-export class AuthServiceModule {}
+export class AuthServiceModule { }

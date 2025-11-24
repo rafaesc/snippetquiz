@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AiQuestionGeneratedHandlerTest {
+class AIQuestionGeneratedHandlerTest {
 
     @Mock
     private EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
@@ -44,7 +44,7 @@ class AiQuestionGeneratedHandlerTest {
     private EventBus eventBus;
 
     @InjectMocks
-    private AiQuestionGeneratedHandler consumer;
+    private AIQuestionGeneratedHandler consumer;
 
     @Test
     void onIntegrationEvent_processesQuestionsAndUpdatesEntry() {

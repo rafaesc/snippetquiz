@@ -219,11 +219,14 @@ jobs:
       - name: Generate Prisma Client for auth
         run: npm run prisma:generate:auth
 
+      - name: Run database migrations for auth
+        run: npm run prisma:deploy:auth
+
       - name: Generate Prisma Client for ai-processor
         run: npm run prisma:generate:ai-processor
 
-      - name: Run database migrations
-        run: npm run prisma:deploy:postgres
+      - name: Run database migrations for ai-processor
+        run: npm run prisma:deploy:ai-processor
 
       - name: Build api-gateway
         run: npm run build

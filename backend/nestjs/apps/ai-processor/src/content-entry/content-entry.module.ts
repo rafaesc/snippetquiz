@@ -3,7 +3,8 @@ import { ContentEntryController } from './content-entry.controller';
 import { ContentEntryService } from './content-entry.service';
 import { UtilsModule } from '../utils/utils.module';
 import { AiClientModule } from '../ai-client/ai-client.module';
-import { getKafkaConfig } from '../config/kafka.config';
+import { envs } from '../config/envs';
+import { getKafkaConfig } from '../../../commons/event-bus/kafka.config';
 import { EventBusModule } from '../../../commons/event-bus/event-bus.module';
 import { EventProcessorModule } from '../event-processor/event-processor.module';
 
@@ -12,7 +13,7 @@ import { EventProcessorModule } from '../event-processor/event-processor.module'
     UtilsModule,
     AiClientModule,
     EventProcessorModule,
-    EventBusModule.register(getKafkaConfig('ai-processor-producer').options),
+    EventBusModule.register(getKafkaConfig(envs, 'ai-processor-producer').options),
   ],
   controllers: [ContentEntryController],
   providers: [ContentEntryService],

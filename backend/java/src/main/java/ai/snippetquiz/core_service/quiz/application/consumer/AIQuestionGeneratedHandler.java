@@ -29,7 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @IntegrationEventSubscriberFor({AIQuestionGeneratedEvent.class})
-public class AiQuestionGeneratedHandler implements IntegrationEventSubscriber {
+public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
 
     private final EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
     private final QuizService quizService;
