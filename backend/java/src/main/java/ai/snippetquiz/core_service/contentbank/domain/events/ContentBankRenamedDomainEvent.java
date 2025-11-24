@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
@@ -42,8 +41,8 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
         primitives.put("name", name);
         primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
@@ -53,7 +52,7 @@ public class ContentBankRenamedDomainEvent extends DomainEvent {
     public ContentBankRenamedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

@@ -95,7 +95,6 @@ class ContentBankServiceImplTest {
         }
 
         @Test
-        @SuppressWarnings("unchecked")
         void create_whenIdExistsAndBelongsToUser_renamesAndSaves() {
             // Given
             ContentBank existing = new ContentBank(contentBankId, userId, "Old Name");
@@ -120,7 +119,6 @@ class ContentBankServiceImplTest {
         }
 
         @Test
-        @SuppressWarnings("unchecked")
         void create_whenIdNotExists_createsNewBankAndSaves() {
             // Given
             when(contentBankRepository.findByUserIdAndNameAndIdNot(userId, "Fresh Bank", contentBankId))
@@ -216,7 +214,6 @@ class ContentBankServiceImplTest {
         }
 
         @Test
-        @SuppressWarnings("unchecked")
         void remove_whenFound_callsDeleteOnDomainAndRepository() {
             // Given
             ContentBank bank = new ContentBank(contentBankId, userId, "Bank Name");
@@ -247,7 +244,8 @@ class ContentBankServiceImplTest {
             when(contentBankRepository.findByIdAndUserId(contentBankId, userId)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(NotFoundException.class, () -> contentBankService.duplicate(userId, contentBankId, "Copy Name"));
+            assertThrows(NotFoundException.class,
+                    () -> contentBankService.duplicate(userId, contentBankId, "Copy Name"));
 
             // Verify no events published
             verify(eventBus, times(0)).publish(any(), any());
@@ -259,17 +257,18 @@ class ContentBankServiceImplTest {
             ContentBank original = new ContentBank(contentBankId, userId, "Original Bank");
             when(contentBankRepository.findByIdAndUserId(contentBankId, userId)).thenReturn(Optional.of(original));
             when(contentBankRepository.findByUserIdAndName(userId, "Copy Name"))
-                    .thenReturn(Optional.of(new ContentBank(new ContentBankId(UUID.randomUUID()), userId, "Copy Name")));
+                    .thenReturn(
+                            Optional.of(new ContentBank(new ContentBankId(UUID.randomUUID()), userId, "Copy Name")));
 
             // When & Then
-            assertThrows(ConflictException.class, () -> contentBankService.duplicate(userId, contentBankId, "Copy Name"));
+            assertThrows(ConflictException.class,
+                    () -> contentBankService.duplicate(userId, contentBankId, "Copy Name"));
 
             // Verify no events published
             verify(eventBus, times(0)).publish(any(), any());
         }
 
         @Test
-        @SuppressWarnings("unchecked")
         void duplicate_whenNameBlank_usesDefaultAndCreatesNewBank() {
             // Given
             ContentBank original = new ContentBank(contentBankId, userId, "Original Bank");
@@ -298,7 +297,6 @@ class ContentBankServiceImplTest {
         }
 
         @Test
-        @SuppressWarnings("unchecked")
         void duplicate_withProvidedUniqueName_createsNewBank() {
             // Given
             ContentBank original = new ContentBank(contentBankId, userId, "Original Bank");

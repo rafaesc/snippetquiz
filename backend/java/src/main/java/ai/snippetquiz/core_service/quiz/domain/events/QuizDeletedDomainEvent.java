@@ -37,7 +37,7 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
+    public HashMap<String, Object> toPrimitives() {
         return new HashMap<>();
     }
 
@@ -45,7 +45,7 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
     public QuizDeletedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

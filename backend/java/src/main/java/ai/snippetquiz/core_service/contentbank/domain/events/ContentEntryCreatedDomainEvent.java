@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
@@ -25,7 +24,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     private Integer videoDuration;
     private String youtubeVideoId;
     private Long youtubeChannelId;
-    private String existsTopics;
     private boolean duplicated;
 
     public ContentEntryCreatedDomainEvent(
@@ -41,7 +39,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             Integer videoDuration,
             String youtubeVideoId,
             Long youtubeChannelId,
-            String existsTopics,
             boolean duplicated) {
         super(aggregateId, userId.getValue());
         this.contentBankId = contentBankId;
@@ -54,7 +51,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.videoDuration = videoDuration;
         this.youtubeVideoId = youtubeVideoId;
         this.youtubeChannelId = youtubeChannelId;
-        this.existsTopics = existsTopics;
         this.duplicated = duplicated;
     }
 
@@ -74,7 +70,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             Integer videoDuration,
             String youtubeVideoId,
             Long youtubeChannelId,
-            String existsTopics,
             boolean duplicated) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.contentBankId = contentBankId;
@@ -87,7 +82,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.videoDuration = videoDuration;
         this.youtubeVideoId = youtubeVideoId;
         this.youtubeChannelId = youtubeChannelId;
-        this.existsTopics = existsTopics;
         this.duplicated = duplicated;
     }
 
@@ -96,8 +90,8 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
         primitives.put("content_bank_id", contentBankId);
         primitives.put("content_type", contentType);
         primitives.put("content", content);
@@ -108,7 +102,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         primitives.put("video_duration", videoDuration);
         primitives.put("youtube_video_id", youtubeVideoId);
         primitives.put("youtube_channel_id", youtubeChannelId);
-        primitives.put("exists_topics", existsTopics);
         primitives.put("duplicated", duplicated);
         return primitives;
     }
@@ -117,7 +110,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     public ContentEntryCreatedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {
@@ -137,7 +130,6 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 (Integer) body.get("video_duration"),
                 (String) body.get("youtube_video_id"),
                 (Long) body.get("youtube_channel_id"),
-                (String) body.get("exists_topics"),
                 (Boolean) body.get("duplicated"));
     }
 }

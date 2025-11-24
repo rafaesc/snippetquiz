@@ -40,7 +40,7 @@ public class TopicsAddedIntegrationEvent extends IntegrationEvent {
     public TopicsAddedIntegrationEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version
@@ -51,8 +51,7 @@ public class TopicsAddedIntegrationEvent extends IntegrationEvent {
                 eventId,
                 occurredOn,
                 version,
-                Utils.fromJson((String) body.get("topics"), new TypeReference<List<String>>() {
-                })
+                (List<String>) body.get("topics")
         );
     }
 }

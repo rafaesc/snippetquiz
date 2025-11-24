@@ -33,7 +33,6 @@ public final class QueryHandlersInformation {
         return queryHandlerClass;
     }
 
-    @SuppressWarnings("unchecked")
     private HashMap<Class<? extends Query>, Class<? extends QueryHandler>> formatHandlers(
             Set<Class<? extends QueryHandler>> queryHandlers) {
         HashMap<Class<? extends Query>, Class<? extends QueryHandler>> handlers = new HashMap<>();

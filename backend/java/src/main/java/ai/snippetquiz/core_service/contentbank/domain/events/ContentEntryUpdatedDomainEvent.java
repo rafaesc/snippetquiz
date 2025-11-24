@@ -56,8 +56,8 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
         primitives.put("content", content);
         primitives.put("page_title", pageTitle);
         primitives.put("created_at", Utils.dateToString(createdAt));
@@ -69,7 +69,7 @@ public class ContentEntryUpdatedDomainEvent extends DomainEvent {
     public ContentEntryUpdatedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

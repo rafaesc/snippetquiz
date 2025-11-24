@@ -35,7 +35,6 @@ public final class CommandHandlersInformation {
         return commandHandlerClass;
     }
 
-    @SuppressWarnings("unchecked")
     private HashMap<Class<? extends Command>, Class<? extends CommandHandler<?>>> formatHandlers(
             Set<Class<? extends CommandHandler>> commandHandlers) {
         HashMap<Class<? extends Command>, Class<? extends CommandHandler<?>>> handlers = new HashMap<>();

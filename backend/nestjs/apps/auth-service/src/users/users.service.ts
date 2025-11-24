@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../commons/services';
+import { PrismaService } from '../utils/prisma.service';
 import * as bcrypt from 'bcryptjs';
 
 export interface UserData {
@@ -23,7 +23,7 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   private readonly saltRounds = 12;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // Password hashing method
   private async hashPassword(password: string): Promise<string> {

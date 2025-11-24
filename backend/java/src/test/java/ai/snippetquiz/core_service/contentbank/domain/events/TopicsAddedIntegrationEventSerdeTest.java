@@ -25,10 +25,10 @@ class TopicsAddedIntegrationEventSerdeTest {
         int version = 0;
         List<String> topics = List.of("java", "spring");
 
-        HashMap<String, Serializable> attributes = new HashMap<>();
+        HashMap<String, Object> attributes = new HashMap<>();
         attributes.put("aggregate_id", aggregateId.toString());
         attributes.put("user_id", userId.toString());
-        attributes.put("topics", Utils.toJson(topics));
+        attributes.put("topics", topics);
 
         HashMap<String, Serializable> data = new HashMap<>();
         data.put("event_id", eventId.toString());

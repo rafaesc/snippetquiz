@@ -13,7 +13,6 @@ jobs:
     outputs:
       java: ${{ steps.filter.outputs.java }}
       nestjs: ${{ steps.filter.outputs.nestjs }}
-      python: ${{ steps.filter.outputs.python }}
       frontend: ${{ steps.filter.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
@@ -25,8 +24,6 @@ jobs:
               - 'backend/java/**'
             nestjs:
               - 'backend/nestjs/**'
-            python:
-              - 'backend/python/**'
             frontend:
               - 'frontend/**'
 
@@ -88,6 +85,15 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
 
+      - name: Build and push AI Processor Service
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/nestjs
+          file: ./backend/nestjs/apps/ai-processor/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-processor:latest
+
       - name: Setup Java
         if: ${{ needs.changes.outputs.java == 'true' }}
         uses: actions/setup-java@v4
@@ -108,15 +114,6 @@ jobs:
           file: ./backend/java/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
-
-      - name: Build and push AI Python Service
-        if: ${{ needs.changes.outputs.python == 'true' }}
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/python/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-python-service:latest
 
       - name: Setup Node.js
         if: ${{ needs.changes.outputs.frontend == 'true' }}

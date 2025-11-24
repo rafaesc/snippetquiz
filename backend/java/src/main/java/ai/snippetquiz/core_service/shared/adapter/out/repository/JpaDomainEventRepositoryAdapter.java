@@ -20,12 +20,11 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
     private final EventJsonDeserializer deserializer;
     private final JpaDomainEventRepository jpaDomainEventRepository;
 
-
-    @SuppressWarnings("unchecked")
     @Override
     @SneakyThrows
     public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, UUID aggregateId) {
-        var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(), aggregateId);
+        var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(),
+                aggregateId);
 
         return domainEventEntities.stream()
                 .map(domainEventEntity -> {
@@ -37,8 +36,7 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
                                 domainEventEntity.getEventName(),
                                 Utils.dateToString(domainEventEntity.getOccurredOn()),
                                 domainEventEntity.getVersion(),
-                                domainEventEntity.getPayload()
-                        );
+                                domainEventEntity.getPayload());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }

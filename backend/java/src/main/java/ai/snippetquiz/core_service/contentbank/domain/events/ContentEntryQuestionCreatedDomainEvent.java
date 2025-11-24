@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
@@ -34,15 +33,15 @@ public class ContentEntryQuestionCreatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        return new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        return new HashMap<String, Object>();
     }
 
     @Override
     public ContentEntryQuestionCreatedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

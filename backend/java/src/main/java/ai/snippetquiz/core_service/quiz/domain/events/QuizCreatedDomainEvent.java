@@ -4,12 +4,10 @@ import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -74,14 +72,14 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
         primitives.put("content_bank_id", contentBankId);
         primitives.put("bank_name", bankName);
         primitives.put("status", status);
         primitives.put("created_at", Utils.dateToString(createdAt));
         primitives.put("instructions", instructions);
-        primitives.put("new_content_entries", Utils.toJson(newContentEntries));
+        primitives.put("new_content_entries", newContentEntries);
         primitives.put("entries_skipped", entriesSkipped);
         return primitives;
     }
@@ -90,7 +88,7 @@ public class QuizCreatedDomainEvent extends DomainEvent {
     public QuizCreatedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {
@@ -105,8 +103,7 @@ public class QuizCreatedDomainEvent extends DomainEvent {
                 QuizStatus.valueOf((String) body.get("status")),
                 Utils.stringToDate((String) body.get("created_at")),
                 (String) body.get("instructions"),
-                Utils.fromJson((String) body.get("new_content_entries"), new TypeReference<>() {
-                }),
+                (List<String>) body.get("new_content_entries"),
                 (Integer) body.get("entries_skipped"));
     }
 }

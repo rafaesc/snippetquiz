@@ -44,7 +44,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,19 +92,18 @@ class ContentEntryServiceImplTest {
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(NotFoundException.class, () ->
-                    contentEntryService.create(
-                            userId,
-                            "https://example.com",
-                            "<html>content</html>",
-                            "full_html",
-                            "Title",
-                            bankId,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null));
+            assertThrows(NotFoundException.class, () -> contentEntryService.create(
+                    userId,
+                    "https://example.com",
+                    "<html>content</html>",
+                    "full_html",
+                    "Title",
+                    bankId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null));
 
             // Verify no events published
             verify(eventBus, times(0)).publish(any(), any());
@@ -124,9 +122,7 @@ class ContentEntryServiceImplTest {
                     "Old Title",
                     null,
                     null,
-                    null,
-                    ""
-            );
+                    null);
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.of(bank));
             when(contentEntryRepository.findBySourceUrlAndContentTypeAndContentBankId(
                     "https://example.com", ContentType.FULL_HTML, bankId)).thenReturn(Optional.of(existingEntry));
@@ -157,7 +153,6 @@ class ContentEntryServiceImplTest {
         }
 
         @Test
-        @SuppressWarnings("unchecked")
         void create_videoTranscript_whenChannelMissing_createsChannelAndEmitsTopics() {
             // Given
             var bank = new ContentBank(bankId, userId, "Bank");
@@ -172,7 +167,6 @@ class ContentEntryServiceImplTest {
             // Return the same entry that is passed into save
             when(contentEntryRepository.save(any(ContentEntry.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
-            when(topicRepository.findAllByUserId(userId)).thenReturn(List.of());
 
             // When
             contentEntryService.create(
@@ -232,9 +226,7 @@ class ContentEntryServiceImplTest {
                     "Title",
                     null,
                     null,
-                    null,
-                    ""
-            );
+                    null);
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));
 
             var t1 = new ContentEntryTopic();
@@ -273,8 +265,8 @@ class ContentEntryServiceImplTest {
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(NotFoundException.class, () ->
-                    contentEntryService.findAll(userId, bankId, "", PageRequest.of(0, 10)));
+            assertThrows(NotFoundException.class,
+                    () -> contentEntryService.findAll(userId, bankId, "", PageRequest.of(0, 10)));
         }
 
         @Test
@@ -292,9 +284,7 @@ class ContentEntryServiceImplTest {
                     "Title",
                     null,
                     null,
-                    null,
-                    ""
-            );
+                    null);
             Page<ContentEntry> page = new PageImpl<>(List.of(entry));
             Pageable pageable = PageRequest.of(0, 10);
             when(contentEntryRepository.findByContentBankId(bankId, pageable)).thenReturn(page);
@@ -309,7 +299,8 @@ class ContentEntryServiceImplTest {
             when(topicRepository.findAllByIdInAndUserId(anyList(), eq(userId))).thenReturn(List.of(topicA));
 
             // When
-            PagedModelResponse<ContentEntryDTOResponse> result = contentEntryService.findAll(userId, bankId, "", pageable);
+            PagedModelResponse<ContentEntryDTOResponse> result = contentEntryService.findAll(userId, bankId, "",
+                    pageable);
 
             // Then
             assertThat(result.getMetadata().totalElements()).isEqualTo(1);
@@ -330,8 +321,7 @@ class ContentEntryServiceImplTest {
             when(contentEntryRepository.findByIdAndUserId(entryId, userId)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(NotFoundException.class, () ->
-                    contentEntryService.clone(userId, entryId, bankId));
+            assertThrows(NotFoundException.class, () -> contentEntryService.clone(userId, entryId, bankId));
 
             // Verify no events published
             verify(eventBus, times(0)).publish(any(), any());
@@ -349,21 +339,17 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null,
-                    ""
-            );
+                    null);
             when(contentEntryRepository.findByIdAndUserId(entryId, userId)).thenReturn(Optional.of(source));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(NotFoundException.class, () ->
-                    contentEntryService.clone(userId, entryId, bankId));
+            assertThrows(NotFoundException.class, () -> contentEntryService.clone(userId, entryId, bankId));
 
             // Verify no events published
             verify(eventBus, times(0)).publish(any(), any());
         }
 
-        @SuppressWarnings("unchecked")
         @Test
         void clone_success_clonesEntryAddsToBankAndCopiesTopics() {
             // Given
@@ -376,15 +362,14 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null,
-                    ""
-            );
+                    null);
             entryId = source.getId(); // align test entryId with real source
             var targetBank = new ContentBank(bankId, userId, "Target Bank");
             when(contentEntryRepository.findByIdAndUserId(entryId, userId)).thenReturn(Optional.of(source));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.of(targetBank));
 
-            when(contentEntryRepository.save(any(ContentEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(contentEntryRepository.save(any(ContentEntry.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
 
             var st1 = new ContentEntryTopic();
             st1.setContentEntryId(entryId);
@@ -411,7 +396,8 @@ class ContentEntryServiceImplTest {
             verify(contentEntryTopicRepository, times(2)).save(any(ContentEntryTopic.class));
             verify(topicRepository, times(1)).findAllByIdInAndUserId(anyList(), eq(userId));
 
-            // Verify domain event published via EventBus (events are drained from the aggregate)
+            // Verify domain event published via EventBus (events are drained from the
+            // aggregate)
             var aggregateTypeCaptor = ArgumentCaptor.forClass(String.class);
             var eventsCaptor = ArgumentCaptor.forClass(List.class);
             verify(eventBus, times(2)).publish(aggregateTypeCaptor.capture(), eventsCaptor.capture());
@@ -455,9 +441,7 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null,
-                    ""
-            );
+                    null);
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.empty());
 
@@ -468,7 +452,6 @@ class ContentEntryServiceImplTest {
             verify(eventBus, times(0)).publish(any(), any());
         }
 
-        @SuppressWarnings("unchecked")
         @Test
         void remove_success_callsDomainDeletesAndRepositoryDelete() {
             // Given
@@ -481,16 +464,14 @@ class ContentEntryServiceImplTest {
                     "title",
                     100,
                     "vid",
-                    null,
-                    ""
-            );
+                    null);
             var bank = new ContentBank(bankId, userId, "Bank");
             when(contentEntryRepository.findByIdAndUserId(entry.getId(), userId)).thenReturn(Optional.of(entry));
             when(contentBankRepository.findByIdAndUserId(bankId, userId)).thenReturn(Optional.of(bank));
-        
+
             // When
             contentEntryService.remove(userId, entry.getId());
-        
+
             // Then
             // Assert domain events/state instead of spying
             verify(contentEntryRepository, times(1)).delete(entry);

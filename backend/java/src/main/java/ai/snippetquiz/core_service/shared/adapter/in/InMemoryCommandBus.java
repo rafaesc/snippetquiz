@@ -19,7 +19,6 @@ public class InMemoryCommandBus implements CommandBus {
         this.context = context;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void dispatch(Command command) throws CommandHandlerExecutionError {
         try {

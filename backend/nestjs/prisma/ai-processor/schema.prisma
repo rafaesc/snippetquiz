@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/prisma/ai-processor"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESQL_PRISMA_AI_PROCESSOR_URL")
+  schemas  = ["ai_processor"]
+}
+
+model ContentEntry {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+  content   String? @db.Text
+  pageTitle String? @map("page_title") @db.Text
+  wordCount Int?    @map("word_count")
+
+  @@index([id, userId])
+  @@map("content_entries")
+  @@schema("ai_processor")
+}
+
+model UserTopic {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  topic  String @db.Text
+
+  @@unique([userId, topic])
+  @@index([userId])
+  @@map("user_topics")
+  @@schema("ai_processor")
+}
+
+model EventProcessed {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+  eventType String @map("event_type") @db.Text
+
+  @@index([id, userId])
+  @@map("event_processed")
+  @@schema("ai_processor")
+}

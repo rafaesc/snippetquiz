@@ -11,6 +11,15 @@
   "monorepo": true,
   "root": "apps/api-gateway",
   "projects": {
+    "ai-processor": {
+      "type": "application",
+      "root": "apps/ai-processor",
+      "entryFile": "main",
+      "sourceRoot": "apps/ai-processor/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ai-processor/tsconfig.app.json"
+      }
+    },
     "api-gateway": {
       "type": "application",
       "root": "apps/api-gateway",
@@ -27,24 +36,6 @@
       "sourceRoot": "apps/auth-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/auth-service/tsconfig.app.json"
-      }
-    },
-    "core-service": {
-      "type": "application",
-      "root": "apps/core-service",
-      "entryFile": "main",
-      "sourceRoot": "apps/core-service/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/core-service/tsconfig.app.json"
-      }
-    },
-    "logs-service": {
-      "type": "application",
-      "root": "apps/logs-service",
-      "entryFile": "main",
-      "sourceRoot": "apps/logs-service/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/logs-service/tsconfig.app.json"
       }
     }
   }

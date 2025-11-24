@@ -1,24 +1,23 @@
 package ai.snippetquiz.core_service.quiz.application.consumer;
 
+import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.question.application.QuestionService;
+import ai.snippetquiz.core_service.question.application.dto.CreateQuestionRequest;
+import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
+import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
-import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriber;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscriberFor;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.exception.NotFoundException;
-import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
-import ai.snippetquiz.core_service.question.application.QuestionService;
-import ai.snippetquiz.core_service.question.application.dto.CreateQuestionRequest;
-import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
-import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
-import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -62,25 +61,25 @@ public class AiQuestionGeneratedHandler implements IntegrationEventSubscriber {
             }
 
             if (e.getTotalChunks() != null && e.getTotalChunks() != 0 && e.getContentEntry() != null) {
-                var contentEntryId = e.getContentEntry().id();
+                var contentEntryId = e.getContentEntry().getId();
                 var contentEntry = contentEntryRepository
                         .findByIdAndUserId(ContentEntryId.map(contentEntryId), userId)
                         .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));
 
-                var questions = e.getContentEntry().questions();
+                var questions = e.getContentEntry().getQuestions();
                 for (int questionIndexInChunk = 0; questionIndexInChunk < questions.size(); questionIndexInChunk++) {
                     var question = questions.get(questionIndexInChunk);
 
-                    var options = question.options().stream()
+                    var options = question.getOptions().stream()
                             .map(option -> new QuestionOptionRequest(
-                                    option.optionText(),
-                                    option.optionExplanation(),
-                                    option.isCorrect()))
+                                    option.getOptionText(),
+                                    option.getOptionExplanation(),
+                                    option.getIsCorrect()))
                             .toList();
 
                     var questionRequest = new CreateQuestionRequest(
                             contentEntryId,
-                            question.question(),
+                            question.getQuestion(),
                             questionIndexInChunk,
                             e.getCurrentChunkIndex(),
                             options);
@@ -110,20 +109,7 @@ public class AiQuestionGeneratedHandler implements IntegrationEventSubscriber {
 
             quizService.processNewQuizQuestions(quiz, status);
 
-            var payload = new QuizGenerationEventPayload(
-                    quizUuid.toString(),
-                    e.getBankId() != null ? e.getBankId().toString() : null,
-                    userUuid.toString(),
-                    e.getTotalContentEntries(),
-                    e.getTotalContentEntriesSkipped(),
-                    e.getCurrentContentEntryIndex(),
-                    e.getQuestionsGeneratedSoFar(),
-                    e.getContentEntry(),
-                    e.getTotalChunks(),
-                    e.getCurrentChunkIndex()
-            );
-
-            eventPubSubBus.publish(userUuid.toString(), payload);
+            eventPubSubBus.publish(e);
             log.info("Quiz created successfully Quiz ID: {}", quizUuid);
 
         } catch (Exception ex) {

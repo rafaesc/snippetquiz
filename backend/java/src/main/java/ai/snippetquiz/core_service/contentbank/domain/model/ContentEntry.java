@@ -9,7 +9,6 @@ import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
@@ -62,8 +61,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
             String pageTitle,
             Integer youtubeVideoDuration,
             String youtubeVideoId,
-            YoutubeChannel youtubeChannel,
-            String existsTopics
+            YoutubeChannel youtubeChannel
     ) {
         var contentEntryId = UUID.randomUUID();
         var now = LocalDateTime.now();
@@ -90,7 +88,6 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 youtubeVideoDuration,
                 youtubeVideoId,
                 youtubeChannel != null ? youtubeChannel.getId().getValue() : null,
-                existsTopics,
                 false));
     }
 
@@ -112,7 +109,6 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 contentEntry.getVideoDuration(),
                 contentEntry.getYoutubeVideoId(),
                 contentEntry.getYoutubeChannelId().getValue(),
-                null,
                 true));
     }
 
@@ -158,10 +154,10 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     public void updatedTopics(List<Topic> topics) {
         var now = LocalDateTime.now();
         record(new ContentEntryTopicAddedDomainEvent(
-            getId().getValue(),
-            userId,
-            Utils.toJson(topics),
-            now));
+                getId().getValue(),
+                userId,
+                topics.stream().map(Topic::getTopic).toList(),
+                now));
     }
 
     public void apply(ContentEntryTopicAddedDomainEvent event) {
@@ -174,8 +170,8 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
             return;
         }
         record(new ContentEntryQuestionCreatedDomainEvent(
-            getId().getValue(),
-            userId));
+                getId().getValue(),
+                userId));
     }
 
     public void apply(ContentEntryQuestionCreatedDomainEvent event) {
@@ -184,8 +180,8 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
 
     public void delete() {
         record(new ContentEntryDeletedDomainEvent(
-            getId().getValue(),
-            userId));
+                getId().getValue(),
+                userId));
     }
 
     public void apply(ContentEntryDeletedDomainEvent event) {

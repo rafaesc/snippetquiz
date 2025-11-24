@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SuppressWarnings("unchecked")
 class QuizEventsJsonSerdeTest {
 
     private <T extends DomainEvent> T roundtrip(T event) throws Exception {
@@ -40,7 +39,7 @@ class QuizEventsJsonSerdeTest {
         String json = DomainEventJsonSerializer.serialize(event);
         DomainEvent deserialized = deserializer.deserialize(json);
         assertNotNull(deserialized);
-        //noinspection unchecked
+        // noinspection unchecked
         return (T) deserialized;
     }
 
@@ -217,11 +216,9 @@ class QuizEventsJsonSerdeTest {
                 new QuizQuestionOptionId(UUID.randomUUID()),
                 true,
                 "A Java framework",
-                "1.234s"
-        );
+                "1.234s");
 
-        QuizAnswerMarkedDomainEvent original =
-                new QuizAnswerMarkedDomainEvent(aggregateId, userId, response, true);
+        QuizAnswerMarkedDomainEvent original = new QuizAnswerMarkedDomainEvent(aggregateId, userId, response, true);
 
         QuizAnswerMarkedDomainEvent reconstructed = roundtrip(original);
 

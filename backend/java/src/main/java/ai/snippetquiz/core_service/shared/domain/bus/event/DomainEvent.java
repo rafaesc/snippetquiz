@@ -23,13 +23,15 @@ public abstract class DomainEvent extends BaseEvent {
         super();
     }
 
-    public abstract HashMap<String, Serializable> toPrimitives();
+    public abstract HashMap<String, Object> toPrimitives();
 
-    public abstract DomainEvent fromPrimitives(
+    public DomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
-            Integer version);
+            Integer version) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

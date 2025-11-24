@@ -4,7 +4,8 @@ x-common-environment: &common-env
     POSTGRESQL_HOST: db
     POSTGRESQL_PORT: 5432
     POSTGRESQL_DATABASE: devdb
-    POSTGRESQL_PRISMA_URL: "postgresql://user:pass@db:5432/devdb?schema=auth"
+    POSTGRESQL_PRISMA_AUTH_URL: "postgresql://user:pass@db:5432/devdb?schema=auth"
+    POSTGRESQL_PRISMA_AI_PROCESSOR_URL: "postgresql://user:pass@db:5432/devdb?schema=ai_processor"
     REDIS_HOST: cache
     REDIS_PORT: 6379
     REDIS_PASSWORD: redispass
@@ -21,8 +22,6 @@ x-common-environment: &common-env
     AUTH_SERVICE_HOST: "auth-service"
     CORE_SERVICE_PORT: 7001
     CORE_SERVICE_HOST: "core-service"
-    AI_GENERATION_SERVICE_HOST: "ai-service"
-    AI_GENERATION_SERVICE_PORT: 50051
     EMAIL_USERNAME: ${EMAIL_USERNAME}
     EMAIL_PASSWORD: ${EMAIL_PASSWORD}
     KAFKA_HOST: "broker"
@@ -46,9 +45,21 @@ services:
       dockerfile: apps/auth-service/Dockerfile
     volumes:
       - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
-      - ./backend/nestjs/prisma:/usr/src/backend/nestjs/prisma
+      - ./backend/nestjs/prisma/auth-service:/usr/src/backend/nestjs/prisma/auth-service
     ports:
       - "6000:6000"
+    environment:
+      <<: *common-env
+
+  ai-processor:
+    build: 
+      context: ./backend/nestjs
+      dockerfile: apps/ai-processor/Dockerfile
+    volumes:
+      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
+      - ./backend/nestjs/prisma/ai-processor:/usr/src/backend/nestjs/prisma/ai-processor
+    ports:
+      - "50051:50051"
     environment:
       <<: *common-env
 
