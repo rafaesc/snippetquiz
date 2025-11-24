@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ContentEntryTest {
@@ -52,7 +51,8 @@ class ContentEntryTest {
 
     @Test
     void constructor_initializesFieldsCorrectly() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
 
         assertNotNull(contentEntry.getId());
         assertEquals(userId, contentEntry.getUserId());
@@ -80,7 +80,8 @@ class ContentEntryTest {
 
     @Test
     void update_recordsEvent_and_updatesContent() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
         String updatedContent = "This is the updated content";
         String updatedPageTitle = "Updated Example Page";
 
@@ -88,30 +89,36 @@ class ContentEntryTest {
 
         assertEquals(updatedContent, contentEntry.getContent());
         assertEquals(updatedPageTitle, contentEntry.getPageTitle());
-        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryUpdatedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream()
+                .anyMatch(event -> event instanceof ContentEntryUpdatedDomainEvent));
     }
 
     @Test
     void delete_recordsEvent() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
         contentEntry.delete();
-        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryDeletedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream()
+                .anyMatch(event -> event instanceof ContentEntryDeletedDomainEvent));
     }
 
     @Test
     void updatedTopics_recordsEvent() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
         Topic topic = new Topic(userId, "New Topic");
         List<Topic> topics = Collections.singletonList(topic);
 
         contentEntry.updatedTopics(topics);
 
-        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryTopicAddedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream()
+                .anyMatch(event -> event instanceof ContentEntryTopicAddedDomainEvent));
     }
 
     @Test
     void serialization_succeeds() throws JsonProcessingException {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
         String json = objectMapper.writeValueAsString(contentEntry);
         assertNotNull(json);
         assertTrue(json.contains(content));
@@ -119,12 +126,14 @@ class ContentEntryTest {
 
     @Test
     void questionsGenerated_recordsEvent_and_setsFlag_without_duplicates() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
 
         contentEntry.questionsGenerated();
 
         assertTrue(contentEntry.getQuestionsGenerated());
-        assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryQuestionCreatedDomainEvent));
+        assertTrue(contentEntry.pullUncommittedChanges().stream()
+                .anyMatch(event -> event instanceof ContentEntryQuestionCreatedDomainEvent));
 
         int sizeBefore = contentEntry.pullUncommittedChanges().size();
         contentEntry.questionsGenerated();
@@ -134,7 +143,8 @@ class ContentEntryTest {
 
     @Test
     void duplicateConstructor_recordsCreatedEvent_and_copiesFields_toNewBank() {
-        ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+        ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
+                videoDuration, youtubeVideoId, youtubeChannel);
         ContentBankId targetBankId = new ContentBankId(UUID.randomUUID());
 
         ContentEntry duplicated = new ContentEntry(source, targetBankId);

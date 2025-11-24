@@ -79,8 +79,6 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                                         });
                 }
 
-                ContentEntry resultEntry = null;
-
                 // Check for existing entry with same sourceUrl and type 'full_html'
                 ContentEntry existingEntry = null;
                 if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(sourceUrl)) {

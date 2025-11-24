@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -27,8 +26,7 @@ public class QuizDeletedDomainEvent extends DomainEvent implements DeactivationD
             UserId userId,
             UUID eventId,
             String occurredOn,
-            Integer version
-    ) {
+            Integer version) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
     }
 

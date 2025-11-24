@@ -216,8 +216,11 @@ jobs:
             fi
           done
 
-      - name: Generate Prisma Client
-        run: npm run prisma:generate:postgres
+      - name: Generate Prisma Client for auth
+        run: npm run prisma:generate:auth
+
+      - name: Generate Prisma Client for ai-processor
+        run: npm run prisma:generate:ai-processor
 
       - name: Run database migrations
         run: npm run prisma:deploy:postgres

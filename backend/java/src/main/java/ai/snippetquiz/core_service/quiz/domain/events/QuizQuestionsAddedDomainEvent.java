@@ -11,15 +11,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toSet;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)

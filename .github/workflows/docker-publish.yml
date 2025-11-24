@@ -62,9 +62,11 @@ jobs:
       - name: Build NestJS Apps
         if: ${{ needs.changes.outputs.nestjs == 'true' }}
         run: |
-          npm run prisma:generate:postgres
+          npm run prisma:generate:auth
+          npm run prisma:generate:ai-processor
           npx nest build api-gateway
           npx nest build auth-service
+          npx nest build ai-processor
         working-directory: ./backend/nestjs
 
       - name: Build and push API Gateway

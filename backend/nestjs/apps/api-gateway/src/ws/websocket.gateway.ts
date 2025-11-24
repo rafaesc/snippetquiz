@@ -24,8 +24,7 @@ import { RedisService } from '../../../commons/services/redis.service';
   transports: ['websocket'],
 })
 export class WebsocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   io: Server;
 
@@ -34,8 +33,8 @@ export class WebsocketGateway
   private logger = new Logger(WebsocketGateway.name);
 
   constructor(private readonly redisService: RedisService) {
-    redisService.subscribeToPattern('quiz-generation:*', (raw, channel) => {
-      const userId = channel.split(':')[2]; // channel = quiz-generation:user-id:123
+    redisService.subscribeToPattern('quiz.progress.ephemeral:*', (raw, channel) => {
+      const userId = channel.split(':')[2]; // channel = quiz.progress.ephemeral:user-id:123
       const socket = this.clients.get(userId);
       this.logger.log(`Received message for user - ${userId} - ${channel}`);
 

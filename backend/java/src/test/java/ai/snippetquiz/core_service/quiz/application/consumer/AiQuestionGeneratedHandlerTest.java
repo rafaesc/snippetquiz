@@ -3,13 +3,13 @@ package ai.snippetquiz.core_service.quiz.application.consumer;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
-import ai.snippetquiz.core_service.quiz.application.service.QuizService;
-import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
-import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
-import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
-import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.question.application.QuestionService;
 import ai.snippetquiz.core_service.question.application.dto.CreateQuestionRequest;
+import ai.snippetquiz.core_service.quiz.application.service.QuizService;
+import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizProgressEphemeralEvent;
+import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.service.EventSourcingHandler;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -40,8 +40,6 @@ class AiQuestionGeneratedHandlerTest {
     private ContentEntryRepository contentEntryRepository;
     @Mock
     private QuestionService questionService;
-    @Mock
-    private EventPubSubBus eventPubSubBus;
     @Mock
     private EventBus eventBus;
 
@@ -88,7 +86,7 @@ class AiQuestionGeneratedHandlerTest {
         verify(questionService, times(1)).createQuestion(any(CreateQuestionRequest.class), eq(userId.getValue()));
         verify(contentEntryRepository, times(1)).save(any(ContentEntry.class));
         verify(eventBus, times(1)).publish(eq(entry.aggregateType()), any());
+        verify(eventBus, times(1)).publish(eq(QuizProgressEphemeralEvent.eventName()), any());
         verify(quizService, times(1)).processNewQuizQuestions(eq(quiz), any());
-        verify(eventPubSubBus, times(1)).publish(any(AIQuestionGeneratedEvent.class));
     }
 }

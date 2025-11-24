@@ -1,33 +1,32 @@
 package ai.snippetquiz.core_service.shared.adapter.in;
 
 import ai.snippetquiz.core_service.shared.domain.Utils;
-import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
-import org.springframework.context.annotation.Primary;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Service;
-
+import ai.snippetquiz.core_service.shared.domain.bus.event.BaseEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
+import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
-@Service
+@Service("kafkaEventBus")
 @Slf4j
 @RequiredArgsConstructor
-@Primary
-public class KafkaEventBus implements EventBus {
+public class KafkaEventBusAdapter implements EventBus {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    public void publish(String aggregateType, List<? extends DomainEvent> events) {
+    public void publish(String aggregateType, List<? extends BaseEvent> events) {
         events.forEach(event -> publish(aggregateType, event));
     }
 
-    private void publish(final String aggregateType, DomainEvent domainEvent) {
+    private void publish(final String aggregateType, BaseEvent domainEvent) {
         try {
             log.info("Publishing domain event={} - aggregate_id={} - {} to topic={}", Utils.getEventName(domainEvent.getClass()), domainEvent.getAggregateId(), domainEvent.toPrimitives().toString(), aggregateType);
-            String serializedDomainEvent =  DomainEventJsonSerializer.serialize(domainEvent);
+            String serializedDomainEvent =  DomainEventJsonSerializer.serialize((DomainEvent) domainEvent);
 
             kafkaTemplate
                     .send(aggregateType, domainEvent.getAggregateId().toString(), serializedDomainEvent)

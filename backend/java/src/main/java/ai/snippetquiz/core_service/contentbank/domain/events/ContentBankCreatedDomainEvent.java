@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
@@ -32,8 +31,7 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
             String occurredOn,
             Integer version,
             String name,
-            LocalDateTime createdAt
-    ) {
+            LocalDateTime createdAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.name = name;
         this.createdAt = createdAt;

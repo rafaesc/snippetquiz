@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -15,15 +14,13 @@ import java.util.UUID;
 public class IntegrationTestEvent extends IntegrationEvent {
     private String valueObject;
 
-
     public IntegrationTestEvent(
             UUID aggregateId,
             UUID userId,
             UUID eventId,
             String occurredOn,
             Integer version,
-            String valueObject
-    ) {
+            String valueObject) {
         super(aggregateId, userId, eventId, occurredOn, version);
         this.valueObject = valueObject;
     }
@@ -32,7 +29,6 @@ public class IntegrationTestEvent extends IntegrationEvent {
         return "test.integration.event";
     }
 
-
     @Override
     public IntegrationEvent fromPrimitives(
             UUID aggregateId,
@@ -40,15 +36,13 @@ public class IntegrationTestEvent extends IntegrationEvent {
             HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
-            Integer version
-    ) {
+            Integer version) {
         return new IntegrationTestEvent(
                 aggregateId,
                 userId,
                 eventId,
                 occurredOn,
                 version,
-                (String) body.get("value_object")
-        );
+                (String) body.get("value_object"));
     }
 }

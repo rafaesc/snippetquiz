@@ -1,13 +1,12 @@
 package ai.snippetquiz.core_service.shared.domain.bus.event;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.UUID;
-
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
 
@@ -38,8 +37,7 @@ public abstract class BaseEvent {
             UUID userId,
             UUID eventId,
             String occurredOn,
-            Integer version
-    ) {
+            Integer version) {
         this.aggregateId = aggregateId;
         this.userId = userId;
         this.eventId = eventId;
@@ -50,12 +48,17 @@ public abstract class BaseEvent {
     protected BaseEvent() {
     }
 
-    public abstract BaseEvent fromPrimitives(
+    public HashMap<String, Object> toPrimitives() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public BaseEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
             HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
-            Integer version
-    );
+            Integer version) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
