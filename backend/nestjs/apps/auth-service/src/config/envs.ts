@@ -5,7 +5,7 @@ interface EnvVars {
   AUTH_SERVICE_PORT: number;
   CORE_SERVICE_PORT: number;
   CORE_SERVICE_HOST: string;
-  POSTGRESQL_PRISMA_URL: string;
+  POSTGRESQL_PRISMA_AUTH_URL: string;
   JWT_AUTH_SECRET: string;
   JWT_AUTH_REFRESH_SECRET: string;
   JWT_AUTH_EXPIRES_IN: string;
@@ -24,7 +24,7 @@ const envSchema = joi
     AUTH_SERVICE_PORT: joi.number().required(),
     CORE_SERVICE_PORT: joi.number().required(),
     CORE_SERVICE_HOST: joi.string().default('localhost'),
-    POSTGRESQL_PRISMA_URL: joi.string().required(),
+    POSTGRESQL_PRISMA_AUTH_URL: joi.string().required(),
     JWT_AUTH_SECRET: joi.string().required(),
     JWT_AUTH_REFRESH_SECRET: joi.string().required(),
     JWT_AUTH_EXPIRES_IN: joi.string().default('15m'),
@@ -49,7 +49,7 @@ export const envsVars: EnvVars = value;
 
 export const envs = {
   authServicePort: envsVars.AUTH_SERVICE_PORT,
-  databaseUrlPostgres: envsVars.POSTGRESQL_PRISMA_URL,
+  databaseUrlPostgres: envsVars.POSTGRESQL_PRISMA_AUTH_URL,
   jwtAuthSecret: envsVars.JWT_AUTH_SECRET,
   jwtAuthRefreshSecret: envsVars.JWT_AUTH_REFRESH_SECRET,
   jwtAuthExpiresIn: envsVars.JWT_AUTH_EXPIRES_IN,

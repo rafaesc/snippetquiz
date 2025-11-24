@@ -5,7 +5,6 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepositor
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
-import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
@@ -55,9 +54,9 @@ class AiQuestionGeneratedHandlerTest {
         UserId userId = new UserId(UUID.randomUUID());
         String contentEntryIdStr = UUID.randomUUID().toString();
 
-        var option = new QuizGenerationEventPayload.QuestionOptionDto("opt", "exp", true);
-        var question = new QuizGenerationEventPayload.QuestionDto("Q1", "MCQ", List.of(option));
-        var contentEntryDto = new QuizGenerationEventPayload.ContentEntryDto(contentEntryIdStr, "Title", 10, List.of(question));
+        var option = new AIQuestionGeneratedEvent.QuestionOptionDto("opt", "exp", true);
+        var question = new AIQuestionGeneratedEvent.QuestionDto("Q1", "MCQ", List.of(option));
+        var contentEntryDto = new AIQuestionGeneratedEvent.ContentEntryDto(contentEntryIdStr, "Title", 10, List.of(question));
 
         var event = new AIQuestionGeneratedEvent(
                 quizId,
@@ -90,6 +89,6 @@ class AiQuestionGeneratedHandlerTest {
         verify(contentEntryRepository, times(1)).save(any(ContentEntry.class));
         verify(eventBus, times(1)).publish(eq(entry.aggregateType()), any());
         verify(quizService, times(1)).processNewQuizQuestions(eq(quiz), any());
-        verify(eventPubSubBus, times(1)).publish(eq(userId.toString()), any());
+        verify(eventPubSubBus, times(1)).publish(any(AIQuestionGeneratedEvent.class));
     }
 }

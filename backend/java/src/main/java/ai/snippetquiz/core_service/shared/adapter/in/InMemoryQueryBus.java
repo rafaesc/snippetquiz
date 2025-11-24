@@ -20,7 +20,6 @@ public class InMemoryQueryBus implements QueryBus {
         this.context = context;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Response ask(Query query) throws QueryHandlerExecutionError {
         try {

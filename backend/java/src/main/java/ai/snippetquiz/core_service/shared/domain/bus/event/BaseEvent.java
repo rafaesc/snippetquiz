@@ -53,7 +53,7 @@ public abstract class BaseEvent {
     public abstract BaseEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version

@@ -35,7 +35,6 @@ class QuizEventSourcingHandlerTest {
 
     @Test
     void save_persists_uncommitted_events_and_marks_committed() {
-        @SuppressWarnings("unchecked")
         DomainEventRepository<DomainEvent> repo = mock(DomainEventRepository.class);
         EventBus eventBus = mock(EventBus.class);
         EventStore eventStore = new EventStore(repo, eventBus);
@@ -52,12 +51,14 @@ class QuizEventSourcingHandlerTest {
         var bankId = new ContentBankId(UUID.randomUUID());
         var quiz = new Quiz(quizId, userId, bankId, "Bank Name", "", new ArrayList<>(), 0);
 
-        assertFalse(quiz.pullUncommittedChanges().isEmpty(), "Precondition: there should be 1 uncommitted event");
+        assertFalse(quiz.pullUncommittedChanges().isEmpty(),
+                "Precondition: there should be 1 uncommitted event");
 
         handler.save(quiz);
 
         ArgumentCaptor<DomainEvent> eventCaptor = ArgumentCaptor.forClass(DomainEvent.class);
-        verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().getValue()), eq(quiz.aggregateType()), eventCaptor.capture());
+        verify(repo, times(1)).save(any(UserId.class), eq(quiz.getId().getValue()), eq(quiz.aggregateType()),
+                eventCaptor.capture());
         assertEquals(0, eventCaptor.getValue().getVersion(), "First persisted event should have version 0");
 
         assertTrue(quiz.pullUncommittedChanges().isEmpty(), "Uncommitted changes must be cleared after save");
@@ -65,14 +66,13 @@ class QuizEventSourcingHandlerTest {
 
     @Test
     void get_by_id_returns_empty_when_no_events() {
-        @SuppressWarnings("unchecked")
         DomainEventRepository<DomainEvent> repo = mock(DomainEventRepository.class);
         EventBus eventBus = mock(EventBus.class);
         EventStore eventStore = new EventStore(repo, eventBus);
         QuizEventSourcingHandler handler = new QuizEventSourcingHandler(eventStore);
 
         var userId = new UserId(UUID.randomUUID());
-        var quizId =  UUID.randomUUID();
+        var quizId = UUID.randomUUID();
 
         when(repo.findAllByUserIdAndAggregateIdAndAggregateType(eq(userId), eq(quizId)))
                 .thenReturn(List.of());
@@ -84,7 +84,6 @@ class QuizEventSourcingHandlerTest {
 
     @Test
     void get_by_id_replays_events_and_sets_latest_version() {
-        @SuppressWarnings("unchecked")
         DomainEventRepository<DomainEvent> repo = mock(DomainEventRepository.class);
         EventBus eventBus = mock(EventBus.class);
         EventStore eventStore = new EventStore(repo, eventBus);

@@ -4,7 +4,8 @@ x-common-environment: &common-env
     POSTGRESQL_HOST: ${POSTGRESQL_HOST}
     POSTGRESQL_PORT: ${POSTGRESQL_PORT}
     POSTGRESQL_DATABASE: ${POSTGRESQL_DATABASE}
-    POSTGRESQL_PRISMA_URL: "postgresql://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_HOST}:5432/${POSTGRESQL_DATABASE}?schema=auth"
+    POSTGRESQL_PRISMA_AUTH_URL: "postgresql://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_HOST}:5432/${POSTGRESQL_DATABASE}?schema=auth"
+    POSTGRESQL_PRISMA_AI_PROCESSOR_URL: "postgresql://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_HOST}:5432/${POSTGRESQL_DATABASE}?schema=ai_processor"
     REDIS_HOST: ${REDIS_HOST}
     REDIS_PORT: ${REDIS_PORT}
     REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -20,8 +21,6 @@ x-common-environment: &common-env
     AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST}
     CORE_SERVICE_PORT: ${CORE_SERVICE_PORT}
     CORE_SERVICE_HOST: ${CORE_SERVICE_HOST}
-    AI_GENERATION_SERVICE_HOST: ${AI_GENERATION_SERVICE_HOST}
-    AI_GENERATION_SERVICE_PORT: ${AI_GENERATION_SERVICE_PORT}
     EMAIL_USERNAME: ${EMAIL_USERNAME}
     EMAIL_PASSWORD: ${EMAIL_PASSWORD}
     ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
@@ -43,8 +42,18 @@ services:
       context: ./backend/nestjs
       dockerfile: apps/auth-service/Dockerfile
       args:
-        - POSTGRESQL_PRISMA_URL=${POSTGRESQL_PRISMA_URL}
+        - POSTGRESQL_PRISMA_AUTH_URL=${POSTGRESQL_PRISMA_AUTH_URL}
     image: auth-service-prod
+    environment:
+      <<: *common-env
+
+  ai-processor:
+    build: 
+      context: ./backend/nestjs
+      dockerfile: apps/ai-processor/Dockerfile
+      args:
+        - POSTGRESQL_PRISMA_AI_PROCESSOR_URL=${POSTGRESQL_PRISMA_AI_PROCESSOR_URL}
+    image: ai-processor-prod
     environment:
       <<: *common-env
 

@@ -3,6 +3,7 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
@@ -15,13 +16,13 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
-    private String topics;
+    private List<String> topics;
     private LocalDateTime updatedAt;
 
     public ContentEntryTopicAddedDomainEvent(
             UUID aggregateId,
             UserId userId,
-            String topics,
+            List<String> topics,
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue());
         this.topics = topics;
@@ -34,7 +35,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             UUID eventId,
             String occurredOn,
             Integer version,
-            String topics,
+            List<String> topics,
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
@@ -46,8 +47,8 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
         primitives.put("topics", topics);
         primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
@@ -57,7 +58,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
     public ContentEntryTopicAddedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {
@@ -67,7 +68,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                (String) body.get("topics"),
+                (List<String>) body.get("topics"),
                 Utils.stringToDate((String) body.get("updated_at")));
     }
 }

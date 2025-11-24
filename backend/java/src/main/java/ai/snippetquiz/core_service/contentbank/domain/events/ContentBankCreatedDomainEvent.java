@@ -44,8 +44,8 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
         primitives.put("name", name);
         primitives.put("created_at", Utils.dateToString(createdAt));
         return primitives;
@@ -55,7 +55,7 @@ public class ContentBankCreatedDomainEvent extends DomainEvent {
     public ContentBankCreatedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

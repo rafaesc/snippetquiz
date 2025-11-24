@@ -52,7 +52,7 @@ class ContentEntryTest {
 
     @Test
     void constructor_initializesFieldsCorrectly() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
 
         assertNotNull(contentEntry.getId());
         assertEquals(userId, contentEntry.getUserId());
@@ -75,12 +75,12 @@ class ContentEntryTest {
                 .orElse(null);
         assertNotNull(createdEvent);
         assertFalse(createdEvent.isDuplicated());
-        assertEquals("", createdEvent.getExistsTopics());
+
     }
 
     @Test
     void update_recordsEvent_and_updatesContent() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
         String updatedContent = "This is the updated content";
         String updatedPageTitle = "Updated Example Page";
 
@@ -93,14 +93,14 @@ class ContentEntryTest {
 
     @Test
     void delete_recordsEvent() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
         contentEntry.delete();
         assertTrue(contentEntry.pullUncommittedChanges().stream().anyMatch(event -> event instanceof ContentEntryDeletedDomainEvent));
     }
 
     @Test
     void updatedTopics_recordsEvent() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
         Topic topic = new Topic(userId, "New Topic");
         List<Topic> topics = Collections.singletonList(topic);
 
@@ -111,7 +111,7 @@ class ContentEntryTest {
 
     @Test
     void serialization_succeeds() throws JsonProcessingException {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
         String json = objectMapper.writeValueAsString(contentEntry);
         assertNotNull(json);
         assertTrue(json.contains(content));
@@ -119,7 +119,7 @@ class ContentEntryTest {
 
     @Test
     void questionsGenerated_recordsEvent_and_setsFlag_without_duplicates() {
-        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
 
         contentEntry.questionsGenerated();
 
@@ -134,7 +134,7 @@ class ContentEntryTest {
 
     @Test
     void duplicateConstructor_recordsCreatedEvent_and_copiesFields_toNewBank() {
-        ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel, "");
+        ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
         ContentBankId targetBankId = new ContentBankId(UUID.randomUUID());
 
         ContentEntry duplicated = new ContentEntry(source, targetBankId);
@@ -158,6 +158,6 @@ class ContentEntryTest {
                 .orElse(null);
         assertNotNull(createdEvent);
         assertTrue(createdEvent.isDuplicated());
-        assertNull(createdEvent.getExistsTopics());
+
     }
 }

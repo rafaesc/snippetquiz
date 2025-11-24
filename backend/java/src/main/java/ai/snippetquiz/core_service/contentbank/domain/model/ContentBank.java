@@ -5,6 +5,7 @@ import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankDeletedD
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankEntriesUpdatedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankRenamedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -78,13 +79,12 @@ public class ContentBank extends AggregateRoot<ContentBankId> {
         record(new ContentBankEntriesUpdatedDomainEvent(
                 getId().getValue(),
                 userId,
-                Utils.toJson(new HashSet<>(contentEntries)),
+                contentEntries,
                 now));
     }
 
     public void apply(ContentBankEntriesUpdatedDomainEvent event) {
-        this.contentEntries = Utils.fromJson(event.getContentEntries(), new TypeReference<>() {
-        });
+        this.contentEntries = event.getContentEntries();
         this.updatedAt = event.getUpdatedAt();
     }
 

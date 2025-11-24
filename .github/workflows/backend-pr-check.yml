@@ -16,7 +16,6 @@ jobs:
     outputs:
       java: ${{ steps.filter.outputs.java }}
       nestjs: ${{ steps.filter.outputs.nestjs }}
-      python: ${{ steps.filter.outputs.python }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -27,8 +26,6 @@ jobs:
               - 'backend/java/**'
             nestjs:
               - 'backend/nestjs/**'
-            python:
-              - 'backend/python/**'
 
   # Java Spring Boot Service
   test-and-build-java:
@@ -163,7 +160,8 @@ jobs:
 
     env:
       NODE_ENV: test
-      POSTGRESQL_PRISMA_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=auth
+      POSTGRESQL_PRISMA_AUTH_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=auth
+      POSTGRESQL_PRISMA_AI_PROCESSOR_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=ai_processor
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_PASSWORD: "test_pass"
@@ -230,82 +228,8 @@ jobs:
       - name: Build auth-service
         run: npm run build auth-service
 
-  # Python AI Service
-  test-and-build-python:
-    name: Test and Build Python AI Service
-    needs: changes
-    if: ${{ needs.changes.outputs.python == 'true' }}
-    runs-on: ubuntu-latest
-
-    services:
-      kafka:
-        image: confluentinc/cp-kafka:latest
-        env:
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        ports:
-          - 9092:9092
-
-      zookeeper:
-        image: confluentinc/cp-zookeeper:latest
-        env:
-          ZOOKEEPER_CLIENT_PORT: 2181
-          ZOOKEEPER_TICK_TIME: 2000
-        ports:
-          - 2181:2181
-
-    defaults:
-      run:
-        working-directory: backend
-
-    env:
-      KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-      CORE_SERVICE_URL: http://localhost:7000
-      OPENROUTER_API_KEY: test_key
-      GROQ_API_KEY: test_key
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: backend/python/requirements.txt
-
-      - name: Install dependencies
-        run: |
-          cd python
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8 black isort
-
-      - name: Code formatting check
-        run: |
-          cd python
-          black --check .
-          isort --check-only .
-
-      - name: Lint code
-        run: |
-          cd python
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-      - name: Build Docker image
-        run: docker build -f python/Dockerfile -t snippetquiz-python-service .
-
-      #- name: Test Docker image
-      #  run: |
-      #    docker run --rm -d --name test-python-service \
-      #      -p 8000:8000 \
-      #      -e KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
-      #      snippetquiz-python-service
-      #    sleep 10
-      #    curl -f http://localhost:8000/health || exit 1
-      #    docker stop test-python-service
+      - name: Build ai-processor
+        run: npm run build ai-processor
 
   # Integration Tests
 #  integration-tests:
@@ -375,9 +299,6 @@ jobs:
 #          
 #          # Test Core Service health
 #          curl -f http://localhost:7000/actuator/health || exit 1
-#          
-#          # Test Python Service health
-#          curl -f http://localhost:8000/health || exit 1
 #
 #      - name: Cleanup
 #        if: always()

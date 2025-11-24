@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenService } from './token.service';
+import { PrismaService } from './prisma.service';
 import { RedisModule } from '../../../commons/services';
 import { envs } from '../config/envs';
 
@@ -13,7 +14,7 @@ import { envs } from '../config/envs';
     }),
     RedisModule,
   ],
-  providers: [TokenService],
-  exports: [TokenService],
+  providers: [TokenService, PrismaService],
+  exports: [TokenService, PrismaService],
 })
-export class UtilsModule {}
+export class UtilsModule { }

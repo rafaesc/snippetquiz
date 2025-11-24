@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class DomainEventJsonSerializerTest {
 
     @Test
-    @SuppressWarnings("unchecked")
     void serialize_includes_expected_fields() {
         // Arrange
         FirstTestEvent event = new FirstTestEvent(java.util.UUID.randomUUID(), java.util.UUID.randomUUID());
@@ -23,7 +22,8 @@ class DomainEventJsonSerializerTest {
         String json = DomainEventJsonSerializer.serialize(event);
 
         // Assert
-        HashMap<String, Serializable> eventData = Utils.fromJson(json, new TypeReference<>() {});
+        HashMap<String, Serializable> eventData = Utils.fromJson(json, new TypeReference<>() {
+        });
         HashMap<String, Serializable> data = (HashMap<String, Serializable>) eventData.get("data");
         HashMap<String, Serializable> attributes = (HashMap<String, Serializable>) data.get("attributes");
 

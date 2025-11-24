@@ -1,12 +1,14 @@
 package ai.snippetquiz.core_service.quiz.adapter.out.messaging;
 
-import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPayload;
-import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationFanoutEventPayload;
+import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizGenerationEventPubSub;
 import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -14,56 +16,53 @@ import org.springframework.stereotype.Service;
 public class EventPubSubBusImpl implements EventPubSubBus {
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void publish(String userId, QuizGenerationEventPayload event) {
-        if (!event.userId().equals(userId)) {
-            return;
-        }
-
+    public void publish(AIQuestionGeneratedEvent event) {
+        UUID userId = event.getUserId();
         String channel = "quiz-generation:user-id:" + userId;
 
-        if (event.totalChunks() == 0 || event.currentChunkIndex() + 1 == event.totalChunks()) {
+        if (event.getTotalChunks() == 0 || event.getCurrentChunkIndex() + 1 == event.getTotalChunks()) {
             // Quiz completed - send completion message
             log.info(
                     "Quiz completed message published for user: {}, quizId: {}, totalChunks: {}, currentChunkIndex: {}",
                     userId,
-                    event.quizId(), event.totalChunks(), event.currentChunkIndex());
+                    event.getAggregateId(), event.getTotalChunks(), event.getCurrentChunkIndex());
 
-            var completedPayload = QuizGenerationFanoutEventPayload.builder()
-                    .completed(QuizGenerationFanoutEventPayload.Completed.builder()
-                            .quizId(event.quizId())
+            var completedPayload = QuizGenerationEventPubSub.builder()
+                    .completed(QuizGenerationEventPubSub.Completed.builder()
+                            .quizId(event.getAggregateId().toString())
                             .build())
-                    .progress(QuizGenerationFanoutEventPayload.Progress.builder()
-                            .quizId(event.quizId())
-                            .bankId(event.bankId())
-                            .totalContentEntries(event.totalContentEntries())
-                            .totalChunks(event.totalChunks())
-                            .currentChunkIndex(event.currentChunkIndex())
+                    .progress(QuizGenerationEventPubSub.Progress.builder()
+                            .quizId(event.getAggregateId().toString())
+                            .bankId(event.getBankId().toString())
+                            .totalContentEntries(event.getTotalContentEntries())
+                            .totalChunks(event.getTotalChunks())
+                            .currentChunkIndex(event.getCurrentChunkIndex())
                             .build())
                     .build();
             redisTemplate.convertAndSend(channel, completedPayload);
             return;
         }
 
-        var progressPayload = QuizGenerationFanoutEventPayload.builder()
-                .progress(QuizGenerationFanoutEventPayload.Progress.builder()
-                        .quizId(event.quizId())
-                        .bankId(event.bankId())
-                        .totalContentEntries(event.totalContentEntries())
-                        .totalContentEntriesSkipped(event.totalContentEntriesSkipped())
-                        .currentContentEntryIndex(event.currentContentEntryIndex())
-                        .questionsGeneratedSoFar(event.questionsGeneratedSoFar())
-                        .contentEntry(QuizGenerationFanoutEventPayload.Progress.ContentEntry.builder()
-                                .id(event.contentEntry().id())
-                                .name(event.contentEntry().pageTitle())
-                                .wordCountAnalyzed(event.contentEntry().wordCountAnalyzed())
+        var progressPayload = QuizGenerationEventPubSub.builder()
+                .progress(QuizGenerationEventPubSub.Progress.builder()
+                        .quizId(event.getAggregateId().toString())
+                        .bankId(event.getBankId().toString())
+                        .totalContentEntries(event.getTotalContentEntries())
+                        .totalContentEntriesSkipped(event.getTotalContentEntriesSkipped())
+                        .currentContentEntryIndex(event.getCurrentContentEntryIndex())
+                        .questionsGeneratedSoFar(event.getQuestionsGeneratedSoFar())
+                        .contentEntry(QuizGenerationEventPubSub.Progress.ContentEntry.builder()
+                                .id(event.getContentEntry().getId())
+                                .name(event.getContentEntry().getPageTitle())
+                                .wordCountAnalyzed(event.getContentEntry().getWordCountAnalyzed())
                                 .build())
-                        .totalChunks(event.totalChunks())
-                        .currentChunkIndex(event.currentChunkIndex())
+                        .totalChunks(event.getTotalChunks())
+                        .currentChunkIndex(event.getCurrentChunkIndex())
                         .build())
                 .build();
 
         redisTemplate.convertAndSend(channel, progressPayload);
         log.info("Quiz progress message published for user: {}, progress: {}/{}",
-                userId, event.currentChunkIndex() + 1, event.totalChunks());
+                userId, event.getCurrentChunkIndex() + 1, event.getTotalChunks());
     }
 }

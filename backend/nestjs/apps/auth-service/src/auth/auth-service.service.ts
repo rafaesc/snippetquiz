@@ -17,7 +17,7 @@ import {
   AuthResponseDto,
   TokensDto,
 } from 'apps/commons/types';
-import { RedisService, PrismaService } from 'apps/commons/services';
+import { RedisService } from 'apps/commons/services';
 import { UsersService } from '../users/users.service';
 import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';
@@ -39,7 +39,6 @@ export class AuthServiceService {
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService,
-    private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
   ) {
     this.setupEmailTransporter();

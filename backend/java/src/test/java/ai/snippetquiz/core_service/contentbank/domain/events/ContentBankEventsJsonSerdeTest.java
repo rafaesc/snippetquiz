@@ -8,14 +8,16 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SuppressWarnings("unchecked")
 class ContentBankEventsJsonSerdeTest {
 
     private <T extends DomainEvent> T roundtrip(T event) throws Exception {
@@ -25,7 +27,7 @@ class ContentBankEventsJsonSerdeTest {
         String json = DomainEventJsonSerializer.serialize(event);
         DomainEvent deserialized = deserializer.deserialize(json);
         assertNotNull(deserialized);
-        //noinspection unchecked
+        // noinspection unchecked
         return (T) deserialized;
     }
 
@@ -36,8 +38,8 @@ class ContentBankEventsJsonSerdeTest {
         String name = "My Content Bank";
         LocalDateTime createdAt = LocalDateTime.of(2024, 1, 2, 3, 4, 5);
 
-        ContentBankCreatedDomainEvent original =
-                new ContentBankCreatedDomainEvent(aggregateId, userId, name, createdAt);
+        ContentBankCreatedDomainEvent original = new ContentBankCreatedDomainEvent(aggregateId, userId, name,
+                createdAt);
 
         ContentBankCreatedDomainEvent reconstructed = roundtrip(original);
 
@@ -55,8 +57,7 @@ class ContentBankEventsJsonSerdeTest {
         UUID aggregateId = UUID.randomUUID();
         UserId userId = new UserId(UUID.randomUUID());
 
-        ContentBankDeletedDomainEvent original =
-                new ContentBankDeletedDomainEvent(aggregateId, userId);
+        ContentBankDeletedDomainEvent original = new ContentBankDeletedDomainEvent(aggregateId, userId);
 
         ContentBankDeletedDomainEvent reconstructed = roundtrip(original);
 
@@ -71,11 +72,13 @@ class ContentBankEventsJsonSerdeTest {
     void roundtrip_ContentBankEntriesUpdated() throws Exception {
         UUID aggregateId = UUID.randomUUID();
         UserId userId = new UserId(UUID.randomUUID());
-        String contentEntries = "[{\"id\":\"e1\"},{\"id\":\"e2\"}]";
+        ContentEntry entry = new ContentEntry();
+        entry.setId(new ContentEntryId(UUID.randomUUID()));
+        List<ContentEntry> contentEntries = List.of(entry);
         LocalDateTime updatedAt = LocalDateTime.of(2024, 2, 3, 4, 5, 6);
 
-        ContentBankEntriesUpdatedDomainEvent original =
-                new ContentBankEntriesUpdatedDomainEvent(aggregateId, userId, contentEntries, updatedAt);
+        ContentBankEntriesUpdatedDomainEvent original = new ContentBankEntriesUpdatedDomainEvent(aggregateId, userId,
+                contentEntries, updatedAt);
 
         ContentBankEntriesUpdatedDomainEvent reconstructed = roundtrip(original);
 
@@ -95,8 +98,8 @@ class ContentBankEventsJsonSerdeTest {
         String name = "Renamed Content Bank";
         LocalDateTime updatedAt = LocalDateTime.of(2024, 5, 6, 7, 8, 9);
 
-        ContentBankRenamedDomainEvent original =
-                new ContentBankRenamedDomainEvent(aggregateId, userId, name, updatedAt);
+        ContentBankRenamedDomainEvent original = new ContentBankRenamedDomainEvent(aggregateId, userId, name,
+                updatedAt);
 
         ContentBankRenamedDomainEvent reconstructed = roundtrip(original);
 
@@ -123,25 +126,21 @@ class ContentBankEventsJsonSerdeTest {
         Integer videoDuration = 456;
         String youtubeVideoId = "YTv123";
         Long youtubeChannelId = 9_876_543_210L; // ensure Long type on deserialize
-        String existsTopics = "java,spring";
 
-        ContentEntryCreatedDomainEvent original =
-                new ContentEntryCreatedDomainEvent(
-                        aggregateId,
-                        userId,
-                        contentBankId,
-                        contentType,
-                        content,
-                        sourceUrl,
-                        pageTitle,
-                        createdAt,
-                        wordCount,
-                        videoDuration,
-                        youtubeVideoId,
-                        youtubeChannelId,
-                        existsTopics,
-                        false
-                );
+        ContentEntryCreatedDomainEvent original = new ContentEntryCreatedDomainEvent(
+                aggregateId,
+                userId,
+                contentBankId,
+                contentType,
+                content,
+                sourceUrl,
+                pageTitle,
+                createdAt,
+                wordCount,
+                videoDuration,
+                youtubeVideoId,
+                youtubeChannelId,
+                false);
 
         ContentEntryCreatedDomainEvent reconstructed = roundtrip(original);
 
@@ -161,7 +160,6 @@ class ContentBankEventsJsonSerdeTest {
         assertEquals(videoDuration, reconstructed.getVideoDuration());
         assertEquals(youtubeVideoId, reconstructed.getYoutubeVideoId());
         assertEquals(youtubeChannelId, reconstructed.getYoutubeChannelId());
-        assertEquals(existsTopics, reconstructed.getExistsTopics());
         assertFalse(reconstructed.isDuplicated());
     }
 
@@ -170,8 +168,8 @@ class ContentBankEventsJsonSerdeTest {
         UUID aggregateId = UUID.randomUUID();
         UserId userId = new UserId(UUID.randomUUID());
 
-        ContentEntryQuestionCreatedDomainEvent original =
-                new ContentEntryQuestionCreatedDomainEvent(aggregateId, userId);
+        ContentEntryQuestionCreatedDomainEvent original = new ContentEntryQuestionCreatedDomainEvent(aggregateId,
+                userId);
 
         ContentEntryQuestionCreatedDomainEvent reconstructed = roundtrip(original);
 
@@ -191,8 +189,8 @@ class ContentBankEventsJsonSerdeTest {
         LocalDateTime createdAt = LocalDateTime.of(2024, 8, 7, 6, 5, 4);
         Integer wordCount = 789;
 
-        ContentEntryUpdatedDomainEvent original =
-                new ContentEntryUpdatedDomainEvent(aggregateId, userId, content, pageTitle, createdAt, wordCount);
+        ContentEntryUpdatedDomainEvent original = new ContentEntryUpdatedDomainEvent(aggregateId, userId, content,
+                pageTitle, createdAt, wordCount);
 
         ContentEntryUpdatedDomainEvent reconstructed = roundtrip(original);
 
@@ -212,11 +210,11 @@ class ContentBankEventsJsonSerdeTest {
     void roundtrip_ContentEntryTopicAdded() throws Exception {
         UUID aggregateId = UUID.randomUUID();
         UserId userId = new UserId(UUID.randomUUID());
-        String topics = "[\"java\",\"spring\"]";
+        List<String> topics = List.of("java", "spring");
         LocalDateTime updatedAt = LocalDateTime.of(2024, 9, 10, 11, 12, 13);
 
-        ContentEntryTopicAddedDomainEvent original =
-                new ContentEntryTopicAddedDomainEvent(aggregateId, userId, topics, updatedAt);
+        ContentEntryTopicAddedDomainEvent original = new ContentEntryTopicAddedDomainEvent(aggregateId, userId, topics,
+                updatedAt);
 
         ContentEntryTopicAddedDomainEvent reconstructed = roundtrip(original);
 
@@ -234,8 +232,7 @@ class ContentBankEventsJsonSerdeTest {
         UUID aggregateId = UUID.randomUUID();
         UserId userId = new UserId(UUID.randomUUID());
 
-        ContentEntryDeletedDomainEvent original =
-                new ContentEntryDeletedDomainEvent(aggregateId, userId);
+        ContentEntryDeletedDomainEvent original = new ContentEntryDeletedDomainEvent(aggregateId, userId);
 
         ContentEntryDeletedDomainEvent reconstructed = roundtrip(original);
 

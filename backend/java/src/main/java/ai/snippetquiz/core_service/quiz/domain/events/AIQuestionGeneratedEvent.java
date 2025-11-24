@@ -1,17 +1,18 @@
 package ai.snippetquiz.core_service.quiz.domain.events;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.UUID;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
+import ai.snippetquiz.core_service.shared.domain.Utils;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -21,10 +22,38 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
     private Integer totalContentEntriesSkipped;
     private Integer currentContentEntryIndex;
     private Integer questionsGeneratedSoFar;
-    private QuizGenerationEventPayload.ContentEntryDto contentEntry;
+    private ContentEntryDto contentEntry;
     private Integer totalChunks;
     private Integer currentChunkIndex;
     private UUID bankId;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ContentEntryDto {
+        private String id;
+        private String pageTitle;
+        private Integer wordCountAnalyzed;
+        private List<QuestionDto> questions;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class QuestionDto {
+        private String question;
+        private String type;
+        private List<QuestionOptionDto> options;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class QuestionOptionDto {
+        private String optionText;
+        private String optionExplanation;
+        private Boolean isCorrect;
+    }
 
     public AIQuestionGeneratedEvent(
             UUID aggregateId,
@@ -36,11 +65,10 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
             Integer totalContentEntriesSkipped,
             Integer currentContentEntryIndex,
             Integer questionsGeneratedSoFar,
-            QuizGenerationEventPayload.ContentEntryDto contentEntry,
+            ContentEntryDto contentEntry,
             Integer totalChunks,
             Integer currentChunkIndex,
-            UUID bankId
-    ) {
+            UUID bankId) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.totalContentEntries = totalContentEntries;
         this.totalContentEntriesSkipped = totalContentEntriesSkipped;
@@ -60,7 +88,7 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
     public AIQuestionGeneratedEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version
@@ -75,8 +103,7 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
                 (Integer) body.get("total_content_entries_skipped"),
                 (Integer) body.get("current_content_entry_index"),
                 (Integer) body.get("questions_generated_so_far"),
-                Utils.fromJson((String) body.get("content_entry"),
-                        new TypeReference<QuizGenerationEventPayload.ContentEntryDto>() {}),
+                 Utils.toMap(body.get("content_entry"), ContentEntryDto.class),
                 (Integer) body.get("total_chunks"),
                 (Integer) body.get("current_chunk_index"),
                 UUID.fromString((String) body.get("bank_id"))

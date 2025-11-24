@@ -11,8 +11,6 @@ import {
   ResolveCodeDto,
   AuthResponseDto,
 } from 'apps/commons/types';
-
-import { envs } from '../config/envs';
 import { TokenService } from '../utils/token.service';
 
 @Injectable()
@@ -21,7 +19,7 @@ export class CodeService {
     private readonly redisService: RedisService,
     private readonly usersService: UsersService,
     private readonly tokenService: TokenService, // Add TokenService
-  ) {}
+  ) { }
 
   async generateCode(userId: string): Promise<GenerateCodeResponseDto> {
     try {

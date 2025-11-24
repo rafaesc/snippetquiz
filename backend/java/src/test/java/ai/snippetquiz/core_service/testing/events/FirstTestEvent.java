@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 @NoArgsConstructor
@@ -29,7 +30,7 @@ public class FirstTestEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
+    public HashMap<String, Object> toPrimitives() {
         return new HashMap<>();
     }
 
@@ -37,7 +38,7 @@ public class FirstTestEvent extends DomainEvent {
     public DomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

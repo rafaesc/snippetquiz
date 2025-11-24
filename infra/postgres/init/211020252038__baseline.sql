@@ -11,15 +11,6 @@ BEGIN
 END
 $$;
 
-DO $$
-BEGIN
-   IF NOT EXISTS (
-      SELECT 1 FROM pg_namespace WHERE nspname = 'auth'
-   ) THEN
-      EXECUTE 'CREATE SCHEMA auth';
-   END IF;
-END
-$$;
 
 DO $$
 BEGIN
@@ -38,13 +29,40 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT SELECT, INSERT, UPDATE, DELETE ON 
 GRANT USAGE ON SCHEMA core TO readonly;
 ALTER DEFAULT PRIVILEGES IN SCHEMA core GRANT SELECT ON TABLES TO readonly;
 
+
+DO $$
+BEGIN
+   IF NOT EXISTS (
+      SELECT 1 FROM pg_namespace WHERE nspname = 'auth'
+   ) THEN
+      EXECUTE 'CREATE SCHEMA auth';
+   END IF;
+END
+$$;
+
 GRANT USAGE ON SCHEMA auth TO app_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
 
 GRANT USAGE ON SCHEMA auth TO readonly;
 ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT ON TABLES TO readonly;
 
+DO $$
+BEGIN
+   IF NOT EXISTS (
+      SELECT 1 FROM pg_namespace WHERE nspname = 'ai_processor'
+   ) THEN
+      EXECUTE 'CREATE SCHEMA ai_processor';
+   END IF;
+END
+$$;
+
+GRANT USAGE ON SCHEMA ai_processor TO app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA ai_processor GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+
+GRANT USAGE ON SCHEMA ai_processor TO readonly;
+ALTER DEFAULT PRIVILEGES IN SCHEMA ai_processor GRANT SELECT ON TABLES TO readonly;
+
 
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
-\echo Initialize schema core and auth.
+\echo Initialize schema core, auth and ai_processor.

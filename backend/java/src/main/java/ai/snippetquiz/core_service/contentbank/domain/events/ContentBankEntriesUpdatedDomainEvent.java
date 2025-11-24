@@ -1,25 +1,29 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.UUID;
-
+import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
-    private String contentEntries;
+    private List<ContentEntry> contentEntries;
     private LocalDateTime updatedAt;
 
-    public ContentBankEntriesUpdatedDomainEvent(UUID aggregateId, UserId userId, String contentEntries, LocalDateTime updatedAt) {
+    public ContentBankEntriesUpdatedDomainEvent(UUID aggregateId, UserId userId, List<ContentEntry> contentEntries, LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue());
         this.contentEntries = contentEntries;
         this.updatedAt = updatedAt;
@@ -31,7 +35,8 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
             UUID eventId,
             String occurredOn,
             Integer version,
-            String contentEntries, LocalDateTime updatedAt) {
+            List<ContentEntry> contentEntries,
+            LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.contentEntries = contentEntries;
         this.updatedAt = updatedAt;
@@ -42,9 +47,9 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
-        primitives.put("content_entries", contentEntries);
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
+        primitives.put("content_entries", contentEntries.stream().map(ContentEntry::getId).map(ContentEntryId::toString).toList());
         primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
     }
@@ -53,7 +58,7 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     public ContentBankEntriesUpdatedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {
@@ -63,7 +68,12 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                (String) body.get("content_entries"),
+                Utils.toMap(body.get("content_entries"), new TypeReference<List<String>>() {
+                }).stream().map(contentEntryId -> {
+                    var contentEntry = new ContentEntry();
+                    contentEntry.setId(ContentEntryId.map(contentEntryId));
+                    return contentEntry;
+                }).toList(),
                 Utils.stringToDate((String) body.get("updated_at")));
     }
 }

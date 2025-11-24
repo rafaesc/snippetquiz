@@ -22,7 +22,9 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -136,20 +138,20 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
 
         String topic = Utils.getEventName(TopicsAddedIntegrationEvent.class);
 
-        java.util.List<String> topics = java.util.List.of("java", "spring");
-        java.util.HashMap<String, java.io.Serializable> attributes = new java.util.HashMap<>();
+        List<String> topics = List.of("java", "spring");
+        HashMap<String, Object> attributes = new java.util.HashMap<>();
         attributes.put("aggregate_id", java.util.UUID.randomUUID().toString());
         attributes.put("user_id", java.util.UUID.randomUUID().toString());
-        attributes.put("topics", Utils.toJson(topics));
+        attributes.put("topics", topics);
 
-        java.util.HashMap<String, java.io.Serializable> data = new java.util.HashMap<>();
+        HashMap<String, Serializable> data = new java.util.HashMap<>();
         data.put("event_id", java.util.UUID.randomUUID().toString());
         data.put("version", 0);
         data.put("type", topic);
         data.put("occurred_on", "2024-01-01T00:00:00");
         data.put("attributes", attributes);
 
-        java.util.HashMap<String, java.io.Serializable> root = new java.util.HashMap<>();
+        HashMap<String, Serializable> root = new java.util.HashMap<>();
         root.put("data", data);
         root.put("meta", new java.util.HashMap<>());
 

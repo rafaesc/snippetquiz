@@ -51,5 +51,15 @@
     }
   },
   "updateContentCommand": "bash .devcontainer/setup.sh",
-  "forwardPorts": [3000, 4173, 8080, 5000, 9292, 7001]
+  "forwardPorts": [
+    3000,
+    4173,
+    8080,
+    5000,
+    9292,
+    7001
+  ],
+  "runArgs": [
+    "--network=snippetquiz"
+  ]
 }

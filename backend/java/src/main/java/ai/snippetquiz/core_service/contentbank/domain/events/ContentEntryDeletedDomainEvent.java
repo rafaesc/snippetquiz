@@ -34,7 +34,7 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
+    public HashMap<String, Object> toPrimitives() {
         return new HashMap<>();
     }
 
@@ -42,7 +42,7 @@ public class ContentEntryDeletedDomainEvent extends DomainEvent implements Deact
     public ContentEntryDeletedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {

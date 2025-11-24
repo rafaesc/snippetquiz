@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)
@@ -27,7 +30,6 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
     private LocalDateTime updatedAt;
     private ContentEntryCount contentEntriesCount;
     private List<QuizQuestion> quizQuestions;
-
 
     public QuizQuestionsAddedDomainEvent(
             UUID aggregateId,
@@ -55,8 +57,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
             QuizStatus status,
             LocalDateTime updatedAt,
             ContentEntryCount contentEntriesCount,
-            List<QuizQuestion> quizQuestions
-    ) {
+            List<QuizQuestion> quizQuestions) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.quizTopics = quizTopics;
         this.status = status;
@@ -70,13 +71,13 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
     }
 
     @Override
-    public HashMap<String, Serializable> toPrimitives() {
-        var primitives = new HashMap<String, Serializable>();
-        primitives.put("quiz_topics", Utils.toJson(quizTopics));
+    public HashMap<String, Object> toPrimitives() {
+        var primitives = new HashMap<String, Object>();
+        primitives.put("quiz_topics", quizTopics);
         primitives.put("status", status);
         primitives.put("updated_at", Utils.dateToString(updatedAt));
-        primitives.put("content_entries_count", Utils.toJson(contentEntriesCount));
-        primitives.put("quiz_questions", Utils.toJson(quizQuestions));
+        primitives.put("content_entries_count", Utils.toMap(contentEntriesCount));
+        primitives.put("quiz_questions", quizQuestions.stream().map(Utils::toMap).toList());
         return primitives;
     }
 
@@ -84,7 +85,7 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
     public QuizQuestionsAddedDomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
-            HashMap<String, Serializable> body,
+            HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {
@@ -94,12 +95,12 @@ public class QuizQuestionsAddedDomainEvent extends DomainEvent {
                 eventId,
                 occurredOn,
                 version,
-                Utils.fromJson((String) body.get("quiz_topics"), new TypeReference<>() {
+                Utils.getMapper().convertValue(body.get("quiz_topics"), new TypeReference<Set<String>>() {
                 }),
                 QuizStatus.valueOf((String) body.get("status")),
                 Utils.stringToDate((String) body.get("updated_at")),
-                Utils.fromJson((String) body.get("content_entries_count"), ContentEntryCount.class),
-                Utils.fromJson((String) body.get("quiz_questions"), new TypeReference<>() {
+                Utils.getMapper().convertValue(body.get("content_entries_count"), ContentEntryCount.class),
+                Utils.getMapper().convertValue(body.get("quiz_questions"), new TypeReference<List<QuizQuestion>>() {
                 }));
     }
 }

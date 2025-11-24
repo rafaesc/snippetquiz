@@ -32,9 +32,6 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 # Copy full application source code and config
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate --schema=prisma/db-postgres/schema.prisma
-
 # Build TypeScript project (outputs to /dist)
 RUN npm run build
 

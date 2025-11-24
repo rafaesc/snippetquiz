@@ -1,18 +1,20 @@
 package ai.snippetquiz.core_service.shared.domain;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 import ai.snippetquiz.core_service.shared.domain.bus.event.BaseEvent;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.experimental.UtilityClass;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
 @UtilityClass
 public class Utils {
@@ -22,6 +24,7 @@ public class Utils {
     static {
         mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
         mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 
     public static String dateToString(LocalDateTime dateTime) {
@@ -39,6 +42,19 @@ public class Utils {
 
             throw new RuntimeException("Error serializing object to JSON ", e);
         }
+    }
+
+    public static Map<String, Object> toMap(Object object) {
+        return mapper.convertValue(object, new TypeReference<>() {
+        });
+    }
+
+    public static <T> T toMap(Object object, Class<T> clazz) {
+        return mapper.convertValue(object, clazz);
+    }
+
+    public static <T> T toMap(Object object, TypeReference<T> typeReference) {
+        return mapper.convertValue(object, typeReference);
     }
 
     public static <T> T fromJson(String json, Class<T> clazz) {

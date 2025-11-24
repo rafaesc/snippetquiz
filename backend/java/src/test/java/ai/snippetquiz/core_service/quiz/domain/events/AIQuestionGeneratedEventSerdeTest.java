@@ -45,14 +45,14 @@ class AIQuestionGeneratedEventSerdeTest {
         List<HashMap<String, Serializable>> questions = List.of(question);
         contentEntry.put("questions", (Serializable) questions);
 
-        HashMap<String, Serializable> attributes = new HashMap<>();
+        HashMap<String, Object> attributes = new HashMap<>();
         attributes.put("aggregate_id", aggregateId.toString());
         attributes.put("user_id", userId.toString());
         attributes.put("total_content_entries", 1);
         attributes.put("total_content_entries_skipped", 0);
         attributes.put("current_content_entry_index", 0);
         attributes.put("questions_generated_so_far", 0);
-        attributes.put("content_entry", Utils.toJson(contentEntry));
+        attributes.put("content_entry", contentEntry);
         attributes.put("total_chunks", 1);
         attributes.put("current_chunk_index", 0);
         attributes.put("bank_id", bankId.toString());
