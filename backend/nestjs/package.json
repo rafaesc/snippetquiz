@@ -17,11 +17,17 @@
     "prisma:generate:auth": "prisma generate --schema=prisma/auth-service/schema.prisma",
     "prisma:migrate:auth": "prisma migrate dev --schema=prisma/auth-service/schema.prisma",
     "prisma:deploy:auth": "npx prisma migrate deploy --schema=prisma/auth-service/schema.prisma",
+<<<<<<< HEAD
     "prisma:generate:ai-content-service": "prisma generate --schema=prisma/ai-content-service/schema.prisma",
     "prisma:migrate:ai-content-service": "prisma migrate dev --schema=prisma/ai-content-service/schema.prisma",
     "prisma:seed:ai-content-service": "ts-node prisma/ai-content-service/seed.ts",
     "prisma:deploy:ai-content-service": "npx prisma migrate deploy --schema=prisma/ai-content-service/schema.prisma",
     "build:seed": "webpack --config webpack.seed.config.js",
+=======
+    "prisma:generate:ai-processor": "prisma generate --schema=prisma/ai-processor/schema.prisma",
+    "prisma:migrate:ai-processor": "prisma migrate dev --schema=prisma/ai-processor/schema.prisma",
+    "prisma:deploy:ai-processor": "npx prisma migrate deploy --schema=prisma/ai-processor/schema.prisma",
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

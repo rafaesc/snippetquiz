@@ -1,4 +1,5 @@
 x-common-environment: &common-env
+<<<<<<< HEAD
   POSTGRESQL_USER: user
   POSTGRESQL_PASSWORD: pass
   POSTGRESQL_HOST: db
@@ -23,6 +24,35 @@ x-common-environment: &common-env
   KAFKA_HOST: "broker"
   KAFKA_PORT: "29092"
   OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+=======
+    POSTGRESQL_USER: user
+    POSTGRESQL_PASSWORD: pass
+    POSTGRESQL_HOST: db
+    POSTGRESQL_PORT: 5432
+    POSTGRESQL_DATABASE: devdb
+    POSTGRESQL_PRISMA_AUTH_URL: "postgresql://user:pass@db:5432/devdb?schema=auth"
+    POSTGRESQL_PRISMA_AI_PROCESSOR_URL: "postgresql://user:pass@db:5432/devdb?schema=ai_processor"
+    REDIS_HOST: cache
+    REDIS_PORT: 6379
+    REDIS_PASSWORD: redispass
+    JWT_AUTH_SECRET: "your-secret-key"
+    JWT_AUTH_REFRESH_SECRET: "your-refresh-secret-key"
+    JWT_AUTH_EXPIRES_IN: "15m"
+    JWT_AUTH_REFRESH_EXPIRES_IN: "7d"
+    JWT_AUTH_VERIFICATION_SECRET: "your-verification-secret-key"
+    JWT_AUTH_VERIFICATION_EXPIRES_IN: "24h"
+    COOKIE_SECRET: "your-cookie-secret"
+    API_URL: "http://api-gateway:5000"
+    API_GATEWAY_PORT: 5000
+    AUTH_SERVICE_PORT: 6000
+    AUTH_SERVICE_HOST: "auth-service"
+    CORE_SERVICE_PORT: 7001
+    CORE_SERVICE_HOST: "core-service"
+    EMAIL_USERNAME: ${EMAIL_USERNAME}
+    EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    KAFKA_HOST: "broker"
+    KAFKA_PORT: "29092"
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 
 services:
   api-gateway:
@@ -57,6 +87,18 @@ services:
       - ./backend/nestjs/prisma/ai-content-service:/usr/src/backend/nestjs/prisma/ai-content-service
     ports:
       - "3004:3004"
+    environment:
+      <<: *common-env
+
+  ai-processor:
+    build: 
+      context: ./backend/nestjs
+      dockerfile: apps/ai-processor/Dockerfile
+    volumes:
+      - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
+      - ./backend/nestjs/prisma/ai-processor:/usr/src/backend/nestjs/prisma/ai-processor
+    ports:
+      - "50051:50051"
     environment:
       <<: *common-env
 

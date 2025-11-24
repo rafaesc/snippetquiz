@@ -11,6 +11,7 @@
   "monorepo": true,
   "root": "apps/api-gateway",
   "projects": {
+<<<<<<< HEAD
     "ai-content-service": {
       "type": "application",
       "root": "apps/ai-content-service",
@@ -18,6 +19,15 @@
       "sourceRoot": "apps/ai-content-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/ai-content-service/tsconfig.app.json"
+=======
+    "ai-processor": {
+      "type": "application",
+      "root": "apps/ai-processor",
+      "entryFile": "main",
+      "sourceRoot": "apps/ai-processor/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ai-processor/tsconfig.app.json"
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
       }
     },
     "api-gateway": {

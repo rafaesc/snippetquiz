@@ -134,7 +134,10 @@ class ContentBankEventsJsonSerdeTest {
                 userId,
                 contentBankId,
                 contentType,
+<<<<<<< HEAD
                 status,
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                 content,
                 sourceUrl,
                 pageTitle,
@@ -216,7 +219,11 @@ class ContentBankEventsJsonSerdeTest {
         List<String> topics = List.of("java", "spring");
         LocalDateTime updatedAt = LocalDateTime.of(2024, 9, 10, 11, 12, 13);
 
+<<<<<<< HEAD
         ContentEntryTopicAddedDomainEvent original = new ContentEntryTopicAddedDomainEvent(aggregateId, userId, topics, ContentEntryStatus.ANALYZED.name(),
+=======
+        ContentEntryTopicAddedDomainEvent original = new ContentEntryTopicAddedDomainEvent(aggregateId, userId, topics,
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                 updatedAt);
 
         ContentEntryTopicAddedDomainEvent reconstructed = roundtrip(original);

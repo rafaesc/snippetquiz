@@ -170,7 +170,11 @@ jobs:
     env:
       NODE_ENV: test
       POSTGRESQL_PRISMA_AUTH_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=auth
+<<<<<<< HEAD
       POSTGRESQL_PRISMA_AI_CONTENT_SERVICE_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=ai_content_service
+=======
+      POSTGRESQL_PRISMA_AI_PROCESSOR_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=ai_processor
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_PASSWORD: "test_pass"
@@ -241,9 +245,87 @@ jobs:
         if: matrix.service == 'ai-content-service'
         run: npm run prisma:deploy:ai-content-service
 
+<<<<<<< HEAD
       - name: Build Seed (AI Content Service)
         if: matrix.service == 'ai-content-service'
         run: npm run build:seed
+=======
+      - name: Build ai-processor
+        run: npm run build ai-processor
+
+  # Integration Tests
+#  integration-tests:
+#    name: Integration Tests
+#    runs-on: ubuntu-latest
+#    needs: [test-and-build-java, test-and-build-nestjs, test-and-build-python]
+#    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success' || needs.test-and-build-python.result == 'success')
+#
+#    services:
+#      postgres:
+#        image: postgres:15
+#        env:
+#          POSTGRES_USER: test_user
+#          POSTGRES_PASSWORD: test_pass
+#          POSTGRES_DB: test_db
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#      redis:
+#        image: redis:6.2-alpine
+#        ports:
+#          - 6379:6379
+#        options: >-
+#          --health-cmd "redis-cli ping"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#      kafka:
+#        image: confluentinc/cp-kafka:latest
+#        env:
+#          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+#          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#        ports:
+#          - 9092:9092
+#
+#      zookeeper:
+#        image: confluentinc/cp-zookeeper:latest
+#        env:
+#          ZOOKEEPER_CLIENT_PORT: 2181
+#          ZOOKEEPER_TICK_TIME: 2000
+#        ports:
+#          - 2181:2181
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup Docker Compose
+#        run: |
+#          docker-compose -f docker-compose.yml up -d --build
+#          sleep 60
+#
+#      - name: Run integration tests
+#        run: |
+#          # Test API Gateway health
+#          curl -f http://localhost:5000/health || exit 1
+#          
+#          # Test Auth Service health
+#          curl -f http://localhost:6000/health || exit 1
+#          
+#          # Test Core Service health
+#          curl -f http://localhost:7000/actuator/health || exit 1
+#
+#      - name: Cleanup
+#        if: always()
+#        run: docker-compose -f docker-compose.yml down -v
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 
       - name: Build ${{ matrix.service }}
         run: npm run build ${{ matrix.service }}

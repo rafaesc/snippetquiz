@@ -33,7 +33,11 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
+<<<<<<< HEAD
 RUN npm run prisma:generate:auth
+=======
+RUN npx prisma generate --schema=prisma/auth-service/schema.prisma
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build auth-service

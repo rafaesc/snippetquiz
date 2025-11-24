@@ -363,7 +363,10 @@ class ContentEntryServiceImplTest {
                     100,
                     "vid",
                     null);
+<<<<<<< HEAD
             source.updatedTopics(List.of(new Topic(source.getUserId(), "bank"), new Topic(source.getUserId(), "demo")));
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
             entryId = source.getId(); // align test entryId with real source
             var targetBank = new ContentBank(bankId, userId, "Target Bank");
             when(contentEntryRepository.findByIdAndUserId(entryId, userId)).thenReturn(Optional.of(source));

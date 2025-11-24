@@ -62,7 +62,12 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
             String pageTitle,
             Integer youtubeVideoDuration,
             String youtubeVideoId,
+<<<<<<< HEAD
             YoutubeChannel youtubeChannel) {
+=======
+            YoutubeChannel youtubeChannel
+    ) {
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         var contentEntryId = UUID.randomUUID();
         var now = LocalDateTime.now();
         Integer wordCount = null;
@@ -163,7 +168,10 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 getId().getValue(),
                 userId,
                 topics.stream().map(Topic::getTopic).toList(),
+<<<<<<< HEAD
                 ContentEntryStatus.ANALYZED.name(),
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                 now));
     }
 

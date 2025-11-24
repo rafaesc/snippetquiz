@@ -7,7 +7,10 @@ import ai.snippetquiz.core_service.question.application.dto.CreateQuestionReques
 import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
 import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
+<<<<<<< HEAD:backend/java/src/main/java/ai/snippetquiz/core_service/quiz/application/consumer/AIQuestionGeneratedHandler.java
 import ai.snippetquiz.core_service.quiz.domain.events.QuizProgressEphemeralEvent;
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven):backend/java/src/main/java/ai/snippetquiz/core_service/quiz/application/consumer/AiQuestionGeneratedHandler.java
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
@@ -110,6 +113,7 @@ public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
 
             quizService.processNewQuizQuestions(quiz, status);
 
+<<<<<<< HEAD:backend/java/src/main/java/ai/snippetquiz/core_service/quiz/application/consumer/AIQuestionGeneratedHandler.java
             var quizProgressEphemeralEvent = new QuizProgressEphemeralEvent(
                     quizUuid,
                     userUuid,
@@ -124,6 +128,9 @@ public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
 
             eventBus.publish(QuizProgressEphemeralEvent.eventName(), List.of(quizProgressEphemeralEvent));
 
+=======
+            eventPubSubBus.publish(e);
+>>>>>>> 363c56c (feat: core service and ai processor event driven):backend/java/src/main/java/ai/snippetquiz/core_service/quiz/application/consumer/AiQuestionGeneratedHandler.java
             log.info("Quiz created successfully Quiz ID: {}", quizUuid);
         } catch (Exception ex) {
             log.error("Failed to handle integration event for quiz: {}", event.getAggregateId(), ex);

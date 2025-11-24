@@ -41,6 +41,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 1
 
+<<<<<<< HEAD
   init-kafka:
     image: apache/kafka:4.0.0
     depends_on:
@@ -49,6 +50,28 @@ services:
       - ./infra/broker/entrypoint.sh:/entrypoint.sh
     command: [ "/entrypoint.sh" ]
 
+=======
+  # ai-processor:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: python/Dockerfile.dev
+  #   container_name: snippetquiz-ai-processor
+  #   ports:
+  #     - "50051:50051"
+  #   environment:
+  #     AI_GENERATION_SERVICE_PORT: 50051
+  #     AI_GENERATION_SERVICE_HOST: "0.0.0.0"
+  #     KAFKA_HOST: "broker"
+  #     KAFKA_PORT: "29092"
+  #     CORE_SERVICE_HOST: "host.docker.internal"
+  #     CORE_SERVICE_PORT: "7001"
+  #   depends_on:
+  #     - broker
+  #   volumes:
+  #     - ./backend/python:/usr/src/app
+  #     - ./backend/protos:/usr/src/backend/protos
+  
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
   kafdrop:
     image: obsidiandynamics/kafdrop
     container_name: kafdrop

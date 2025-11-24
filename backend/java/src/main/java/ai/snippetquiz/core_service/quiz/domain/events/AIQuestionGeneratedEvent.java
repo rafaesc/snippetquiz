@@ -4,12 +4,19 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import lombok.AllArgsConstructor;
+<<<<<<< HEAD
 import lombok.Builder;
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+<<<<<<< HEAD
+=======
+import java.io.Serializable;
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +37,10 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+<<<<<<< HEAD
     @Builder
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
     public static class ContentEntryDto {
         private String id;
         private String pageTitle;
@@ -103,7 +113,11 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
                 (Integer) body.get("total_content_entries_skipped"),
                 (Integer) body.get("current_content_entry_index"),
                 (Integer) body.get("questions_generated_so_far"),
+<<<<<<< HEAD
                 Utils.toMap(body.get("content_entry"), ContentEntryDto.class),
+=======
+                 Utils.toMap(body.get("content_entry"), ContentEntryDto.class),
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                 (Integer) body.get("total_chunks"),
                 (Integer) body.get("current_chunk_index"),
                 UUID.fromString((String) body.get("bank_id")));

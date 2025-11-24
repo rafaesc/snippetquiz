@@ -15,6 +15,28 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+<<<<<<< HEAD
+=======
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      java: ${{ steps.filter.outputs.java }}
+      nestjs: ${{ steps.filter.outputs.nestjs }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            java:
+              - 'backend/java/**'
+            nestjs:
+              - 'backend/nestjs/**'
+            frontend:
+              - 'frontend/**'
+
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
@@ -95,8 +117,74 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+<<<<<<< HEAD
           generate_release_notes: true
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+=======
+          context: ./backend/nestjs
+          file: ./backend/nestjs/apps/auth-service/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
+
+      - name: Build and push AI Processor Service
+        if: ${{ needs.changes.outputs.nestjs == 'true' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/nestjs
+          file: ./backend/nestjs/apps/ai-processor/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-processor:latest
+
+      - name: Setup Java
+        if: ${{ needs.changes.outputs.java == 'true' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build Java Service
+        if: ${{ needs.changes.outputs.java == 'true' }}
+        run: ./gradlew build
+        working-directory: ./backend/java
+
+      - name: Build and push Core Service
+        if: ${{ needs.changes.outputs.java == 'true' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/java
+          file: ./backend/java/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-core-service:latest
+
+      - name: Setup Node.js
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build Frontend
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        run: npm run build
+        working-directory: ./frontend
+
+      - name: Build and push Frontend
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          build-args: |
+            API_URL=http://localhost:5000
+          push: true
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-frontend:latest
+>>>>>>> 363c56c (feat: core service and ai processor event driven)

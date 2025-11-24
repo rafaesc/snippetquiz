@@ -24,9 +24,14 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
     @Override
     @SneakyThrows
     public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, UUID aggregateId) {
+<<<<<<< HEAD
         Sort domainEventSort = Sort.by(Sort.Direction.ASC, "version");
         var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(),
                 aggregateId, domainEventSort);
+=======
+        var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(),
+                aggregateId);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 
         return domainEventEntities.stream()
                 .map(domainEventEntity -> {

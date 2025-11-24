@@ -6,7 +6,10 @@
 
 generator client {
   provider = "prisma-client-js"
+<<<<<<< HEAD
   binaryTargets = ["native", "linux-musl", "rhel-openssl-3.0.x"]  // first one is for cross-platform, second one for docker, last one for serverless environment. safe to include all
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
   output   = "../../generated/prisma/auth-service"
 }
 

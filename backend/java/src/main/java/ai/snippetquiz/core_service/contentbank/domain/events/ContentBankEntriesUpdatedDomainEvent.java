@@ -10,6 +10,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+<<<<<<< HEAD
+=======
+import java.io.Serializable;
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +26,12 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     private List<ContentEntry> contentEntries;
     private LocalDateTime updatedAt;
 
+<<<<<<< HEAD
     public ContentBankEntriesUpdatedDomainEvent(UUID aggregateId, UserId userId, List<ContentEntry> contentEntries,
             LocalDateTime updatedAt) {
+=======
+    public ContentBankEntriesUpdatedDomainEvent(UUID aggregateId, UserId userId, List<ContentEntry> contentEntries, LocalDateTime updatedAt) {
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         super(aggregateId, userId.getValue());
         this.contentEntries = contentEntries;
         this.updatedAt = updatedAt;
@@ -49,8 +57,12 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Object> toPrimitives() {
         var primitives = new HashMap<String, Object>();
+<<<<<<< HEAD
         primitives.put("content_entries",
                 contentEntries.stream().map(ContentEntry::getId).map(ContentEntryId::toString).toList());
+=======
+        primitives.put("content_entries", contentEntries.stream().map(ContentEntry::getId).map(ContentEntryId::toString).toList());
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
     }

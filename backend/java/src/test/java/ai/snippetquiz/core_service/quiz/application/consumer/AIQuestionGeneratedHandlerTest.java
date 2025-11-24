@@ -3,6 +3,14 @@ package ai.snippetquiz.core_service.quiz.application.consumer;
 import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntry;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+<<<<<<< HEAD:backend/java/src/test/java/ai/snippetquiz/core_service/quiz/application/consumer/AIQuestionGeneratedHandlerTest.java
+=======
+import ai.snippetquiz.core_service.quiz.application.service.QuizService;
+import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
+import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
+import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
+import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
+>>>>>>> 363c56c (feat: core service and ai processor event driven):backend/java/src/test/java/ai/snippetquiz/core_service/quiz/application/consumer/AiQuestionGeneratedHandlerTest.java
 import ai.snippetquiz.core_service.question.application.QuestionService;
 import ai.snippetquiz.core_service.question.application.dto.CreateQuestionRequest;
 import ai.snippetquiz.core_service.quiz.application.service.QuizService;
@@ -88,5 +96,9 @@ class AIQuestionGeneratedHandlerTest {
         verify(eventBus, times(1)).publish(eq(entry.aggregateType()), any());
         verify(eventBus, times(1)).publish(eq(QuizProgressEphemeralEvent.eventName()), any());
         verify(quizService, times(1)).processNewQuizQuestions(eq(quiz), any());
+<<<<<<< HEAD:backend/java/src/test/java/ai/snippetquiz/core_service/quiz/application/consumer/AIQuestionGeneratedHandlerTest.java
+=======
+        verify(eventPubSubBus, times(1)).publish(any(AIQuestionGeneratedEvent.class));
+>>>>>>> 363c56c (feat: core service and ai processor event driven):backend/java/src/test/java/ai/snippetquiz/core_service/quiz/application/consumer/AiQuestionGeneratedHandlerTest.java
     }
 }

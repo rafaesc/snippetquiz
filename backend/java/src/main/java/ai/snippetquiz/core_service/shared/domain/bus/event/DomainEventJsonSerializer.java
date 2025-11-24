@@ -12,6 +12,7 @@ public class DomainEventJsonSerializer {
         attributes.put("aggregate_id", domainEvent.getAggregateId());
         attributes.put("user_id", domainEvent.getUserId());
 
+<<<<<<< HEAD
         return Utils.toJson(new HashMap<String, Object>() {
             {
                 put("data", new HashMap<String, Object>() {
@@ -26,6 +27,18 @@ public class DomainEventJsonSerializer {
                 put("meta", new HashMap<String, Object>());
             }
         });
+=======
+        return Utils.toJson(new HashMap<String, Object>() {{
+            put("data", new HashMap<String, Object>() {{
+                put("event_id", domainEvent.getEventId());
+                put("version", domainEvent.getVersion());
+                put("type", Utils.getEventName(domainEvent.getClass()));
+                put("occurred_on", domainEvent.getOccurredOn());
+                put("attributes", attributes);
+            }});
+            put("meta", new HashMap<String, Object>());
+        }});
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
     }
 
     public static <T extends DomainEvent> String serializePrimitives(T domainEvent) {

@@ -16,14 +16,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
     private List<String> topics;
+<<<<<<< HEAD
     private String status;
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
     private LocalDateTime updatedAt;
 
     public ContentEntryTopicAddedDomainEvent(
             UUID aggregateId,
             UserId userId,
             List<String> topics,
+<<<<<<< HEAD
             String status,
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue());
         this.topics = topics;
@@ -38,7 +44,10 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             String occurredOn,
             Integer version,
             List<String> topics,
+<<<<<<< HEAD
             String status,
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
@@ -74,7 +83,10 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
                 occurredOn,
                 version,
                 (List<String>) body.get("topics"),
+<<<<<<< HEAD
                 (String) body.get("status"),
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                 Utils.stringToDate((String) body.get("updated_at")));
     }
 }

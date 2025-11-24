@@ -21,6 +21,11 @@ public abstract class DomainEvent extends BaseEvent {
         super();
     }
 
+<<<<<<< HEAD
+=======
+    public abstract HashMap<String, Object> toPrimitives();
+
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
     public DomainEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,

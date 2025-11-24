@@ -51,8 +51,12 @@ class ContentEntryTest {
 
     @Test
     void constructor_initializesFieldsCorrectly() {
+<<<<<<< HEAD
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+=======
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 
         assertNotNull(contentEntry.getId());
         assertEquals(userId, contentEntry.getUserId());
@@ -80,8 +84,12 @@ class ContentEntryTest {
 
     @Test
     void update_recordsEvent_and_updatesContent() {
+<<<<<<< HEAD
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+=======
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         String updatedContent = "This is the updated content";
         String updatedPageTitle = "Updated Example Page";
 
@@ -95,8 +103,12 @@ class ContentEntryTest {
 
     @Test
     void delete_recordsEvent() {
+<<<<<<< HEAD
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+=======
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         contentEntry.delete();
         assertTrue(contentEntry.pullUncommittedChanges().stream()
                 .anyMatch(event -> event instanceof ContentEntryDeletedDomainEvent));
@@ -104,8 +116,12 @@ class ContentEntryTest {
 
     @Test
     void updatedTopics_recordsEvent() {
+<<<<<<< HEAD
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+=======
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         Topic topic = new Topic(userId, "New Topic");
         List<Topic> topics = Collections.singletonList(topic);
 
@@ -117,8 +133,12 @@ class ContentEntryTest {
 
     @Test
     void serialization_succeeds() throws JsonProcessingException {
+<<<<<<< HEAD
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+=======
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         String json = objectMapper.writeValueAsString(contentEntry);
         assertNotNull(json);
         assertTrue(json.contains(content));
@@ -126,8 +146,12 @@ class ContentEntryTest {
 
     @Test
     void questionsGenerated_recordsEvent_and_setsFlag_without_duplicates() {
+<<<<<<< HEAD
         ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+=======
+        ContentEntry contentEntry = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
 
         contentEntry.questionsGenerated();
 
@@ -143,10 +167,14 @@ class ContentEntryTest {
 
     @Test
     void duplicateConstructor_recordsCreatedEvent_and_copiesFields_toNewBank() {
+<<<<<<< HEAD
         ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
 
         source.updatedTopics(List.of(new Topic(source.getUserId(), "bank"), new Topic(source.getUserId(), "demo")));
+=======
+        ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle, videoDuration, youtubeVideoId, youtubeChannel);
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         ContentBankId targetBankId = new ContentBankId(UUID.randomUUID());
 
         ContentEntry duplicated = new ContentEntry(source, targetBankId);

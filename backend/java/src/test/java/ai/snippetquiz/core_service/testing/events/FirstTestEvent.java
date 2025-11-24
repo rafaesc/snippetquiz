@@ -4,6 +4,7 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 @NoArgsConstructor

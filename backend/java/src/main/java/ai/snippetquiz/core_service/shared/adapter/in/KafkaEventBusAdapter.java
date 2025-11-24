@@ -26,7 +26,11 @@ public class KafkaEventBusAdapter implements EventBus {
     private void publish(final String aggregateType, BaseEvent domainEvent) {
         try {
             log.info("Publishing domain event={} - aggregate_id={} - {} to topic={}", Utils.getEventName(domainEvent.getClass()), domainEvent.getAggregateId(), domainEvent.toPrimitives().toString(), aggregateType);
+<<<<<<< HEAD:backend/java/src/main/java/ai/snippetquiz/core_service/shared/adapter/in/KafkaEventBusAdapter.java
             String serializedDomainEvent =  DomainEventJsonSerializer.serialize((DomainEvent) domainEvent);
+=======
+            String serializedDomainEvent =  DomainEventJsonSerializer.serialize(domainEvent);
+>>>>>>> 363c56c (feat: core service and ai processor event driven):backend/java/src/main/java/ai/snippetquiz/core_service/shared/adapter/in/KafkaEventBus.java
 
             kafkaTemplate
                     .send(aggregateType, domainEvent.getAggregateId().toString(), serializedDomainEvent)

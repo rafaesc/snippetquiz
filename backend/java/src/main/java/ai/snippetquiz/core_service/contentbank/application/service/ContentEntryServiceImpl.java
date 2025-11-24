@@ -79,6 +79,11 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                                         });
                 }
 
+<<<<<<< HEAD
+=======
+                ContentEntry resultEntry = null;
+
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                 // Check for existing entry with same sourceUrl and type 'full_html'
                 ContentEntry existingEntry = null;
                 if (ContentType.FULL_HTML.equals(type) && Objects.nonNull(sourceUrl)) {
@@ -134,7 +139,10 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                                 contentEntry.getId().toString(),
                                 contentEntry.getContentType().getValue(),
                                 truncateContent(contentEntry.getContent(), 200),
+<<<<<<< HEAD
                                 contentEntry.getStatus().name(),
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                                 contentEntry.getSourceUrl(),
                                 contentEntry.getPageTitle(),
                                 contentEntry.getCreatedAt(),
@@ -162,7 +170,10 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                                         entry.getId().toString(),
                                         entry.getContentType().getValue(),
                                         truncateContent(entry.getContent(), 200),
+<<<<<<< HEAD
                                         entry.getStatus().name(),
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
                                         entry.getSourceUrl(),
                                         entry.getPageTitle(),
                                         entry.getCreatedAt(),
@@ -206,7 +217,10 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         }
 
         @Override
+<<<<<<< HEAD
         @Transactional
+=======
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
         public void remove(UserId userId, ContentEntryId entryId) {
                 var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));

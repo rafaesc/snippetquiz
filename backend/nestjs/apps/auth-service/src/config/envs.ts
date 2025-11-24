@@ -2,8 +2,14 @@ import 'dotenv/config';
 import * as joi from 'joi';
 
 interface EnvVars {
+<<<<<<< HEAD
   KAFKA_HOST: string;
   KAFKA_PORT: number;
+=======
+  AUTH_SERVICE_PORT: number;
+  CORE_SERVICE_PORT: number;
+  CORE_SERVICE_HOST: string;
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
   POSTGRESQL_PRISMA_AUTH_URL: string;
   JWT_AUTH_SECRET: string;
   JWT_AUTH_REFRESH_SECRET: string;
@@ -20,8 +26,14 @@ interface EnvVars {
 
 const envSchema = joi
   .object({
+<<<<<<< HEAD
     KAFKA_HOST: joi.string().required(),
     KAFKA_PORT: joi.number().required(),
+=======
+    AUTH_SERVICE_PORT: joi.number().required(),
+    CORE_SERVICE_PORT: joi.number().required(),
+    CORE_SERVICE_HOST: joi.string().default('localhost'),
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
     POSTGRESQL_PRISMA_AUTH_URL: joi.string().required(),
     JWT_AUTH_SECRET: joi.string().required(),
     JWT_AUTH_REFRESH_SECRET: joi.string().required(),
@@ -46,7 +58,11 @@ if (error) {
 export const envsVars: EnvVars = value;
 
 export const envs = {
+<<<<<<< HEAD
   authServicePort: 3002,
+=======
+  authServicePort: envsVars.AUTH_SERVICE_PORT,
+>>>>>>> 363c56c (feat: core service and ai processor event driven)
   databaseUrlPostgres: envsVars.POSTGRESQL_PRISMA_AUTH_URL,
   jwtAuthSecret: envsVars.JWT_AUTH_SECRET,
   jwtAuthRefreshSecret: envsVars.JWT_AUTH_REFRESH_SECRET,
