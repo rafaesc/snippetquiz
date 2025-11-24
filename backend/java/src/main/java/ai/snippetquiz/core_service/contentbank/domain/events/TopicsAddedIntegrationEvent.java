@@ -1,13 +1,9 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.EqualsAndHashCode;
@@ -26,8 +22,7 @@ public class TopicsAddedIntegrationEvent extends IntegrationEvent {
             UUID eventId,
             String occurredOn,
             Integer version,
-            List<String> topics
-    ) {
+            List<String> topics) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
     }
@@ -43,15 +38,13 @@ public class TopicsAddedIntegrationEvent extends IntegrationEvent {
             HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
-            Integer version
-    ) {
+            Integer version) {
         return new TopicsAddedIntegrationEvent(
                 aggregateId,
                 new UserId(userId),
                 eventId,
                 occurredOn,
                 version,
-                (List<String>) body.get("topics")
-        );
+                (List<String>) body.get("topics"));
     }
 }

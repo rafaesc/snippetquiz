@@ -8,7 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -41,7 +40,6 @@ public class QuizAnswerMarkedDomainEvent extends DomainEvent {
         this.quizQuestionResponse = quizQuestionResponse;
         this.isAllQuestionsMarked = isAllQuestionsMarked;
     }
-
 
     public static String eventName() {
         return "quiz.answer.marked";

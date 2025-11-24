@@ -5,18 +5,14 @@ import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankDeletedD
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankEntriesUpdatedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentBankRenamedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
-import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 @Data

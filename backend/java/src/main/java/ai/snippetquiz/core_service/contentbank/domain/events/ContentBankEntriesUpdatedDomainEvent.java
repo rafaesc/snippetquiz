@@ -10,7 +10,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,8 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     private List<ContentEntry> contentEntries;
     private LocalDateTime updatedAt;
 
-    public ContentBankEntriesUpdatedDomainEvent(UUID aggregateId, UserId userId, List<ContentEntry> contentEntries, LocalDateTime updatedAt) {
+    public ContentBankEntriesUpdatedDomainEvent(UUID aggregateId, UserId userId, List<ContentEntry> contentEntries,
+            LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue());
         this.contentEntries = contentEntries;
         this.updatedAt = updatedAt;
@@ -49,7 +49,8 @@ public class ContentBankEntriesUpdatedDomainEvent extends DomainEvent {
     @Override
     public HashMap<String, Object> toPrimitives() {
         var primitives = new HashMap<String, Object>();
-        primitives.put("content_entries", contentEntries.stream().map(ContentEntry::getId).map(ContentEntryId::toString).toList());
+        primitives.put("content_entries",
+                contentEntries.stream().map(ContentEntry::getId).map(ContentEntryId::toString).toList());
         primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
     }

@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 

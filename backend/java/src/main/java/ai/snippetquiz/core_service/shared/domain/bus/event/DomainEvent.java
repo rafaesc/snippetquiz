@@ -1,6 +1,5 @@
 package ai.snippetquiz.core_service.shared.domain.bus.event;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -14,16 +13,13 @@ public abstract class DomainEvent extends BaseEvent {
             UUID userId,
             UUID eventId,
             String occurredOn,
-            Integer version
-    ) {
+            Integer version) {
         super(aggregateId, userId, eventId, occurredOn, version);
     }
 
     protected DomainEvent() {
         super();
     }
-
-    public abstract HashMap<String, Object> toPrimitives();
 
     public DomainEvent fromPrimitives(
             UUID aggregateId,

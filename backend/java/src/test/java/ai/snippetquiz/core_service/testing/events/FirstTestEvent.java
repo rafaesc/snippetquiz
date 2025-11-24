@@ -3,9 +3,7 @@ package ai.snippetquiz.core_service.testing.events;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.UUID;
 
 @NoArgsConstructor
@@ -20,8 +18,7 @@ public class FirstTestEvent extends DomainEvent {
             UUID userId,
             UUID eventId,
             String occurredOn,
-            Integer version
-    ) {
+            Integer version) {
         super(aggregateId, userId, eventId, occurredOn, version);
     }
 

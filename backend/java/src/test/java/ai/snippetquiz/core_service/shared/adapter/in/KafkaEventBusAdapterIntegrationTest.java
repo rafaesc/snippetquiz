@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Testcontainers
-class KafkaEventBusIntegrationTest {
+class KafkaEventBusAdapterIntegrationTest {
 
     @Test
     void event_bus_publishes_message_to_kafka_with_expected_key_and_payload() {
@@ -57,7 +57,7 @@ class KafkaEventBusIntegrationTest {
             consumer.subscribe(Collections.singletonList(topic));
 
             // Instantiate EventBus with KafkaTemplate
-            KafkaEventBus eventBus = new KafkaEventBus(kafkaTemplate);
+            KafkaEventBusAdapter eventBus = new KafkaEventBusAdapter(kafkaTemplate);
 
             // Prepare a domain event and publish
             var userId = new UserId(UUID.randomUUID());

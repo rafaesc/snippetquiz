@@ -7,9 +7,9 @@ import ai.snippetquiz.core_service.question.application.dto.CreateQuestionReques
 import ai.snippetquiz.core_service.question.application.dto.QuestionOptionRequest;
 import ai.snippetquiz.core_service.quiz.application.service.QuizService;
 import ai.snippetquiz.core_service.quiz.domain.events.AIQuestionGeneratedEvent;
+import ai.snippetquiz.core_service.quiz.domain.events.QuizProgressEphemeralEvent;
 import ai.snippetquiz.core_service.quiz.domain.model.Quiz;
 import ai.snippetquiz.core_service.quiz.domain.model.QuizStatus;
-import ai.snippetquiz.core_service.quiz.domain.port.messaging.EventPubSubBus;
 import ai.snippetquiz.core_service.quiz.domain.valueobject.QuizId;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEvent;
@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -34,7 +35,6 @@ public class AiQuestionGeneratedHandler implements IntegrationEventSubscriber {
     private final QuizService quizService;
     private final ContentEntryRepository contentEntryRepository;
     private final QuestionService questionService;
-    private final EventPubSubBus eventPubSubBus;
     private final EventBus eventBus;
 
     @Override
@@ -109,9 +109,22 @@ public class AiQuestionGeneratedHandler implements IntegrationEventSubscriber {
 
             quizService.processNewQuizQuestions(quiz, status);
 
-            eventPubSubBus.publish(e);
-            log.info("Quiz created successfully Quiz ID: {}", quizUuid);
+            var quizProgressEphemeralEvent = new QuizProgressEphemeralEvent(
+                    quizUuid,
+                    userUuid,
+                    e.getBankId(),
+                    e.getTotalContentEntries(),
+                    e.getTotalContentEntriesSkipped(),
+                    e.getCurrentContentEntryIndex(),
+                    e.getQuestionsGeneratedSoFar(),
+                    e.getContentEntry(),
+                    e.getTotalChunks(),
+                    e.getCurrentChunkIndex()
+            );
 
+            eventBus.publish(QuizProgressEphemeralEvent.eventName(), List.of(quizProgressEphemeralEvent));
+
+            log.info("Quiz created successfully Quiz ID: {}", quizUuid);
         } catch (Exception ex) {
             log.error("Failed to handle integration event for quiz: {}", event.getAggregateId(), ex);
             throw ex;
