@@ -23,6 +23,7 @@ CREATE TABLE "ai_processor"."event_processed" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "user_id" UUID NOT NULL,
     "event_type" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "event_processed_pkey" PRIMARY KEY ("id")
 );

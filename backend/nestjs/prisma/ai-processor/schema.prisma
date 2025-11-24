@@ -42,6 +42,7 @@ model EventProcessed {
   id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String @map("user_id") @db.Uuid
   eventType String @map("event_type") @db.Text
+  createdAt DateTime @map("created_at") @db.Timestamp(3) @default(now())
 
   @@index([id, userId])
   @@map("event_processed")

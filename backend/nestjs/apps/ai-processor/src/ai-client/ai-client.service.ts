@@ -170,7 +170,7 @@ export class AiClientService implements OnModuleInit {
             try {
                 const cleanedResponse = this.cleanJsonResponse(response);
                 if (!cleanedResponse) {
-                    this.logger.error('No valid JSON block found in response');
+                    this.logger.error(`No valid JSON block found in response: ${response}`);
                     return { questions: [], summary: '' };
                 }
 

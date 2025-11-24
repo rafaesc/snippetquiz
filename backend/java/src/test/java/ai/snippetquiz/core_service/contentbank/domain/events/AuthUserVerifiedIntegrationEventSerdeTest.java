@@ -7,33 +7,30 @@ import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class TopicsAddedIntegrationEventSerdeTest {
+class AuthUserVerifiedIntegrationEventSerdeTest {
 
     @Test
-    void deserialize_reconstructs_topics_added_integration_event() throws Exception {
+    void deserialize_reconstructs_auth_user_verified_integration_event() throws Exception {
         UUID aggregateId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
+        UUID userId = aggregateId;
         UUID eventId = UUID.randomUUID();
         String occurredOn = "2024-01-01T00:00:00";
         int version = 0;
-        List<String> topics = List.of("java", "spring");
 
         HashMap<String, Object> attributes = new HashMap<>();
         attributes.put("aggregate_id", aggregateId.toString());
         attributes.put("user_id", userId.toString());
-        attributes.put("topics", topics);
 
         HashMap<String, Serializable> data = new HashMap<>();
         data.put("event_id", eventId.toString());
         data.put("version", version);
-        data.put("type", Utils.getEventName(TopicsAddedIntegrationEvent.class));
+        data.put("type", Utils.getEventName(AuthUserVerifiedIntegrationEvent.class));
         data.put("occurred_on", occurredOn);
         data.put("attributes", attributes);
 
@@ -49,12 +46,11 @@ class TopicsAddedIntegrationEventSerdeTest {
         var result = deserializer.deserialize(json);
 
         assertNotNull(result);
-        assertInstanceOf(TopicsAddedIntegrationEvent.class, result);
-        var reconstructed = (TopicsAddedIntegrationEvent) result;
+        assertInstanceOf(AuthUserVerifiedIntegrationEvent.class, result);
+        var reconstructed = (AuthUserVerifiedIntegrationEvent) result;
         assertEquals(aggregateId, reconstructed.getAggregateId());
         assertEquals(userId, reconstructed.getUserId());
         assertEquals(eventId, reconstructed.getEventId());
         assertEquals(occurredOn, reconstructed.getOccurredOn());
-        assertEquals(topics, reconstructed.getTopics());
     }
 }

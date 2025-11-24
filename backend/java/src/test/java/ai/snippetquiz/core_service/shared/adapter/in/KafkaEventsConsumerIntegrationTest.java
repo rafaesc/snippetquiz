@@ -8,7 +8,7 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventsInformation;
 import ai.snippetquiz.core_service.shared.domain.bus.event.IntegrationEventSubscribersInformation;
-import ai.snippetquiz.core_service.contentbank.domain.events.TopicsAddedIntegrationEvent;
+import ai.snippetquiz.core_service.contentbank.domain.events.AITopicsAddedIntegrationEvent;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -136,7 +136,7 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
         TestIntegrationEventsSubscriber.reset();
         consumer.start();
 
-        String topic = Utils.getEventName(TopicsAddedIntegrationEvent.class);
+        String topic = Utils.getEventName(AITopicsAddedIntegrationEvent.class);
 
         List<String> topics = List.of("java", "spring");
         HashMap<String, Object> attributes = new java.util.HashMap<>();
@@ -166,7 +166,7 @@ class KafkaEventsConsumerIntegrationTest extends KafkaContainerBase {
 
         var dispatched = TestIntegrationEventsSubscriber.lastEvent();
         assertNotNull(dispatched, "Dispatched integration event should not be null");
-        assertInstanceOf(TopicsAddedIntegrationEvent.class, dispatched, "Dispatched integration event type should match produced one");
+        assertInstanceOf(AITopicsAddedIntegrationEvent.class, dispatched, "Dispatched integration event type should match produced one");
     }
 
     private KafkaProducer<String, String> buildStringProducer(String bootstrapServers) {

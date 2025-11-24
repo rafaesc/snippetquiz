@@ -107,6 +107,20 @@ CREATE TABLE IF NOT EXISTS "content_entry_topics" (
     CONSTRAINT "content_entry_topics_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "event_processed" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "event_type" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "event_processed_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "event_processed_id_user_id_idx" ON "event_processed"("id", "user_id");
+
+-- CreateIndex
 CREATE INDEX "content_entry_topics_content_entry_id_prefix_idx"
 ON "content_entry_topics" ("content_entry_id");
 

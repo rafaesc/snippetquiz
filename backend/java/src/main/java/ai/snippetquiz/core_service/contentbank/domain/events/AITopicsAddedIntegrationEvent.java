@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class TopicsAddedIntegrationEvent extends IntegrationEvent {
+public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
     private List<String> topics;
 
-    public TopicsAddedIntegrationEvent(
+    public AITopicsAddedIntegrationEvent(
             UUID aggregateId,
             UserId userId,
             UUID eventId,
@@ -32,14 +32,14 @@ public class TopicsAddedIntegrationEvent extends IntegrationEvent {
     }
 
     @Override
-    public TopicsAddedIntegrationEvent fromPrimitives(
+    public AITopicsAddedIntegrationEvent fromPrimitives(
             UUID aggregateId,
             UUID userId,
             HashMap<String, Object> body,
             UUID eventId,
             String occurredOn,
             Integer version) {
-        return new TopicsAddedIntegrationEvent(
+        return new AITopicsAddedIntegrationEvent(
                 aggregateId,
                 new UserId(userId),
                 eventId,

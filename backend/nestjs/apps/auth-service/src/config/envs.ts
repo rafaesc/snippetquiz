@@ -3,8 +3,8 @@ import * as joi from 'joi';
 
 interface EnvVars {
   AUTH_SERVICE_PORT: number;
-  CORE_SERVICE_PORT: number;
-  CORE_SERVICE_HOST: string;
+  KAFKA_HOST: string;
+  KAFKA_PORT: number;
   POSTGRESQL_PRISMA_AUTH_URL: string;
   JWT_AUTH_SECRET: string;
   JWT_AUTH_REFRESH_SECRET: string;
@@ -22,8 +22,8 @@ interface EnvVars {
 const envSchema = joi
   .object({
     AUTH_SERVICE_PORT: joi.number().required(),
-    CORE_SERVICE_PORT: joi.number().required(),
-    CORE_SERVICE_HOST: joi.string().default('localhost'),
+    KAFKA_HOST: joi.string().required(),
+    KAFKA_PORT: joi.number().required(),
     POSTGRESQL_PRISMA_AUTH_URL: joi.string().required(),
     JWT_AUTH_SECRET: joi.string().required(),
     JWT_AUTH_REFRESH_SECRET: joi.string().required(),
@@ -62,5 +62,6 @@ export const envs = {
   cookieSecret: envsVars.COOKIE_SECRET,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',
-  coreBaseUrl: `http://${envsVars.CORE_SERVICE_HOST}:${envsVars.CORE_SERVICE_PORT}/api`,
+  kafkaHost: envsVars.KAFKA_HOST,
+  kafkaPort: envsVars.KAFKA_PORT,
 };
