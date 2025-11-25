@@ -12,7 +12,10 @@ SnippetQuiz turns web content into interactive quizzes. The system includes a we
 - Browser Extension: Captures page text and transcripts and submits content to the system.
 - Infra: Container orchestration and database setup.
 
-## Architecture Diagram
+## Architecture Diagrams
+
+### 1. System Context (High Level)
+High-level overview of system components and their interactions.
 
 ```mermaid
 flowchart LR
@@ -23,50 +26,148 @@ flowchart LR
 
   subgraph Gateway["API Gateway"]
     G[REST Proxy]
-    WS[Real-time Server]
-    AUTH[Auth Endpoints]
+    REDIS[(Redis Cache JWT)]
+    WS[Real-time Websocket Server]
   end
 
   subgraph AuthService["Auth Service"]
-    JWT[Token issue/verify]
+    AUTH[Auth Endpoints]
+    AUTHP[Auth Producer]
+    PG1[(Relational DB)]
   end
 
   subgraph Core["Core Service"]
-    API[Core REST]
+    API[Command Handler]
+    QUERY[Query Handler]
     CONSUMERS[Message Consumers]
-    FANOUT[Fanout Publisher]
-    PROJ[Read Projections]
+    FANOUT[Ephimeral Publisher]
+    PG2[(Relational DB)]
   end
 
-  subgraph AI["AI Worker"]
-    PYCONSUMER[Worker]
+  subgraph AI["AI Processor"]
+    PYCONSUMER[Consumer]
     LLM[AI Clients]
+    PG3[(Relational DB)]
   end
 
   subgraph Messaging
-    K[Message Bus]
-    R[Pub/Sub Cache]
+    K[Kafka Event Bus]
+    R[Pub/Sub Redis Cache]
   end
 
-  subgraph DB
-    PG[(Relational DB)]
-  end
-
-  D --> AUTH
-  D --> G
   X --> G
-  G --> JWT
-  G --> API
-  API --> K
-  PYCONSUMER --> K
+  D --> G
+  G --> |JWT| API
+  G --> |JWT| AUTH
+  AUTHP --> K
   PYCONSUMER --> K
   CONSUMERS --> K
-  CONSUMERS --> PG
   FANOUT --> R
+  API --> K
   WS --> R
   WS --> D
   D --> WS
-  AUTH --> R
+```
+
+### 2. Core Service: Event Sourcing & CQRS
+Internal architecture of the Core Service, showing how events are persisted and consumed to build projections.
+
+```mermaid
+flowchart TD
+  subgraph API["Quiz API Layer"]
+    CMD[Command Handler]
+    QUERY[Query Handler]
+  end
+
+  subgraph ReadSide["Read Side CQRS"]
+    CONSUMER[Event Consumer]
+    PROJ[Projection Handler]
+    READDB[(Read DB Tables)]
+  end
+
+  subgraph Domain["Domain Layer"]
+    AGG[Quiz Aggregate Root]
+    ES[Event Sourcing Handler]
+  end
+
+  subgraph EventStore["Event Bus"]
+    REPO[Domain Event Repository]
+    EVTBL[(Event Store Table)]
+    BUS[Event Bus]
+    KAFKA[Kafka Topics]
+  end
+
+  %% Write Side Flow
+  CMD --> AGG
+  QUERY --> READDB
+  AGG --> ES
+  ES --> REPO
+  REPO --> EVTBL
+  REPO -->|publish| BUS
+  BUS --> KAFKA
+
+  %% Read Side Flow
+  KAFKA -.->|consume| CONSUMER
+  CONSUMER --> PROJ
+  PROJ --> READDB
+
+  %% Rebuild from Events
+```
+
+### 3. AI Generation Workflow
+Asynchronous flow for generating questions and topics using the AI Processor.
+
+```mermaid
+flowchart TD
+  subgraph CoreService["Core Service (Java)"]
+    QUIZ[Quiz Aggregate]
+    CEA[Content Entry Aggregate]
+    QEVT[QuizCreated Event]
+    CEAEV[ContentEntryCreated Event]
+  end
+
+  subgraph AIProcessor["AI Processor (NestJS)"]
+    QCONS[Quiz Consumer]
+    CCONS[Content Entry Consumer]
+    LLM1[LLM API]
+    LLM2[LLM API]
+    CESTORE[(Content Entry DB)]
+  end
+
+
+  subgraph CoreConsumer["Core Service Consumer "]
+    AICONS[AI Event Consumer]
+    QHANDLER[Question Handler]
+    QSTORE[(Questions DB)]
+  end
+
+  subgraph RealTime["Real-Time"]
+    REDIS[Redis Pub/Sub]
+    WS[WebSocket Server]
+    UI[Dashboard UI]
+  end
+
+  %% Quiz Creation Flow
+  QUIZ -->|publish| QEVT
+  CEA -->|publish| CEAEV
+  QEVT -.->|quiz.aggregate Topic| QCONS
+  CEAEV -.->|content-entry.event Topic| CCONS
+
+  %% AI Processing
+  QCONS -->LLM1
+  CCONS -->LLM2
+  LLM2 -->CESTORE
+  LLM1 -->|ai-processor.questions.generated Topic|AICONS
+  
+
+  %% Publish Results
+  AICONS --> QHANDLER
+  QHANDLER --> QSTORE
+
+  %% Progress Updates
+  QHANDLER -->REDIS
+  REDIS -.-> WS
+  WS -.-> UI
 ```
 
 ## Core Flows
@@ -80,7 +181,7 @@ flowchart LR
   - The AI worker consumes generation requests, chunks content, calls AI models, and emits generation progress and results as events.
   - The core service consumes generation events, persists questions, advances quiz status, and fanouts progress to the UI.
 - Real‑time
-  - The gateway’s real‑time server subscribes to fanout messages and streams progress/completion to the browser.
+  - The gateway's real‑time server subscribes to fanout messages and streams progress/completion to the browser.
 
 ## Data Model (high level)
 - Content Banks: User‑scoped containers grouping entries.

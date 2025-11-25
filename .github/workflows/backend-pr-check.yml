@@ -241,8 +241,8 @@ jobs:
 #  integration-tests:
 #    name: Integration Tests
 #    runs-on: ubuntu-latest
-#    needs: [test-and-build-java, test-and-build-nestjs, test-and-build-python]
-#    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success' || needs.test-and-build-python.result == 'success')
+#    needs: [test-and-build-java, test-and-build-nestjs]
+#    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success')
 #
 #    services:
 #      postgres:
@@ -304,7 +304,7 @@ jobs:
 #          curl -f http://localhost:6000/health || exit 1
 #          
 #          # Test Core Service health
-#          curl -f http://localhost:7000/actuator/health || exit 1
+#          curl -f http://localhost:7001/actuator/health || exit 1
 #
 #      - name: Cleanup
 #        if: always()
