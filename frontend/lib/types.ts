@@ -67,6 +67,7 @@ export interface ContentEntry {
   id: string;
   contentType: 'full_html' | 'selected_text' | 'video_transcript';
   content?: string;
+  status: 'PENDING' | 'ANALYZED';
   sourceUrl?: string;
   pageTitle?: string;
   createdAt: string;

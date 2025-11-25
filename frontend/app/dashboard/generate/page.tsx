@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -55,6 +56,7 @@ export default function GenerateQuiz() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
   const [createQuizError, setCreateQuizError] = useState<string | null>(null);
+  const [showPendingWarning, setShowPendingWarning] = useState(false);
 
   const entriesPerPage = 10;
 
@@ -108,9 +110,24 @@ export default function GenerateQuiz() {
     if (!selectedBank || !entriesData || entriesData.page.totalElements === 0)
       return;
 
+    // Check if there are any PENDING entries
+    const hasPendingEntries = entries.some(
+      (entry) => entry.status === "PENDING"
+    );
+
+    if (hasPendingEntries) {
+      setShowPendingWarning(true);
+      return;
+    }
+
+    await proceedWithQuizCreation();
+  };
+
+  const proceedWithQuizCreation = async () => {
     try {
       setIsCreatingQuiz(true);
       setCreateQuizError(null);
+      setShowPendingWarning(false);
 
       // Step 1: Create the quiz using the new API endpoint
       const clientQuizId = uuidv4();
@@ -195,6 +212,29 @@ export default function GenerateQuiz() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Pending Entries Warning Dialog */}
+      <AlertDialog open={showPendingWarning} onOpenChange={setShowPendingWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-500" />
+              Pending Entries Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Some content entries are still being processed (PENDING status). These entries may not have been fully analyzed yet. Do you want to proceed with quiz generation anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowPendingWarning(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={proceedWithQuizCreation}>
+              Proceed Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Generate Quiz</h1>
@@ -270,10 +310,10 @@ export default function GenerateQuiz() {
               {entriesLoading
                 ? "Loading entries..."
                 : entriesError
-                ? "Failed to load entries"
-                : entriesData
-                ? `Showing ${entries.length} of ${entriesData.page.totalElements} entries (Page ${currentPage} of ${totalEntryPages})`
-                : "No entries found"}
+                  ? "Failed to load entries"
+                  : entriesData
+                    ? `Showing ${entries.length} of ${entriesData.page.totalElements} entries (Page ${currentPage} of ${totalEntryPages})`
+                    : "No entries found"}
             </p>
           </CardHeader>
           <CardContent>
@@ -290,13 +330,13 @@ export default function GenerateQuiz() {
                   Failed to load content entries for this bank.
                 </AlertDescription>
               </Alert>
-            ) : entries.length > 0 ? (
+            ) : entries.filter((entry) => entry.status === "ANALYZED").length > 0 ? (
               <>
                 <div className="space-y-3">
                   {entries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-start space-x-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      className={`flex items-start space-x-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors ${entry.status === "PENDING" ? "opacity-50" : ""}`}
                     >
                       <div className="flex-shrink-0 mt-0.5">
                         {getMediaTypeIcon(entry.contentType)}
@@ -412,8 +452,7 @@ export default function GenerateQuiz() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  This content bank appears to be empty. Add some content
-                  entries to generate a quiz.
+                  This content bank appears {entries.length === 0 ? "to be empty. Add some content entries to generate a quiz." : "to have no entries analyzed. Go back when entries are analyzed."}.
                 </AlertDescription>
               </Alert>
             )}
@@ -430,6 +469,7 @@ export default function GenerateQuiz() {
             !selectedBank ||
             !entriesData ||
             entriesData.page.totalElements === 0 ||
+            entriesData.content.filter((entry) => entry.status === "ANALYZED").length === 0 ||
             entriesLoading ||
             isCreatingQuiz
           }

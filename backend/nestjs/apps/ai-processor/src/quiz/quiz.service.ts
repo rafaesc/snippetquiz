@@ -37,7 +37,7 @@ export class QuizService {
             const entriesSkipped = event.entriesSkipped;
 
             this.logger.log(
-                `📋 Received CREATE QUIZ event Quiz ID: ${quizId}, User ID: ${userId}, Bank ID: ${bankId}, Content Entries Count: ${contentEntryIds.length}`,
+                `Received quiz creation event - Quiz ID: ${quizId}, User ID: ${userId}, Bank ID: ${bankId}, Content entries: ${contentEntryIds.length}`,
             );
 
             // Fetch content entries from DB
@@ -71,9 +71,9 @@ export class QuizService {
                         });
                     }
 
-                    this.logger.log(`✅ Fetched ${contentEntries.length} content entries from DB`);
+                    this.logger.debug(`Fetched ${contentEntries.length} content entries from database`);
                 } catch (error) {
-                    this.logger.error(`❌ Error fetching content entries from DB: ${error.message}`);
+                    this.logger.error(`Failed to fetch content entries from database: ${error.message}`);
                     throw error;
                 }
             }
@@ -87,13 +87,13 @@ export class QuizService {
                 }
             }
 
-            this.logger.log(
-                `📊 Total chunks to process: ${totalChunks} (chunk size: ${this.chunkSize}) Quiz ID: ${quizId}`,
+            this.logger.debug(
+                `Processing ${totalChunks} total chunks (chunk size: ${this.chunkSize} chars) for quiz ${quizId}`,
             );
 
             // Check if content entries is empty
             if (contentEntries.length === 0) {
-                this.logger.log(`📭 No content entries to process for Quiz ID: ${quizId}`);
+                this.logger.debug(`No content entries to process for quiz ${quizId}`);
 
                 // Send empty event
                 const emptyEvent = new AIQuestionGeneratedEvent(
@@ -110,7 +110,7 @@ export class QuizService {
                 );
 
                 await this.eventBusService.publish(emptyEvent);
-                this.logger.log(`📤 Sent empty content entries event for Quiz ID: ${quizId}`);
+                this.logger.log(`Published empty content entries event for quiz ${quizId}`);
 
                 // Mark event as processed
                 await this.eventProcessorService.saveEventProcessed(event);
@@ -126,16 +126,16 @@ export class QuizService {
                 const { id: entryId, pageTitle, content } = entry;
 
                 if (!content) {
-                    this.logger.log(
-                        `📄 Entry ${entryIndex + 1} (ID: ${entryId}): '${pageTitle}' - No content`,
+                    this.logger.debug(
+                        `Entry ${entryIndex + 1} (ID: ${entryId}, Title: '${pageTitle}') - Skipping, no content available`,
                     );
                     continue;
                 }
 
                 // Calculate number of chunks for this entry
                 const entryChunks = Math.ceil(content.length / this.chunkSize);
-                this.logger.log(
-                    `  📄 Entry ${entryIndex + 1} (ID: ${entryId}): '${pageTitle}' - ${content.length} chars -> ${entryChunks} chunks`,
+                this.logger.debug(
+                    `Processing entry ${entryIndex + 1}/${contentEntries.length} (ID: ${entryId}, Title: '${pageTitle}') - ${content.length} chars, ${entryChunks} chunks`,
                 );
 
                 // Initialize summaries list for this content entry
@@ -173,8 +173,8 @@ export class QuizService {
                             summaries = [result.summary];
                         }
 
-                        this.logger.log(
-                            `Generated ${chunkQuestions.length} questions from chunk ${chunkIndex + 1}`,
+                        this.logger.debug(
+                            `Generated ${chunkQuestions.length} questions from chunk ${chunkIndex + 1}/${entryChunks} (entry ${entryIndex + 1})`,
                         );
                     } catch (error) {
                         this.logger.error(
@@ -213,7 +213,7 @@ export class QuizService {
 
                     // Increment the global chunk index
                     currentChunkIndex++;
-                    this.logger.log(`📈 Total questions generated so far: ${totalQuestionsGenerated}`);
+                    this.logger.log(`Progress: ${currentChunkIndex}/${totalChunks} chunks processed, ${totalQuestionsGenerated} questions generated`);
 
                     // 20 second delay between chunks (to avoid rate limiting)
                     if (currentChunkIndex < totalChunks) {
@@ -222,7 +222,7 @@ export class QuizService {
                 }
             }
 
-            this.logger.log(`🎯 Final total questions generated: ${totalQuestionsGenerated}`);
+            this.logger.log(`Quiz ${quizId} processing complete - Total questions generated: ${totalQuestionsGenerated}`);
 
             // Mark event as processed
             await this.eventProcessorService.saveEventProcessed(event);

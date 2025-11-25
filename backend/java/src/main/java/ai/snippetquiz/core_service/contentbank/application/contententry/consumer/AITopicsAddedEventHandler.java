@@ -35,7 +35,7 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
             log.warn("Received unexpected integration event type: {}", event.getClass().getName());
             return;
         }
-        log.info("Received TopicsAddedIntegrationEvent: {}", e.getAggregateId());
+        log.info("Received AITopicsAddedIntegrationEvent: {}", e.getAggregateId());
 
         try {
             var contentId = e.getAggregateId();
@@ -82,6 +82,7 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
             }
 
             contentEntry.updatedTopics(topics);
+            contentEntryRepository.save(contentEntry);
             log.info("Successfully created and linked {} topics to content entry {}",
                     topicsCreated, contentId);
 
