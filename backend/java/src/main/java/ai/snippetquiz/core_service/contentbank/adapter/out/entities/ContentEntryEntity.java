@@ -52,9 +52,6 @@ public class ContentEntryEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "prompt_summary", columnDefinition = "TEXT")
-    private String promptSummary;
-
     @Column(name = "questions_generated", nullable = false)
     private Boolean questionsGenerated = false;
 

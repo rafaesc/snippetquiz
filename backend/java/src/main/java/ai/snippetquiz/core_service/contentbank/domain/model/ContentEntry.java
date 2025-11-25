@@ -43,7 +43,6 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private String pageTitle;
     private ContentEntryStatus status;
     private LocalDateTime createdAt;
-    private String promptSummary;
     private Boolean questionsGenerated;
     private Integer wordCount;
     private Integer videoDuration;

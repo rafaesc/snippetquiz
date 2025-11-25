@@ -76,6 +76,7 @@ class AIAITopicsAddedEventHandlerTest {
         consumer.on(event);
 
         verify(topicRepository, times(2)).save(any());
+        verify(contentEntryRepository, times(1)).save(any());
         verify(contentEntryTopicRepository, times(2)).save(any(ContentEntryTopic.class));
         assertNotNull(entry.getId());
     }
