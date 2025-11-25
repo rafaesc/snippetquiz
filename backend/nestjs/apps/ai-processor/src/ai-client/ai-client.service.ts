@@ -103,6 +103,10 @@ export class AiClientService implements OnModuleInit {
                     return result;
                 }
 
+                if (result && Array.isArray(result.topics)) {
+                    return result.topics;
+                }
+
                 this.logger.warn(`Unexpected JSON structure: ${JSON.stringify(result)}`);
                 return [];
             } catch (e) {
@@ -165,57 +169,57 @@ export class AiClientService implements OnModuleInit {
             );
         }
 
-        if (response) {
-            // Clean and parse the JSON response
-            try {
-                const cleanedResponse = this.cleanJsonResponse(response);
-                if (!cleanedResponse) {
-                    this.logger.error(`No valid JSON block found in response: ${response}`);
-                    return { questions: [], summary: '' };
-                }
+        return this.parseQuizResponse(response, messages, jsonSchema, 0);
+    }
 
-                const result = JSON.parse(cleanedResponse);
-                return {
-                    questions: result.questions || [],
-                    summary: result.summary || '',
-                };
-            } catch (e) {
-                this.logger.error(`Failed to parse JSON response: ${e}`);
-                this.logger.debug(`Raw response: ${response}`);
+    /**
+     * Recursively parse quiz response with retry logic
+     */
+    private async parseQuizResponse(
+        response: string | null,
+        messages: any[],
+        jsonSchema: Record<string, any>,
+        retryCount: number,
+        maxRetries: number = 1,
+    ): Promise<{ questions: any[]; summary: string }> {
+        const emptyResult = { questions: [], summary: '' };
 
-                // Retry with a fresh request if JSON parsing fails
-                this.logger.warn('JSON parsing failed, retrying request once...');
+        if (!response) {
+            this.logger.error(
+                'Failed to generate quiz questions after retry, returning empty result',
+            );
+            return emptyResult;
+        }
+
+        try {
+            const cleanedResponse = this.cleanJsonResponse(response);
+            if (!cleanedResponse) {
+                this.logger.error(`No valid JSON block found in response: ${response}`);
+                return emptyResult;
+            }
+
+            const result = JSON.parse(cleanedResponse);
+            return {
+                questions: result.questions || [],
+                summary: result.summary || '',
+            };
+        } catch (e) {
+            this.logger.error(`Failed to parse JSON response: ${e}`);
+            this.logger.debug(`Raw response: ${response}`);
+
+            // Retry with a fresh request if we haven't exceeded max retries
+            if (retryCount < maxRetries) {
+                this.logger.warn(`JSON parsing failed, retrying request (attempt ${retryCount + 1}/${maxRetries})...`);
                 const retryResponse = await this.generateCompletion(
                     messages,
                     1500,
                     jsonSchema,
                 );
-
-                if (retryResponse) {
-                    try {
-                        const cleanedRetryResponse = this.cleanJsonResponse(retryResponse);
-                        if (!cleanedRetryResponse) {
-                            this.logger.error('No valid JSON block found in retry response');
-                            return { questions: [], summary: '' };
-                        }
-
-                        const retryResult = JSON.parse(cleanedRetryResponse);
-                        return {
-                            questions: retryResult.questions || [],
-                            summary: retryResult.summary || '',
-                        };
-                    } catch (retryE) {
-                        this.logger.error(`Retry also failed to parse JSON: ${retryE}`);
-                        this.logger.debug(`Retry response: ${retryResponse}`);
-                    }
-                }
-                return { questions: [], summary: '' };
+                return this.parseQuizResponse(retryResponse, messages, jsonSchema, retryCount + 1, maxRetries);
             }
-        } else {
-            this.logger.error(
-                'Failed to generate quiz questions after retry, returning empty result',
-            );
-            return { questions: [], summary: '' };
+
+            this.logger.error('Max retries exceeded, returning empty result');
+            return emptyResult;
         }
     }
 

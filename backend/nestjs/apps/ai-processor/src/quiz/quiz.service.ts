@@ -10,6 +10,7 @@ import { AiClientService } from '../ai-client/ai-client.service';
 export class QuizService {
     private readonly logger = new Logger(QuizService.name);
     private readonly chunkSize = 2500; // Configurable chunk size
+    private readonly delayBetweenChunks = 20000; // 20 seconds delay between chunks
 
     constructor(
         private readonly prisma: PrismaService,
@@ -216,7 +217,7 @@ export class QuizService {
 
                     // 20 second delay between chunks (to avoid rate limiting)
                     if (currentChunkIndex < totalChunks) {
-                        await this.delay(20000);
+                        await this.delay(this.delayBetweenChunks);
                     }
                 }
             }

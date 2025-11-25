@@ -145,6 +145,8 @@ class ContentEntryTest {
     void duplicateConstructor_recordsCreatedEvent_and_copiesFields_toNewBank() {
         ContentEntry source = new ContentEntry(userId, contentBankId, contentType, content, sourceUrl, pageTitle,
                 videoDuration, youtubeVideoId, youtubeChannel);
+
+        source.updatedTopics(List.of(new Topic(source.getUserId(), "bank"), new Topic(source.getUserId(), "demo")));
         ContentBankId targetBankId = new ContentBankId(UUID.randomUUID());
 
         ContentEntry duplicated = new ContentEntry(source, targetBankId);
@@ -156,6 +158,7 @@ class ContentEntryTest {
         assertEquals(source.getContent(), duplicated.getContent());
         assertEquals(source.getSourceUrl(), duplicated.getSourceUrl());
         assertEquals(source.getPageTitle(), duplicated.getPageTitle());
+        assertEquals(source.getStatus(), duplicated.getStatus());
         assertEquals(source.getWordCount(), duplicated.getWordCount());
         assertEquals(source.getVideoDuration(), duplicated.getVideoDuration());
         assertEquals(source.getYoutubeVideoId(), duplicated.getYoutubeVideoId());

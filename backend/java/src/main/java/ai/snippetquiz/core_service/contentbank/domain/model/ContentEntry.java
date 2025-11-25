@@ -7,6 +7,7 @@ import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryTopicAd
 import ai.snippetquiz.core_service.contentbank.domain.events.ContentEntryUpdatedDomainEvent;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryStatus;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.YoutubeChannelId;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.entity.AggregateRoot;
@@ -40,6 +41,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     private String content;
     private String sourceUrl;
     private String pageTitle;
+    private ContentEntryStatus status;
     private LocalDateTime createdAt;
     private String promptSummary;
     private Boolean questionsGenerated;
@@ -61,8 +63,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
             String pageTitle,
             Integer youtubeVideoDuration,
             String youtubeVideoId,
-            YoutubeChannel youtubeChannel
-    ) {
+            YoutubeChannel youtubeChannel) {
         var contentEntryId = UUID.randomUUID();
         var now = LocalDateTime.now();
         Integer wordCount = null;
@@ -80,6 +81,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 userId,
                 contentBankId.toString(),
                 type.toString(),
+                ContentEntryStatus.PENDING,
                 processedContent,
                 sourceUrl,
                 pageTitle,
@@ -92,15 +94,19 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
     }
 
     public ContentEntry(ContentEntry contentEntry, ContentBankId contentBankId) {
+        if (contentEntry.getStatus().equals(ContentEntryStatus.PENDING)) {
+            throw new IllegalArgumentException("Content entry status is PENDING");
+        }
+
         var contentEntryId = UUID.randomUUID();
         var now = LocalDateTime.now();
-
 
         record(new ContentEntryCreatedDomainEvent(
                 contentEntryId,
                 contentEntry.getUserId(),
                 contentBankId.toString(),
                 contentEntry.getContentType().toString(),
+                contentEntry.getStatus(),
                 contentEntry.getContent(),
                 contentEntry.getSourceUrl(),
                 contentEntry.getPageTitle(),
@@ -119,6 +125,7 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
         this.contentType = ContentType.valueOf(event.getContentType());
         this.content = event.getContent();
         this.sourceUrl = event.getSourceUrl();
+        this.status = event.getStatus();
         this.pageTitle = event.getPageTitle();
         this.createdAt = event.getCreatedAt();
         this.questionsGenerated = false;
@@ -157,11 +164,13 @@ public class ContentEntry extends AggregateRoot<ContentEntryId> {
                 getId().getValue(),
                 userId,
                 topics.stream().map(Topic::getTopic).toList(),
+                ContentEntryStatus.ANALYZED.name(),
                 now));
     }
 
     public void apply(ContentEntryTopicAddedDomainEvent event) {
         this.createdAt = event.getUpdatedAt();
+        this.status = ContentEntryStatus.valueOf(event.getStatus());
     }
 
     public void questionsGenerated() {

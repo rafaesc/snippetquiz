@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS "content_entries" (
     "source_url" TEXT,
     "page_title" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "prompt_summary" TEXT,
+    "status" VARCHAR(50) NOT NULL,
     "questions_generated" BOOLEAN NOT NULL DEFAULT false,
     "word_count" INTEGER,
     "video_duration" INTEGER,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS "content_entries" (
 CREATE TABLE IF NOT EXISTS "questions" (
     "id" BIGSERIAL NOT NULL,
     "question" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
+    "type" VARCHAR(50) NOT NULL,
     "content_entry_id" UUID NOT NULL,
     "chunk_index" INTEGER NOT NULL,
     "question_index_in_chunk" INTEGER NOT NULL,

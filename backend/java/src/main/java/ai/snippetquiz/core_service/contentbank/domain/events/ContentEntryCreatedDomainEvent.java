@@ -3,6 +3,8 @@ package ai.snippetquiz.core_service.contentbank.domain.events;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
+
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryStatus;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
@@ -19,6 +21,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
     private String content;
     private String sourceUrl;
     private String pageTitle;
+    private ContentEntryStatus status;
     private LocalDateTime createdAt;
     private Integer wordCount;
     private Integer videoDuration;
@@ -31,6 +34,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             UserId userId,
             String contentBankId,
             String contentType,
+            ContentEntryStatus status,
             String content,
             String sourceUrl,
             String pageTitle,
@@ -44,6 +48,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
+        this.status = status;
         this.sourceUrl = sourceUrl;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -62,6 +67,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
             Integer version,
             String contentBankId,
             String contentType,
+            ContentEntryStatus status,
             String content,
             String sourceUrl,
             String pageTitle,
@@ -75,6 +81,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         this.contentBankId = contentBankId;
         this.contentType = contentType;
         this.content = content;
+        this.status = status;
         this.sourceUrl = sourceUrl;
         this.pageTitle = pageTitle;
         this.createdAt = createdAt;
@@ -94,6 +101,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
         var primitives = new HashMap<String, Object>();
         primitives.put("content_bank_id", contentBankId);
         primitives.put("content_type", contentType);
+        primitives.put("status", status.name());
         primitives.put("content", content);
         primitives.put("source_url", sourceUrl);
         primitives.put("page_title", pageTitle);
@@ -122,6 +130,7 @@ public class ContentEntryCreatedDomainEvent extends DomainEvent {
                 version,
                 (String) body.get("content_bank_id"),
                 (String) body.get("content_type"),
+                ContentEntryStatus.valueOf((String) body.get("status")),
                 (String) body.get("content"),
                 (String) body.get("source_url"),
                 (String) body.get("page_title"),
