@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.domain.events;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryStatus;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
@@ -125,6 +126,7 @@ class ContentBankEventsJsonSerdeTest {
         Integer wordCount = 1234;
         Integer videoDuration = 456;
         String youtubeVideoId = "YTv123";
+        ContentEntryStatus status = ContentEntryStatus.PENDING;
         Long youtubeChannelId = 9_876_543_210L; // ensure Long type on deserialize
 
         ContentEntryCreatedDomainEvent original = new ContentEntryCreatedDomainEvent(
@@ -132,6 +134,7 @@ class ContentBankEventsJsonSerdeTest {
                 userId,
                 contentBankId,
                 contentType,
+                status,
                 content,
                 sourceUrl,
                 pageTitle,
@@ -213,7 +216,7 @@ class ContentBankEventsJsonSerdeTest {
         List<String> topics = List.of("java", "spring");
         LocalDateTime updatedAt = LocalDateTime.of(2024, 9, 10, 11, 12, 13);
 
-        ContentEntryTopicAddedDomainEvent original = new ContentEntryTopicAddedDomainEvent(aggregateId, userId, topics,
+        ContentEntryTopicAddedDomainEvent original = new ContentEntryTopicAddedDomainEvent(aggregateId, userId, topics, ContentEntryStatus.ANALYZED.name(),
                 updatedAt);
 
         ContentEntryTopicAddedDomainEvent reconstructed = roundtrip(original);

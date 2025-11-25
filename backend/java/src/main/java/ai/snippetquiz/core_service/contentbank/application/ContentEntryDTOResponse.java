@@ -14,6 +14,7 @@ public class ContentEntryDTOResponse implements Response {
     private String id;
     private String contentType;
     private String content; // truncated to 300 chars
+    private String status;
     private String sourceUrl;
     private String pageTitle;
     private LocalDateTime createdAt;

@@ -10,6 +10,7 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepo
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryStatus;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
@@ -134,6 +135,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                                 contentEntry.getId().toString(),
                                 contentEntry.getContentType().getValue(),
                                 truncateContent(contentEntry.getContent(), 200),
+                                contentEntry.getStatus().name(),
                                 contentEntry.getSourceUrl(),
                                 contentEntry.getPageTitle(),
                                 contentEntry.getCreatedAt(),
@@ -161,6 +163,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
                                         entry.getId().toString(),
                                         entry.getContentType().getValue(),
                                         truncateContent(entry.getContent(), 200),
+                                        entry.getStatus().name(),
                                         entry.getSourceUrl(),
                                         entry.getPageTitle(),
                                         entry.getCreatedAt(),

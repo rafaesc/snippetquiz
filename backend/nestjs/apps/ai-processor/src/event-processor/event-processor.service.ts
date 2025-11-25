@@ -13,7 +13,7 @@ export class EventProcessorService {
             await this.prisma.eventProcessed.create({
                 data: {
                     id: event.eventId,
-                    userId: event.meta.user_id || event.aggregateId, // Fallback logic
+                    userId: event.userId || event.aggregateId, // Fallback logic
                     eventType: event.eventName,
                 },
             });

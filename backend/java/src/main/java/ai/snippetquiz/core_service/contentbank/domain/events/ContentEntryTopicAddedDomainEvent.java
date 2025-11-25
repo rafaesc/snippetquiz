@@ -16,15 +16,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
     private List<String> topics;
+    private String status;
     private LocalDateTime updatedAt;
 
     public ContentEntryTopicAddedDomainEvent(
             UUID aggregateId,
             UserId userId,
             List<String> topics,
+            String status,
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue());
         this.topics = topics;
+        this.status = status;
         this.updatedAt = updatedAt;
     }
 
@@ -35,9 +38,11 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
             String occurredOn,
             Integer version,
             List<String> topics,
+            String status,
             LocalDateTime updatedAt) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
+        this.status = status;
         this.updatedAt = updatedAt;
     }
 
@@ -49,6 +54,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
     public HashMap<String, Object> toPrimitives() {
         var primitives = new HashMap<String, Object>();
         primitives.put("topics", topics);
+        primitives.put("status", status);
         primitives.put("updated_at", Utils.dateToString(updatedAt));
         return primitives;
     }
@@ -68,6 +74,7 @@ public class ContentEntryTopicAddedDomainEvent extends DomainEvent {
                 occurredOn,
                 version,
                 (List<String>) body.get("topics"),
+                (String) body.get("status"),
                 Utils.stringToDate((String) body.get("updated_at")));
     }
 }

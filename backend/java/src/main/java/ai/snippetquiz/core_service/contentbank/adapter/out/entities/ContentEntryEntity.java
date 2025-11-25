@@ -1,5 +1,6 @@
 package ai.snippetquiz.core_service.contentbank.adapter.out.entities;
 
+import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryStatus;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,6 +34,10 @@ public class ContentEntryEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "content_type", nullable = false)
     private ContentType contentType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ContentEntryStatus status;
 
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
