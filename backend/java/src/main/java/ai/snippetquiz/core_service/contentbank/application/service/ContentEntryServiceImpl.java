@@ -10,7 +10,6 @@ import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepo
 import ai.snippetquiz.core_service.contentbank.domain.port.YoutubeChannelRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentBankId;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
-import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryStatus;
 import ai.snippetquiz.core_service.shared.domain.ContentType;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.shared.domain.bus.query.PagedModelResponse;
