@@ -12,6 +12,7 @@ import {
   AuthResponseDto,
 } from 'apps/commons/types';
 import { TokenService } from '../utils/token.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class CodeService {
@@ -24,7 +25,7 @@ export class CodeService {
   async generateCode(userId: string): Promise<GenerateCodeResponseDto> {
     try {
       // Generate a random 8-character alphanumeric code
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const code = crypto.randomBytes(4).toString('hex').toUpperCase();
 
       // Store the code in Redis with 5-minute expiration
       await this.redisService.storeOneTimeCode(code, userId, '5m');

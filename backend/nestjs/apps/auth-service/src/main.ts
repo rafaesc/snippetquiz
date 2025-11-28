@@ -1,23 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { AuthServiceModule } from './auth-service.module';
 import { envs } from './config/envs';
 import { Logger } from '@nestjs/common';
-import { AllRpcExceptionsFilter } from './filters/rpc-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('auth-service-bootstrap');
 
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+  const app = await NestFactory.create<NestFastifyApplication>(
     AuthServiceModule,
-    {
-      transport: Transport.TCP,
-      options: {
-        host: '0.0.0.0',
-        port: envs.authServicePort,
-      },
-    },
+    new FastifyAdapter(),
   );
 
   app.useGlobalPipes(
@@ -28,9 +24,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new AllRpcExceptionsFilter());
-
-  await app.listen();
-  logger.log(`Auth microservice running on TCP port ${envs.authServicePort}`);
+  await app.listen(envs.authServicePort, '0.0.0.0');
+  logger.log(`Auth service running on port ${envs.authServicePort}`);
 }
 bootstrap();

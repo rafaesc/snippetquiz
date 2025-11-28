@@ -1,24 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
 import { AuthCodeService } from './auth-code.service';
 import { AuthCodeController } from './auth-code.controller';
-import { envs } from '../config/envs';
-import { AUTH_SERVICE } from '../config/services';
 
 @Module({
-  imports: [
-    ClientsModule.register([
-      {
-        name: AUTH_SERVICE,
-        transport: Transport.TCP,
-        options: {
-          host: envs.authServiceHost,
-          port: envs.authServicePort,
-        },
-      },
-    ]),
-  ],
+  imports: [HttpModule],
   controllers: [AuthCodeController],
   providers: [AuthCodeService],
 })
-export class AuthCodeModule {}
+export class AuthCodeModule { }
