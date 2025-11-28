@@ -1,5 +1,4 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Controller, Post, Body } from '@nestjs/common';
 import { CodeService } from './code.service';
 import {
   GenerateCodeResponseDto,
@@ -7,20 +6,20 @@ import {
   AuthResponseDto,
 } from 'apps/commons/types';
 
-@Controller()
+@Controller('code')
 export class CodeController {
-  constructor(private readonly codeService: CodeService) {}
+  constructor(private readonly codeService: CodeService) { }
 
-  @MessagePattern('auth.generateCode')
+  @Post('generate')
   async generateCode(
-    @Payload() userId: string,
+    @Body('userId') userId: string,
   ): Promise<GenerateCodeResponseDto> {
     return this.codeService.generateCode(userId);
   }
 
-  @MessagePattern('auth.resolveCode')
+  @Post('resolve')
   async resolveCode(
-    @Payload() resolveCodeDto: ResolveCodeDto,
+    @Body() resolveCodeDto: ResolveCodeDto,
   ): Promise<AuthResponseDto> {
     return this.codeService.resolveCode(resolveCodeDto);
   }
