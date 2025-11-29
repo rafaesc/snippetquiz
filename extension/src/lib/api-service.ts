@@ -1,6 +1,6 @@
 
 import chromeStorage from '../lib/chrome-storage';
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Token management for Chrome Extension (using chrome.storage instead of cookies)
 export const tokenService = {
@@ -32,7 +32,7 @@ export const tokenService = {
   // Refresh access token using stored refresh token
   refreshAccessToken: async () => {
     const refreshToken = await tokenService.getRefreshToken();
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -51,7 +51,7 @@ export const tokenService = {
     }
 
     const data = await response.json();
-    await tokenService.setTokens(data.accessToken, data.refreshToken);
+    await tokenService.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
     return data;
   },
 
@@ -89,9 +89,9 @@ export const tokenService = {
 };
 
 // Helper function to make authenticated requests with automatic token refresh
-const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
+export const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
   let accessToken = await tokenService.getAccessToken();
-  
+
   if (!accessToken) {
     throw new Error('No access token available');
   }
@@ -111,13 +111,12 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
     try {
       await tokenService.refreshAccessToken();
       accessToken = await tokenService.getAccessToken();
-      
+
       // Retry with new token
       defaultOptions.headers = {
         'Authorization': `Bearer ${accessToken}`,
         ...options.headers,
       };
-      console.log("defaultOptions", defaultOptions)
       response = await fetch(`${API_BASE_URL}${url}`, defaultOptions);
     } catch (error) {
       await tokenService.clearTokens();
@@ -221,7 +220,7 @@ export const apiService = {
     }
 
     const data = await response.json();
-    
+
     // Store tokens in chrome storage
     if (data.tokens.accessToken && data.tokens.refreshToken) {
       await tokenService.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
@@ -251,7 +250,7 @@ export const apiService = {
     }
 
     const data = await response.json();
-    
+
     // Store tokens in chrome storage if provided
     if (data.tokens.accessToken && data.tokens.refreshToken) {
       await tokenService.setTokens(data.tokens.accessToken, data.tokens.refreshToken);

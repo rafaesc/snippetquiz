@@ -36,7 +36,7 @@ function App() {
           // Get default bank ID from storage or user settings
           const result = await chrome.storage.local.get('defaultBankId');
           const bankId = result.defaultBankId;
-          
+
           if (!bankId) {
             sendResponse({
               success: false,
@@ -44,13 +44,13 @@ function App() {
             });
             return;
           }
-          
+
           // Create content entry using API service
           const contentEntry = await apiService.contentEntry.create({
             ...request.data,
             bankId: bankId
           });
-          
+
           sendResponse({
             success: true,
             data: contentEntry
@@ -63,12 +63,12 @@ function App() {
           });
         }
       }
-      
+
       return true; // Keep message channel open for async response
     };
-    
+
     chrome.runtime.onMessage.addListener(handleMessage);
-    
+
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };

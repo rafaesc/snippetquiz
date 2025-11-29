@@ -1,3 +1,13 @@
+import {
+    MessageYoutubeTranscriptRequest,
+    MessageYoutubeTranscriptResponse,
+    YoutubeChannel,
+    YoutubeData,
+    YoutubeLanguageOption,
+    YoutubeTextData
+} from "./lib/types";
+import { GET_YOUTUBE_TRANSCRIPT } from "./lib/constants";
+
 // Configuration constants
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 500;
@@ -10,13 +20,6 @@ interface TranscriptSegment {
     index?: number;
 }
 
-interface LanguageOption {
-    language: string;
-    link: string;
-    title: string;
-    vssId: string;
-}
-
 interface TranscriptResult {
     transcripts: TranscriptSegment[];
     transcriptParams: { lang: string; endpoint: string }[];
@@ -26,30 +29,6 @@ interface TranscriptResult {
 interface ProcessedTranscript {
     start: number;
     text: string;
-}
-
-interface TranscriptData {
-    videoId: string;
-    seconds: number;
-    timeText: string;
-    transcriptText: string;
-}
-
-interface TextData {
-    index: number;
-    text: string;
-    start: number;
-}
-
-interface FinalResult {
-    title: string;
-    lang: string;
-    text: string;
-    textData: TextData[];
-    transcriptData: TranscriptData[];
-    langOptions: LanguageOption[];
-    channel: Channel;
-    durationMs?: number;
 }
 
 type ShouldRetryFunction = (errorMsg: string, attempt: number) => boolean;
@@ -153,7 +132,7 @@ const extractVideoTitle = (htmlContent: string): string => {
 };
 
 // Parse available languages from HTML
-const parseAvailableLanguages = (htmlContent: string): LanguageOption[] => {
+const parseAvailableLanguages = (htmlContent: string): YoutubeLanguageOption[] => {
     if (!(htmlContent?.trim()))
         return [];
     try {
@@ -187,10 +166,10 @@ function createTranscriptRequestBody(params: string): RequestInit {
     }, (_i, s) => {
         const a = new Date;
         return a.setDate(a.getDate() - s),
-        a.toISOString().split("T")[0].replace(/-/g, "")
+            a.toISOString().split("T")[0].replace(/-/g, "")
     }
     )
-      , r = `2.${e[Math.floor(Math.random() * e.length)]}.00.00`;
+        , r = `2.${e[Math.floor(Math.random() * e.length)]}.00.00`;
     return {
         method: "POST",
         headers: {
@@ -575,7 +554,7 @@ const sanitizeText = (textContent: string): string => {
 };
 
 // Format transcript data to text
-const formatTranscriptToText = ({ textData, withTimestamp: includeTimestamp }: { textData: TextData[]; withTimestamp: boolean }): string =>
+const formatTranscriptToText = ({ textData, withTimestamp: includeTimestamp }: { textData: YoutubeTextData[]; withTimestamp: boolean }): string =>
     textData.sort((a, b) => a.index - b.index)
         .map(item => includeTimestamp ? `(${formatSecondsToTimestamp(item.start)}) ${item.text}` : item.text)
         .join(" ");
@@ -596,14 +575,8 @@ const extractTranscriptEndpoint = (pageContent: string): string => {
     }
 };
 
-type Channel = {
-    name?: string | null,
-    id?: string | null,
-    avatarUrl?: string | null
-}
-
-const extractChannel = (pageContent: string): Channel => {
-    let channel: Channel = {}
+const extractChannel = (pageContent: string): YoutubeChannel => {
+    let channel: YoutubeChannel = {}
     if (!pageContent?.trim())
         return channel;
     try {
@@ -643,8 +616,8 @@ export async function getYouTubeTranscript({
     videoId: string;
     withTimestamp?: boolean;
     tryFallback?: boolean;
-}): Promise<FinalResult> {
-    const defaultResult: FinalResult = {
+}): Promise<YoutubeData> {
+    const defaultResult: YoutubeData = {
         title: "",
         lang: "",
         text: "",
@@ -659,7 +632,7 @@ export async function getYouTubeTranscript({
 
     try {
         return await retryWithBackoff(async () => {
-            const result: FinalResult = {
+            const result: YoutubeData = {
                 title: "",
                 lang: "",
                 text: "",
@@ -732,10 +705,12 @@ export async function getYouTubeTranscript({
 }
 
 // Listen for messages from the extension
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-    if (request.action === 'getYouTubeTranscript') {
+chrome.runtime.onMessage.addListener((request: MessageYoutubeTranscriptRequest,
+    _sender,
+    sendResponse: (response: MessageYoutubeTranscriptResponse) => void) => {
+    if (request.action === GET_YOUTUBE_TRANSCRIPT) {
         const { videoId, withTimestamp = true, tryFallback = false } = request;
-        
+
         // Use the content-window.ts functionality
         getYouTubeTranscript({ videoId, withTimestamp, tryFallback })
             .then((result: any) => {
@@ -744,7 +719,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             .catch((error: any) => {
                 sendResponse({ success: false, error: error.message });
             });
-        
+
         // Return true to indicate we'll send a response asynchronously
         return true;
     }

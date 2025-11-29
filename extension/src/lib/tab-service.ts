@@ -27,11 +27,19 @@ class TabService {
     }
   }
 
+  async getCurrentTab(): Promise<chrome.tabs.Tab | null> {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    return tab;
+  }
+
   /**
    * Gets comprehensive data from the current active tab
    * @returns Promise<TabContentData> Object containing pageTitle, sourceUrl, and content
    */
-  async getCurrentTabData(): Promise<TabContentData> {
+  async getCurrentTabHTMLContent(): Promise<TabContentData> {
     try {
       // Get the current active tab
       const [tab] = await chrome.tabs.query({
