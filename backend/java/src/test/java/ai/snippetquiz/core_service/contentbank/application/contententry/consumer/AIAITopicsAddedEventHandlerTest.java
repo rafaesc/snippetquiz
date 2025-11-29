@@ -53,8 +53,11 @@ class AIAITopicsAddedEventHandlerTest {
                 UUID.randomUUID(),
                 "2024-01-01T00:00:00",
                 0,
-                topics
-        );
+                topics,
+                "",
+                "",
+                0,
+                0);
 
         ContentEntry entry = new ContentEntry();
         entry.setId(new ContentEntryId(contentId));

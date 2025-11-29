@@ -8,7 +8,7 @@ import { EventProcessorService } from '../event-processor/event-processor.servic
 import { EventBusService } from '../../../commons/event-bus/event-bus.service';
 import { UserService } from '../user/user.service';
 import { CharacterService } from '../character/character.service';
-import { CharacterResponse } from '../character/types';
+import { CharacterEmotionsResponse, CharacterResponse } from '../character/types';
 
 @Injectable()
 export class ContentEntryService {
@@ -67,12 +67,12 @@ export class ContentEntryService {
             this.logger.log(`Generating topics for page: ${event.pageTitle}`);
 
             // Fetch user character if enabled
-            let character: CharacterResponse | undefined = undefined;
+            let character: CharacterEmotionsResponse | undefined = undefined;
             const characterId = await this.userService.getUserCharacter(userId);
             if (characterId) {
                 try {
                     character = await this.characterService.getCharacterById(characterId);
-                    this.logger.log(`Using character ${character.name} for user ${userId}`);
+                    this.logger.log(`Using character ${character?.name} for user ${userId}`);
                 } catch (error) {
                     this.logger.warn(`Failed to fetch character ${characterId}: ${error.message}`);
                 }
@@ -86,8 +86,21 @@ export class ContentEntryService {
             );
 
             this.logger.log(`Generated ${result.topics.length} topics for ${event.aggregateId}`);
-            if (result.characterMessage) {
+
+            let characterMessage: string | null = null;
+            let characterSpriteURL: string | null = null;
+            let characterAnimateTo: number | null = null;
+            let characterAnimateSeconds: number | null = null;
+
+            if (character && result.characterMessage && result.emotionCode) {
                 this.logger.log(`Character message: ${result.characterMessage} (${result.emotionCode})`);
+                const emotion = character.emotions.find((emotion) => emotion.emotionCode === result.emotionCode);
+                if (emotion) {
+                    characterMessage = result.characterMessage;
+                    characterSpriteURL = emotion.spriteUrl;
+                    characterAnimateTo = emotion.animationTo;
+                    characterAnimateSeconds = emotion.seconds;
+                }
             }
 
             // Save new topics to UserTopic table
@@ -98,6 +111,10 @@ export class ContentEntryService {
                     userId,
                     event.contentBankId,
                     result.topics,
+                    characterMessage,
+                    characterSpriteURL,
+                    characterAnimateTo,
+                    characterAnimateSeconds
                 );
 
                 await this.eventBusService.publish(topicsEvent);

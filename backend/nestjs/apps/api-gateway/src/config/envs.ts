@@ -14,7 +14,6 @@ interface EnvVars {
   JWT_AUTH_SECRET: string;
   JWT_AUTH_EXPIRES_IN: string;
   ALLOWED_ORIGINS: string;
-  CHARACTER_SPRITE_URL: string;
 }
 
 const envSchema = joi
@@ -33,7 +32,6 @@ const envSchema = joi
     ALLOWED_ORIGINS: joi
       .string()
       .default('http://localhost:3000,http://127.0.0.1:3000'),
-    CHARACTER_SPRITE_URL: joi.string().optional(),
   })
   .unknown(true);
 
@@ -62,5 +60,4 @@ export const envs = {
   jwtAuthSecret: envsVars.JWT_AUTH_SECRET,
   jwtAuthExpiresIn: envsVars.JWT_AUTH_EXPIRES_IN,
   allowedOrigins: envsVars.ALLOWED_ORIGINS,
-  characterSpriteUrl: envsVars.CHARACTER_SPRITE_URL,
 };

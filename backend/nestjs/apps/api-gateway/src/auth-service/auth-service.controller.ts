@@ -26,7 +26,7 @@ const COOKIE_PATH = '/api';
 
 @Controller('auth-service')
 export class AuthServiceController {
-  constructor(private readonly authClientService: AuthClientService) {}
+  constructor(private readonly authClientService: AuthClientService) { }
 
   @Post('register')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute for registration
@@ -149,7 +149,7 @@ export class AuthServiceController {
       });
 
       // Return message without tokens in body
-      return { message: result.message };
+      return result;
     }
 
     return result;

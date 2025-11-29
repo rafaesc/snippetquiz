@@ -12,6 +12,8 @@ import ai.snippetquiz.core_service.shared.exception.NotFoundException;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
+import ai.snippetquiz.core_service.contentbank.domain.events.CharacterMessageEphemeralEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,12 +25,13 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@IntegrationEventSubscriberFor({AITopicsAddedIntegrationEvent.class})
+@IntegrationEventSubscriberFor({ AITopicsAddedIntegrationEvent.class })
 public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
 
     private final TopicRepository topicRepository;
     private final ContentEntryRepository contentEntryRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
+    private final EventBus eventBus;
 
     @Override
     public void on(IntegrationEvent event) {
@@ -86,6 +89,16 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
             contentEntryRepository.save(contentEntry);
             log.info("Successfully created and linked {} topics to content entry {}",
                     topicsCreated, contentId);
+
+            if (e.getCharacterMessage() != null && !e.getCharacterMessage().isEmpty()) {
+                eventBus.publish(CharacterMessageEphemeralEvent.eventName(), List.of(new CharacterMessageEphemeralEvent(
+                        contentEntry.getId().getValue(),
+                        userId.getValue(),
+                        e.getCharacterMessage(),
+                        e.getCharacterSpriteURL(),
+                        e.getCharacterAnimateTo(),
+                        e.getCharacterAnimateSeconds())));
+            }
 
         } catch (Exception ex) {
             log.error("Error processing TopicsAddedIntegrationEvent: ", ex);

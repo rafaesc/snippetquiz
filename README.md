@@ -44,7 +44,7 @@ flowchart LR
     PG2[(Relational DB)]
   end
 
-  subgraph AI["AI Processor"]
+  subgraph AI["AI Content Service"]
     PYCONSUMER[Consumer]
     LLM[AI Clients]
     PG3[(Relational DB)]
@@ -66,6 +66,7 @@ flowchart LR
   API --> K
   WS --> R
   WS --> D
+  WS --> X
   D --> WS
 ```
 
@@ -77,10 +78,10 @@ flowchart TD
   subgraph API["Quiz API Layer"]
     CMD[Command Handler]
     QUERY[Query Handler]
+    CONSUMER[Event Consumer]
   end
 
   subgraph ReadSide["Read Side CQRS"]
-    CONSUMER[Event Consumer]
     PROJ[Projection Handler]
     READDB[(Read DB Tables)]
   end
@@ -145,6 +146,7 @@ flowchart TD
     REDIS[Redis Pub/Sub]
     WS[WebSocket Server]
     UI[Dashboard UI]
+    EXT[Extension UI]
   end
 
   %% Quiz Creation Flow
@@ -158,6 +160,7 @@ flowchart TD
   CCONS -->LLM2
   LLM2 -->CESTORE
   LLM1 -->|ai-content-service.questions.generated Topic|AICONS
+  LLM2 -->|ai-content-service.topics.generated Topic|AICONS
   
 
   %% Publish Results
@@ -168,6 +171,7 @@ flowchart TD
   QHANDLER -->REDIS
   REDIS -.-> WS
   WS -.-> UI
+  WS -.-> EXT
 ```
 
 ## Core Flows
@@ -176,6 +180,7 @@ flowchart TD
   - Extension authenticates separately and can generate a one‑time code for seamless dashboard login.
 - Content Capture
   - Extension submits content (full pages, selected text, transcripts) to organize within content banks.
+  - **Character Animation**: Upon upload, the system analyzes the content to generate topics and a character reaction. This reaction is streamed back to the extension/dashboard in real-time, displaying an animated character with a comment.
 - Generation
   - The UI requests a quiz for a bank. The gateway forwards this to the core service.
   - The AI worker consumes generation requests, chunks content, calls AI models, and emits generation progress and results as events.
@@ -188,8 +193,7 @@ flowchart TD
 - Content Entries: Captured content (page, selection, or transcript) with metadata; may be enriched over time.
 - Topics: Optional user‑specific tags that can be attached to entries.
 - Questions/Options: Generated questions tied to content entries.
-- Quiz: Aggregate with status transitions and current question.
-- Event Store: Append‑only domain events for consistency.
+- Event Store: Append‑only Quiz Event Store for consistency.
 - Projections: Read‑optimized views built from events and state changes.
 
 ## Gateway Proxying
@@ -199,6 +203,7 @@ flowchart TD
 ## Real‑Time Updates
 - Pub/sub carries progress and completion events.
 - The real‑time server validates users and ensures a single active generation per user.
+- **Character Events**: Ephemeral events carrying character animation data are broadcasted via Redis and streamed to connected clients (Extension/Dashboard) for immediate visual feedback.
 
 ## Logic Summary
 - Users create banks and add entries (from extension or dashboard).

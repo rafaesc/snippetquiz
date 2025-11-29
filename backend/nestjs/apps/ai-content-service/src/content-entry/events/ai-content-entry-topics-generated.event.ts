@@ -5,6 +5,10 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
 
     readonly contentBankId: string;
     readonly topics: string[];
+    readonly characterMessage?: string | null;
+    readonly characterSpriteURL?: string | null;
+    readonly characterAnimateTo?: number | null;
+    readonly characterAnimateSeconds?: number | null;
 
 
     constructor(
@@ -12,6 +16,10 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
         userId: string,
         contentBankId: string,
         topics: string[],
+        characterMessage?: string | null,
+        characterSpriteURL?: string | null,
+        characterAnimateTo?: number | null,
+        characterAnimateSeconds?: number | null,
         eventId?: string,
         occurredOn?: string,
     ) {
@@ -24,12 +32,20 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
         );
         this.contentBankId = contentBankId;
         this.topics = topics;
+        this.characterMessage = characterMessage;
+        this.characterSpriteURL = characterSpriteURL;
+        this.characterAnimateTo = characterAnimateTo;
+        this.characterAnimateSeconds = characterAnimateSeconds;
     }
 
     toPrimitives(): DomainEventAttributes {
         return {
             content_bank_id: this.contentBankId,
             topics: this.topics,
+            character_message: this.characterMessage,
+            character_sprite_url: this.characterSpriteURL,
+            character_animate_to: this.characterAnimateTo,
+            character_animate_seconds: this.characterAnimateSeconds,
             aggregate_id: this.aggregateId,
             user_id: this.userId,
         };
@@ -45,6 +61,10 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
             body.user_id,
             body.content_bank_id,
             body.topics,
+            body.character_message,
+            body.character_sprite_url,
+            body.character_animate_to,
+            body.character_animate_seconds,
             eventId,
             occurredOn,
         );

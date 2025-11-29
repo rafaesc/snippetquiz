@@ -2,13 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../utils/prisma.service';
 import { AuthUserVerifiedEvent } from '../../../commons/event-bus/events/auth-user-verified.event';
 import { UserConfigResponse } from './types';
+import { CharacterService } from '../character/character.service';
 
 @Injectable()
 export class UserService {
     private readonly logger = new Logger(UserService.name);
-    private readonly DEFAULT_CHARACTER_ID = 1;
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly characterService: CharacterService,
+    ) { }
 
     async handleAuthUserVerified(event: AuthUserVerifiedEvent): Promise<void> {
         try {
@@ -22,10 +25,12 @@ export class UserService {
                 return;
             }
 
+            const defaultCharacterId = await this.characterService.getDefaultCharacterId();
+
             await this.prisma.userConfig.create({
                 data: {
                     userId,
-                    defaultCharacterId: this.DEFAULT_CHARACTER_ID,
+                    defaultCharacterId,
                     characterEnabled: true,
                 },
             });
@@ -42,10 +47,12 @@ export class UserService {
             });
 
             if (!userConfig) {
+                const defaultCharacterId = await this.characterService.getDefaultCharacterId();
+
                 userConfig = await this.prisma.userConfig.create({
                     data: {
                         userId,
-                        defaultCharacterId: this.DEFAULT_CHARACTER_ID,
+                        defaultCharacterId,
                         characterEnabled: true,
                     },
                 });
