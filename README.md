@@ -28,6 +28,7 @@ flowchart LR
     G[REST Proxy]
     REDIS[(Redis Cache JWT)]
     WS[Real-time Websocket Server]
+    SSE[Real-time Stream Server Events]
   end
 
   subgraph AuthService["Auth Service"]
@@ -45,20 +46,22 @@ flowchart LR
   end
 
   subgraph AI["AI Content Service"]
+    AIE[AI Endpoints]
     PYCONSUMER[Consumer]
     LLM[AI Clients]
     PG3[(Relational DB)]
   end
 
-  subgraph Messaging
+  subgraph Messaging Bus
     K[Kafka Event Bus]
     R[Pub/Sub Redis Cache]
   end
 
-  X --> G
   D --> G
+  X --> G
   G --> |JWT| API
   G --> |JWT| AUTH
+  G --> |JWT| AIE
   AUTHP --> K
   PYCONSUMER --> K
   CONSUMERS --> K
@@ -66,7 +69,8 @@ flowchart LR
   API --> K
   WS --> R
   WS --> D
-  WS --> X
+  SSE --> R
+  X --> SSE
   D --> WS
 ```
 
