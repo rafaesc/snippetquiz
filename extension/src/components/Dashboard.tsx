@@ -9,8 +9,9 @@ import { Alert, AlertDescription } from './ui/alert';
 import { ChevronDown, ChevronRight, ExternalLink, Trash2, FileText, Link as LinkIcon, LogOut, Settings, ChevronLeft, ChevronRight as ChevronRightIcon, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import tabService from '../lib/tab-service';
-import { getYouTubeTranscriptFromTab } from '../lib/content-script-service';
+import { connectToStreamNotification, getYouTubeTranscriptFromTab } from '../lib/messages/message-service';
 import { isYouTubeTab, extractVideoId } from '../lib/youtube-service';
+import { CONTEXT_SAVE_SELECTED_TEXT } from '../lib/constants';
 
 function Dashboard() {
     const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
@@ -50,7 +51,7 @@ function Dashboard() {
                 await chromeStorage.local.set({ userId: profile.user.id });
                 return profile;
             } catch (error) {
-                chrome.contextMenus.remove("saveSelectedText");
+                chrome.contextMenus.remove(CONTEXT_SAVE_SELECTED_TEXT);
                 await chromeStorage.local.clear();
                 console.log('Chrome storage cleared due to profile fetch failure:', error);
                 throw error;
@@ -62,12 +63,12 @@ function Dashboard() {
     useEffect(() => {
         if (userProfile) {
             chrome.contextMenus.create({
-                id: "saveSelectedText",
+                id: CONTEXT_SAVE_SELECTED_TEXT,
                 title: "Add selected text to content bank",
                 contexts: ["selection"]
             });
         } else {
-            chrome.contextMenus.remove("saveSelectedText");
+            chrome.contextMenus.remove(CONTEXT_SAVE_SELECTED_TEXT);
         }
     }, [userProfile]);
 
@@ -137,6 +138,7 @@ function Dashboard() {
         mutationFn: (data: { bankId: string; type: 'full_html' | 'selected_text' | 'video_transcript'; content?: string; sourceUrl?: string; pageTitle?: string }) =>
             apiService.contentEntry.create(data),
         onSuccess: () => {
+            connectToStreamNotification();
             queryClient.invalidateQueries({ queryKey: ['contentEntries'] });
             setIsAddingPageContent(false);
             window.close();
@@ -149,7 +151,7 @@ function Dashboard() {
 
     // Helper function to get regular tab data
     const getRegularTabData = async () => {
-        const tabData = await tabService.getCurrentTabData();
+        const tabData = await tabService.getCurrentTabHTMLContent();
         return {
             pageTitle: tabData.pageTitle,
             sourceUrl: tabData.sourceUrl,
@@ -167,8 +169,7 @@ function Dashboard() {
         setIsAddingPageContent(true);
         try {
             // First get the current tab URL to check if it's YouTube
-            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            const currentTab = tabs[0];
+            const currentTab = await tabService.getCurrentTab();
 
             if (!currentTab || !currentTab.url) {
                 throw new Error('No active tab found');
@@ -255,7 +256,7 @@ function Dashboard() {
     const logout = async () => {
         try {
             await apiService.logout();
-            chrome.contextMenus.remove("saveSelectedText");
+            chrome.contextMenus.remove(CONTEXT_SAVE_SELECTED_TEXT);
             await chromeStorage.local.clear();
             // Redirect to login or refresh the component
             window.location.reload();
