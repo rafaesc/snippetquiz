@@ -7,6 +7,8 @@ interface EnvVars {
   CORE_SERVICE_HOST: string;
   AUTH_SERVICE_PORT: number;
   AUTH_SERVICE_HOST: string;
+  AI_CONTENT_SERVICE_PORT: number;
+  AI_CONTENT_SERVICE_HOST: string;
   COOKIE_SECRET: string;
   NODE_ENV: string;
   JWT_AUTH_SECRET: string;
@@ -22,6 +24,8 @@ const envSchema = joi
     CORE_SERVICE_HOST: joi.string().default('localhost'),
     AUTH_SERVICE_PORT: joi.number().required(),
     AUTH_SERVICE_HOST: joi.string().default('localhost'),
+    AI_CONTENT_SERVICE_PORT: joi.number().required(),
+    AI_CONTENT_SERVICE_HOST: joi.string().default('localhost'),
     COOKIE_SECRET: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
     JWT_AUTH_SECRET: joi.string().required(),
@@ -49,6 +53,9 @@ export const envs = {
   authServicePort: envsVars.AUTH_SERVICE_PORT,
   authServiceHost: envsVars.AUTH_SERVICE_HOST,
   authBaseUrl: `http://${envsVars.AUTH_SERVICE_HOST}:${envsVars.AUTH_SERVICE_PORT}`,
+  aiContentServicePort: envsVars.AI_CONTENT_SERVICE_PORT,
+  aiContentServiceHost: envsVars.AI_CONTENT_SERVICE_HOST,
+  aiContentServiceBaseUrl: `http://${envsVars.AI_CONTENT_SERVICE_HOST}:${envsVars.AI_CONTENT_SERVICE_PORT}`,
   cookieSecret: envsVars.COOKIE_SECRET,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',

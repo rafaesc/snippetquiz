@@ -28,7 +28,7 @@ public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
     }
 
     public static String eventName() {
-        return "ai-processor.topics.added";
+        return "ai-content-service.topics.added";
     }
 
     @Override

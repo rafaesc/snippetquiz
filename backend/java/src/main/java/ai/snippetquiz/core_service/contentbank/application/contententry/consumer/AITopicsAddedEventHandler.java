@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,10 +50,10 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
                 return;
             }
 
-            List<String> generatedTopics = Objects.nonNull(e.getTopics()) ? e.getTopics() : java.util.List.of();
+            List<String> generatedTopics = Objects.nonNull(e.getTopics()) ? e.getTopics() : List.of();
             var topicsCreated = 0;
             var userId = new UserId(event.getUserId());
-            java.util.List<Topic> topics = new java.util.ArrayList<>();
+            List<Topic> topics = new ArrayList<>();
 
             for (var topicName : generatedTopics) {
                 if (topicName == null || topicName.trim().isEmpty()) {

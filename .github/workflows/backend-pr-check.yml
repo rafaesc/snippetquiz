@@ -161,7 +161,7 @@ jobs:
     env:
       NODE_ENV: test
       POSTGRESQL_PRISMA_AUTH_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=auth
-      POSTGRESQL_PRISMA_AI_PROCESSOR_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=ai_processor
+      POSTGRESQL_PRISMA_AI_CONTENT_SERVICE_URL: postgresql://test_user:test_pass@localhost:5432/test_db?schema=ai_content_service
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_PASSWORD: "test_pass"
@@ -222,11 +222,11 @@ jobs:
       - name: Run database migrations for auth
         run: npm run prisma:deploy:auth
 
-      - name: Generate Prisma Client for ai-processor
-        run: npm run prisma:generate:ai-processor
+      - name: Generate Prisma Client for ai-content-service
+        run: npm run prisma:generate:ai-content-service
 
-      - name: Run database migrations for ai-processor
-        run: npm run prisma:deploy:ai-processor
+      - name: Run database migrations for ai-content-service
+        run: npm run prisma:deploy:ai-content-service
 
       - name: Build api-gateway
         run: npm run build
@@ -234,8 +234,8 @@ jobs:
       - name: Build auth-service
         run: npm run build auth-service
 
-      - name: Build ai-processor
-        run: npm run build ai-processor
+      - name: Build ai-content-service
+        run: npm run build ai-content-service
 
   # Integration Tests
 #  integration-tests:

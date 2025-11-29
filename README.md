@@ -126,7 +126,7 @@ flowchart TD
     CEAEV[ContentEntryCreated Event]
   end
 
-  subgraph AIProcessor["AI Processor (NestJS)"]
+  subgraph AIContentService["AI Content Service (NestJS)"]
     QCONS[Quiz Consumer]
     CCONS[Content Entry Consumer]
     LLM1[LLM API]
@@ -157,7 +157,7 @@ flowchart TD
   QCONS -->LLM1
   CCONS -->LLM2
   LLM2 -->CESTORE
-  LLM1 -->|ai-processor.questions.generated Topic|AICONS
+  LLM1 -->|ai-content-service.questions.generated Topic|AICONS
   
 
   %% Publish Results
