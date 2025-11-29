@@ -24,5 +24,4 @@ export class CharacterResponse {
     name: string;
     description: string | null;
     introPrompt: string | null;
-    emotions: CharacterEmotionResponse[];
 }

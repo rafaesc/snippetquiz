@@ -94,7 +94,7 @@ export class ContentEntryService {
 
             if (character && result.characterMessage && result.emotionCode) {
                 this.logger.log(`Character message: ${result.characterMessage} (${result.emotionCode})`);
-                const emotion = character.emotions.find((emotion) => emotion.emotionCode === result.emotionCode);
+                const emotion = character?.emotions?.find((emotion) => emotion.emotionCode === result.emotionCode);
                 if (emotion) {
                     characterMessage = result.characterMessage;
                     characterSpriteURL = emotion.spriteUrl;
