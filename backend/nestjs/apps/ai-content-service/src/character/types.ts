@@ -9,11 +9,20 @@ export class CharacterEmotionResponse {
     isDefault: boolean;
 }
 
-export class CharacterResponse {
+export class CharacterEmotionsResponse {
     id: number;
     code: string;
     name: string;
     description: string | null;
     introPrompt: string | null;
     emotions?: CharacterEmotionResponse[];
+}
+
+export class CharacterResponse {
+    id: number;
+    code: string;
+    name: string;
+    description: string | null;
+    introPrompt: string | null;
+    emotions: CharacterEmotionResponse[];
 }

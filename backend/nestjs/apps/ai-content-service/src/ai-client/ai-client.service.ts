@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { OpenRouter } from '@openrouter/sdk';
 import { envs } from '../config/envs';
 import { PromptTemplates } from './prompt-templates';
-import { CharacterResponse } from '../character/types';
+import { CharacterEmotionsResponse, CharacterResponse } from '../character/types';
 
 @Injectable()
 export class AiClientService implements OnModuleInit {
@@ -70,7 +70,7 @@ export class AiClientService implements OnModuleInit {
         content: string,
         pageTitle: string,
         existingTopics: string[],
-        character?: CharacterResponse,
+        character?: CharacterEmotionsResponse,
     ): Promise<{ topics: string[]; characterMessage?: string; emotionCode?: string }> {
         // Create the prompt using the template
         const prompt = PromptTemplates.getTopicGenerationPrompt(
@@ -100,6 +100,7 @@ export class AiClientService implements OnModuleInit {
                     // If cleaning failed, try to use raw response as string list
                     throw new Error('Cleaning returned empty');
                 }
+                this.logger.debug(`Cleaning returned: ${cleanedResponse}`);
                 const result = JSON.parse(cleanedResponse);
 
                 if (result && Array.isArray(result)) {
@@ -109,8 +110,8 @@ export class AiClientService implements OnModuleInit {
                 if (result && Array.isArray(result.topics)) {
                     return {
                         topics: result.topics,
-                        characterMessage: result.characterMessage,
-                        emotionCode: result.emotionCode,
+                        characterMessage: result.comment,
+                        emotionCode: result.emotion,
                     };
                 }
 

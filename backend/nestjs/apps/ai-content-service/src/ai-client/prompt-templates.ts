@@ -1,4 +1,4 @@
-import { CharacterResponse } from '../character/types';
+import { CharacterEmotionsResponse } from '../character/types';
 
 export class PromptTemplates {
     /**
@@ -8,7 +8,7 @@ export class PromptTemplates {
         content: string,
         pageTitle: string,
         existingTopics: string[],
-        character?: CharacterResponse,
+        character?: CharacterEmotionsResponse,
     ): string {
         const existingTopicsStr =
             existingTopics && existingTopics.length > 0
@@ -70,15 +70,15 @@ Please provide your response as JSON.`;
         const required = ['topics'];
 
         if (includeCharacter) {
-            properties.characterMessage = {
+            properties.comment = {
                 type: 'string',
                 description: 'Character AI comment about the content',
             };
-            properties.emotionCode = {
+            properties.emotion = {
                 type: 'string',
                 description: 'Selected emotion code for the character',
             };
-            required.push('characterMessage', 'emotionCode');
+            required.push('comment', 'emotion');
         }
 
         return {

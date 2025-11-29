@@ -15,6 +15,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
     private List<String> topics;
+    private String characterMessage;
+    private String characterSpriteURL;
+    private Integer characterAnimateTo;
+    private Integer characterAnimateSeconds;
 
     public AITopicsAddedIntegrationEvent(
             UUID aggregateId,
@@ -22,9 +26,17 @@ public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
             UUID eventId,
             String occurredOn,
             Integer version,
-            List<String> topics) {
+            List<String> topics,
+            String characterMessage,
+            String characterSpriteURL,
+            Integer characterAnimateTo,
+            Integer characterAnimateSeconds) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
+        this.characterMessage = characterMessage;
+        this.characterSpriteURL = characterSpriteURL;
+        this.characterAnimateTo = characterAnimateTo;
+        this.characterAnimateSeconds = characterAnimateSeconds;
     }
 
     public static String eventName() {
@@ -45,6 +57,10 @@ public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
                 eventId,
                 occurredOn,
                 version,
-                (List<String>) body.get("topics"));
+                (List<String>) body.get("topics"),
+                (String) body.get("character_message"),
+                (String) body.get("character_sprite_url"),
+                (Integer) body.get("character_animate_to"),
+                (Integer) body.get("character_animate_seconds"));
     }
 }
