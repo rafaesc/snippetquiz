@@ -29,7 +29,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { X_USER_ID_HEADER } from 'apps/commons/config/constants';
 import { EventBusService } from 'apps/commons/event-bus/event-bus.service';
-import { AuthUserVerifiedEvent } from './events/auth-user-verified.event';
+import { AuthUserVerifiedEvent } from '../../../commons/event-bus/events/auth-user-verified.event';
 
 @Injectable()
 export class AuthServiceService {

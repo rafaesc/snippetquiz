@@ -9,7 +9,7 @@ import { type FastifyRequest } from 'fastify';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<FastifyRequest>();
@@ -45,6 +45,11 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: FastifyRequest): string | undefined {
+    // Check query parameters first (for SSE connections)
+    if (request && request.query && (request.query as any)['token']) {
+      return (request.query as any)['token'];
+    }
+
     if (request && request.cookies && request.cookies['accessToken']) {
       return request.cookies['accessToken'];
     }

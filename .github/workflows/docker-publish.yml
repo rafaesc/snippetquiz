@@ -63,10 +63,10 @@ jobs:
         if: ${{ needs.changes.outputs.nestjs == 'true' }}
         run: |
           npm run prisma:generate:auth
-          npm run prisma:generate:ai-processor
+          npm run prisma:generate:ai-content-service
           npx nest build api-gateway
           npx nest build auth-service
-          npx nest build ai-processor
+          npx nest build ai-content-service
         working-directory: ./backend/nestjs
 
       - name: Build and push API Gateway
@@ -87,14 +87,14 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/snippetquiz-auth-service:latest
 
-      - name: Build and push AI Processor Service
+      - name: Build and push AI Content Service
         if: ${{ needs.changes.outputs.nestjs == 'true' }}
         uses: docker/build-push-action@v5
         with:
           context: ./backend/nestjs
-          file: ./backend/nestjs/apps/ai-processor/Dockerfile
+          file: ./backend/nestjs/apps/ai-content-service/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-processor:latest
+          tags: ghcr.io/${{ github.repository }}/snippetquiz-ai-content-service:latest
 
       - name: Setup Java
         if: ${{ needs.changes.outputs.java == 'true' }}

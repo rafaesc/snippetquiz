@@ -82,7 +82,7 @@ public class AIQuestionGeneratedEvent extends IntegrationEvent {
     }
 
     public static String eventName() {
-        return "ai-processor.questions.generated";
+        return "ai-content-service.questions.generated";
     }
 
     @Override

@@ -49,20 +49,20 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT ON TABLES TO readonly;
 DO $$
 BEGIN
    IF NOT EXISTS (
-      SELECT 1 FROM pg_namespace WHERE nspname = 'ai_processor'
+      SELECT 1 FROM pg_namespace WHERE nspname = 'ai_content_service'
    ) THEN
-      EXECUTE 'CREATE SCHEMA ai_processor';
+      EXECUTE 'CREATE SCHEMA ai_content_service';
    END IF;
 END
 $$;
 
-GRANT USAGE ON SCHEMA ai_processor TO app_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA ai_processor GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+GRANT USAGE ON SCHEMA ai_content_service TO app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA ai_content_service GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
 
-GRANT USAGE ON SCHEMA ai_processor TO readonly;
-ALTER DEFAULT PRIVILEGES IN SCHEMA ai_processor GRANT SELECT ON TABLES TO readonly;
+GRANT USAGE ON SCHEMA ai_content_service TO readonly;
+ALTER DEFAULT PRIVILEGES IN SCHEMA ai_content_service GRANT SELECT ON TABLES TO readonly;
 
 
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
-\echo Initialize schema core, auth and ai_processor.
+\echo Initialize schema core, auth and ai_content_service.

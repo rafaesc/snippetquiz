@@ -10,7 +10,9 @@ import { envs } from './config/envs';
 import { redisEnvs } from '../../commons/config/redis-envs';
 import { AuthCodeModule } from './auth-code/auth-code.module';
 import { CoreServiceModule } from './core-service/core-service.module';
+import { AiContentServiceModule } from './ai-content-service/ai-content-service.module';
 import { WebsocketModule } from './ws/websockets.module';
+import { StreamModule } from './stream/stream.module';
 
 @Module({
   imports: [
@@ -42,7 +44,9 @@ import { WebsocketModule } from './ws/websockets.module';
     }),
     AuthCodeModule,
     CoreServiceModule,
+    AiContentServiceModule,
     WebsocketModule,
+    StreamModule,
   ],
   controllers: [AppController],
   providers: [
@@ -53,4 +57,4 @@ import { WebsocketModule } from './ws/websockets.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

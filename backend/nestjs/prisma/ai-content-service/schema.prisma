@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generated/prisma/ai-content-service"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESQL_PRISMA_AI_CONTENT_SERVICE_URL")
+  schemas  = ["ai_content_service"]
+}
+
+model ContentEntry {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+  content   String? @db.Text
+  pageTitle String? @map("page_title") @db.Text
+  wordCount Int?    @map("word_count")
+
+  @@index([id, userId])
+  @@map("content_entries__projection")
+  @@schema("ai_content_service")
+}
+
+model UserTopic {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  topic  String @db.Text
+
+  @@unique([userId, topic])
+  @@index([userId])
+  @@map("user_topics__projection")
+  @@schema("ai_content_service")
+}
+
+model EventProcessed {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+  eventType String @map("event_type") @db.Text
+  createdAt DateTime @map("created_at") @db.Timestamp(3) @default(now())
+
+  @@index([id, userId])
+  @@map("event_processed")
+  @@schema("ai_content_service")
+}
+
+model Character {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(100)
+  name        String   @db.Text
+  description String?  @db.Text
+  introPrompt String?  @map("intro_prompt") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  emotions    CharacterEmotion[]
+
+  @@map("character")
+  @@schema("ai_content_service")
+}
+
+model CharacterEmotion {
+  id               Int      @id @default(autoincrement())
+  characterId      Int      @map("character_id")
+  emotionCode      String   @map("emotion_code") @db.VarChar(50)
+  name             String   @db.Text
+  shortDescription String?  @map("short_description") @db.Text
+  spriteUrl        String?  @map("sprite_url") @db.Text
+  seconds          Int?
+  animationTo      Int?     @map("animation_to")
+  isDefault        Boolean  @default(false) @map("is_default")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([characterId, emotionCode])
+  @@index([characterId])
+  @@map("character_emotion")
+  @@schema("ai_content_service")
+}
+
+model UserConfig {
+  userId             String   @id @map("user_id") @db.Uuid
+  defaultCharacterId Int      @map("default_character_id")
+  characterEnabled   Boolean  @default(false) @map("character_enabled")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("user_config")
+  @@schema("ai_content_service")
+}
