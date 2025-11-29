@@ -121,7 +121,7 @@ export class AiClientService implements OnModuleInit {
                 this.logger.warn(`Failed to parse topics as JSON: ${e}. Trying to parse as string list. Response: ${response}`);
                 // Fallback: treat as comma or newline separated string
                 // Remove potential JSON formatting chars if they exist but parsing failed
-                const cleanText = response.replace(/[{}\[\]\"]/g, '');
+                const cleanText = response.replace(/[{}\[\]"]/g, '');
                 return { topics: cleanText.split(/,|\n/).map(t => t.trim()).filter(t => t.length > 0) };
             }
         } else {

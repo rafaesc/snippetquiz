@@ -31,9 +31,6 @@ export class CharacterService {
     async getAllCharacters(): Promise<CharacterResponse[]> {
         try {
             const characters = await this.prisma.character.findMany({
-                include: {
-                    emotions: true,
-                },
                 orderBy: {
                     id: 'asc',
                 },

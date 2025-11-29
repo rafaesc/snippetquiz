@@ -391,6 +391,7 @@ const connectToStream = async () => {
 
                 document.body.appendChild(container);
 
+                // Force reflow to ensure CSS transitions/animations start properly
                 void container.offsetWidth;
 
                 container.style.opacity = "1";

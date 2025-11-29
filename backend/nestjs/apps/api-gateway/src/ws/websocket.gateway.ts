@@ -34,7 +34,12 @@ export class WebsocketGateway
 
   constructor(private readonly redisService: RedisService) {
     redisService.subscribeToPattern('quiz.progress.ephemeral:*', (raw, channel) => {
-      const userId = channel.split(':')[2]; // channel = quiz.progress.ephemeral:user-id:123
+      const channelParts = channel.split(':'); // channel = quiz.progress.ephemeral:user-id:123
+      if (channelParts.length < 3) {
+        this.logger.error(`Invalid channel format: ${channel}`);
+        return;
+      }
+      const userId = channelParts[2];
       const socket = this.clients.get(userId);
       this.logger.log(`Received message for user - ${userId} - ${channel}`);
 

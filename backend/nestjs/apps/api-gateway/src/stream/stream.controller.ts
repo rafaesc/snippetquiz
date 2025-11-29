@@ -9,6 +9,7 @@ import { RedisService } from '../../../commons/services/redis.service';
 export class StreamController implements OnModuleInit {
     private readonly logger = new Logger(StreamController.name);
     private readonly clients = new Map<string, Subject<MessageEvent>>();
+    private NOTIFICATION_CONNECTION_TIMEOUT = 5 * 60 * 1000;
 
     private readonly timeouts = new Map<string, NodeJS.Timeout>();
 
@@ -16,7 +17,12 @@ export class StreamController implements OnModuleInit {
 
     onModuleInit() {
         this.redisService.subscribeToPattern('character.message.ephemeral:*', (raw, channel) => {
-            const userId = channel.split(':')[2]; // channel = character.message.ephemeral:user-id:123
+            const channelParts = channel.split(':'); // channel = character.message.ephemeral:user-id:123
+            if (channelParts.length < 3) {
+                this.logger.error(`Invalid channel format: ${channel}`);
+                return;
+            }
+            const userId = channelParts[2];
             const subject = this.clients.get(userId);
             this.logger.log(`Received character message for user - ${userId}`);
 
@@ -67,7 +73,7 @@ export class StreamController implements OnModuleInit {
             }
             this.clients.delete(userId);
             this.timeouts.delete(userId);
-        }, 5 * 60 * 1000);
+        }, this.NOTIFICATION_CONNECTION_TIMEOUT);
 
         this.timeouts.set(userId, timeout);
 
