@@ -20,6 +20,8 @@ x-common-environment: &common-env
   API_GATEWAY_PORT: 5000
   AUTH_SERVICE_PORT: 6000
   AUTH_SERVICE_HOST: "auth-service"
+  AI_CONTENT_SERVICE_PORT: 50051
+  AI_CONTENT_SERVICE_HOST: "ai-content-service"
   CORE_SERVICE_PORT: 7001
   CORE_SERVICE_HOST: "core-service"
   EMAIL_USERNAME: ${EMAIL_USERNAME}

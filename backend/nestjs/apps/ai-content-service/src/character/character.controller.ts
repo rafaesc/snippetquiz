@@ -14,9 +14,9 @@ export class CharacterController {
         return await this.characterService.getAllCharacters();
     }
 
-    @Get(':id')
-    async getCharacterById(@Param('id', ParseIntPipe) id: number): Promise<CharacterResponse> {
-        this.logger.log(`GET /characters/${id}`);
-        return await this.characterService.getCharacterById(id);
+    @Get(':code')
+    async getCharacterById(@Param('code') code: string): Promise<CharacterResponse> {
+        this.logger.log(`GET /characters/${code}`);
+        return await this.characterService.getCharacterByCode(code);
     }
 }

@@ -5,27 +5,12 @@ import { CharacterEmotionsResponse, CharacterResponse } from './types';
 @Injectable()
 export class CharacterService {
     private readonly logger = new Logger(CharacterService.name);
-    private readonly DEFAULT_CHARACTER_CODE = 'einstein_v1';
-    private defaultCharacterId: number | null = null;
+    private static readonly DEFAULT_CHARACTER_CODE = 'einstein_v1';
 
     constructor(private readonly prisma: PrismaService) { }
 
-    async getDefaultCharacterId(): Promise<number> {
-        if (this.defaultCharacterId !== null) {
-            return this.defaultCharacterId;
-        }
-
-        const character = await this.prisma.character.findUnique({
-            where: { code: this.DEFAULT_CHARACTER_CODE },
-            select: { id: true },
-        });
-
-        if (!character) {
-            throw new Error(`Default character with code '${this.DEFAULT_CHARACTER_CODE}' not found`);
-        }
-
-        this.defaultCharacterId = character.id;
-        return this.defaultCharacterId;
+    getDefaultCharacterCode(): string {
+        return CharacterService.DEFAULT_CHARACTER_CODE;
     }
 
     async getAllCharacters(): Promise<CharacterResponse[]> {
@@ -49,19 +34,19 @@ export class CharacterService {
         }
     }
 
-    async getCharacterById(characterId: number): Promise<CharacterEmotionsResponse> {
-        this.logger.log(`Getting character ${characterId} with emotions`);
+    async getCharacterByCode(characterCode: string): Promise<CharacterEmotionsResponse> {
+        this.logger.log(`Getting character ${characterCode} with emotions`);
 
         try {
             const character = await this.prisma.character.findUnique({
-                where: { id: characterId },
+                where: { code: characterCode },
                 include: {
                     emotions: true,
                 },
             });
 
             if (!character) {
-                throw new NotFoundException(`Character with ID ${characterId} not found`);
+                throw new NotFoundException(`Character with code ${characterCode} not found`);
             }
 
             return {
@@ -78,6 +63,8 @@ export class CharacterService {
                     spriteUrl: emotion.spriteUrl,
                     seconds: emotion.seconds,
                     animationTo: emotion.animationTo,
+                    steps: emotion.steps,
+                    weighted: emotion.weighted,
                     isDefault: emotion.isDefault,
                 })),
             };

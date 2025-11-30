@@ -41,14 +41,16 @@ public class JpaContentEntryRepositoryAdapter implements ContentEntryRepository 
 
     @Override
     public void delete(ContentEntry contentEntry) {
-        jpaContentEntryRepository.delete(contentEntryMapper.toEntity(contentEntry));
+        boolean existsBefore = jpaContentEntryRepository.existsById(contentEntry.getId().getValue());
+        System.out.println("existsBefore = " + existsBefore);
+        jpaContentEntryRepository.deleteById(contentEntry.getId().getValue());
     }
 
     @Override
     public List<ContentEntry> findAllByIds(List<ContentEntryId> ids) {
         return jpaContentEntryRepository.findAllById(ids.stream().map(ContentEntryId::getValue).toList()).stream().map(contentEntryMapper::toDomain).toList();
     }
-    
+
     @Override
     public List<ContentEntry> findAllByContentBankId(ContentBankId contentBankId) {
         return jpaContentEntryRepository.findAllByContentBankId(contentBankId.getValue()).stream().map(contentEntryMapper::toDomain).toList();

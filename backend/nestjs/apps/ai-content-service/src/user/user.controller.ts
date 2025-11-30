@@ -3,7 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthUserVerifiedEvent } from '../../../commons/event-bus/events/auth-user-verified.event';
 import type { DomainEventEnvelope } from '../../../commons/event-bus/domain-event';
 import { UserService } from './user.service';
-import { UserConfigResponse, UpdateCharacterEnabledRequest } from './types';
+import type { UserConfigResponse, UpdateCharacterEnabledRequest } from './types';
 import { X_USER_ID_HEADER } from '../../../commons/config/constants';
 
 @Controller('user-config')

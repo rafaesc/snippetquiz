@@ -96,6 +96,7 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
                         userId.getValue(),
                         e.getCharacterMessage(),
                         e.getCharacterSpriteURL(),
+                        e.getCharacterSteps(),
                         e.getCharacterAnimateTo(),
                         e.getCharacterAnimateSeconds())));
             }

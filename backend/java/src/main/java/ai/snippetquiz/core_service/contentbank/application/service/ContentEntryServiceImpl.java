@@ -206,6 +206,7 @@ public class ContentEntryServiceImpl implements ContentEntryService {
         }
 
         @Override
+        @Transactional
         public void remove(UserId userId, ContentEntryId entryId) {
                 var contentEntry = contentEntryRepository.findByIdAndUserId(entryId, userId)
                                 .orElseThrow(() -> new NotFoundException("Content entry not found or access denied"));

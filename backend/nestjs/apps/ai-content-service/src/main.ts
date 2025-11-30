@@ -26,7 +26,7 @@ async function bootstrap() {
   );
 
   // Connect Kafka microservice
-  app.connectMicroservice(getKafkaConfig(envs, 'ai-content-service'));
+  app.connectMicroservice(getKafkaConfig(envs, 'ai-content-service-consumer'));
 
   // Start all microservices
   await app.startAllMicroservices();

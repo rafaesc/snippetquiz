@@ -35,6 +35,7 @@ export class StreamController implements OnModuleInit {
                             spriteURL: data.characterSpriteURL,
                             to: data.characterAnimateTo,
                             seconds: data.characterAnimateSeconds,
+                            steps: data.characterSteps,
                         },
                     } as MessageEvent);
                 } catch (error) {
