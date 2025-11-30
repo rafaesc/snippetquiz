@@ -54,6 +54,7 @@ model Character {
   code        String   @unique @db.VarChar(100)
   name        String   @db.Text
   description String?  @db.Text
+  imageUrl    String?  @map("image_url") @db.Text
   introPrompt String?  @map("intro_prompt") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
@@ -61,6 +62,7 @@ model Character {
   emotions    CharacterEmotion[]
 
   @@map("character")
+  @@index([code])
   @@schema("ai_content_service")
 }
 
@@ -71,7 +73,9 @@ model CharacterEmotion {
   name             String   @db.Text
   shortDescription String?  @map("short_description") @db.Text
   spriteUrl        String?  @map("sprite_url") @db.Text
+  steps            Int?
   seconds          Int?
+  weighted         Int?     @default(1)
   animationTo      Int?     @map("animation_to")
   isDefault        Boolean  @default(false) @map("is_default")
   createdAt        DateTime @default(now()) @map("created_at")
@@ -86,11 +90,13 @@ model CharacterEmotion {
 }
 
 model UserConfig {
-  userId             String   @id @map("user_id") @db.Uuid
-  defaultCharacterId Int      @map("default_character_id")
-  characterEnabled   Boolean  @default(false) @map("character_enabled")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  userId                String   @id @map("user_id") @db.Uuid
+  defaultCharacterCode  String   @map("default_character_code") @db.VarChar(100)
+  characterEnabled      Boolean  @default(false) @map("character_enabled")
+  emotionOrder          String[] @default([]) @map("emotion_order")
+  emotionIndex          Int      @default(0) @map("emotion_index")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("user_config")
   @@schema("ai_content_service")

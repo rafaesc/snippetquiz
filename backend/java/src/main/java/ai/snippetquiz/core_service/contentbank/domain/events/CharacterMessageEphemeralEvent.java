@@ -10,6 +10,7 @@ import java.util.UUID;
 public class CharacterMessageEphemeralEvent extends EphemeralEvent {
     private final String characterMessage;
     private final String characterSpriteURL;
+    private final Integer characterSteps;
     private final Integer characterAnimateTo;
     private final Integer characterAnimateSeconds;
 
@@ -18,11 +19,13 @@ public class CharacterMessageEphemeralEvent extends EphemeralEvent {
             UUID userId,
             String characterMessage,
             String characterSpriteURL,
+            Integer characterSteps,
             Integer characterAnimateTo,
             Integer characterAnimateSeconds) {
         super(aggregateId, userId);
         this.characterMessage = characterMessage;
         this.characterSpriteURL = characterSpriteURL;
+        this.characterSteps = characterSteps;
         this.characterAnimateTo = characterAnimateTo;
         this.characterAnimateSeconds = characterAnimateSeconds;
     }
@@ -32,6 +35,7 @@ public class CharacterMessageEphemeralEvent extends EphemeralEvent {
         HashMap<String, Object> primitives = new HashMap<>();
         primitives.put("characterMessage", this.characterMessage);
         primitives.put("characterSpriteURL", this.characterSpriteURL);
+        primitives.put("characterSteps", this.characterSteps);
         primitives.put("characterAnimateTo", this.characterAnimateTo);
         primitives.put("characterAnimateSeconds", this.characterAnimateSeconds);
         return primitives;

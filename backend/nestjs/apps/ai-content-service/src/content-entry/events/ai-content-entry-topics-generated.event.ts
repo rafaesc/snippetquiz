@@ -7,6 +7,7 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
     readonly topics: string[];
     readonly characterMessage?: string | null;
     readonly characterSpriteURL?: string | null;
+    readonly characterSteps?: number | null;
     readonly characterAnimateTo?: number | null;
     readonly characterAnimateSeconds?: number | null;
 
@@ -18,6 +19,7 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
         topics: string[],
         characterMessage?: string | null,
         characterSpriteURL?: string | null,
+        characterSteps?: number | null,
         characterAnimateTo?: number | null,
         characterAnimateSeconds?: number | null,
         eventId?: string,
@@ -34,6 +36,7 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
         this.topics = topics;
         this.characterMessage = characterMessage;
         this.characterSpriteURL = characterSpriteURL;
+        this.characterSteps = characterSteps;
         this.characterAnimateTo = characterAnimateTo;
         this.characterAnimateSeconds = characterAnimateSeconds;
     }
@@ -44,6 +47,7 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
             topics: this.topics,
             character_message: this.characterMessage,
             character_sprite_url: this.characterSpriteURL,
+            character_steps: this.characterSteps,
             character_animate_to: this.characterAnimateTo,
             character_animate_seconds: this.characterAnimateSeconds,
             aggregate_id: this.aggregateId,
@@ -63,6 +67,7 @@ export class AIContentEntryTopicsGeneratedEvent extends DomainEvent {
             body.topics,
             body.character_message,
             body.character_sprite_url,
+            body.character_steps,
             body.character_animate_to,
             body.character_animate_seconds,
             eventId,

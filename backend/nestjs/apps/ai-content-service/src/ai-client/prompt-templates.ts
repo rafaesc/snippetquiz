@@ -8,7 +8,9 @@ export class PromptTemplates {
         content: string,
         pageTitle: string,
         existingTopics: string[],
-        character?: CharacterEmotionsResponse,
+        characterName?: String | null,
+        introPrompt?: String | null,
+        emotionPrompt?: String | null,
     ): string {
         const existingTopicsStr =
             existingTopics && existingTopics.length > 0
@@ -18,15 +20,13 @@ export class PromptTemplates {
         let characterContext = '';
         let characterInstructions = '';
 
-        if (character && character.emotions && character.emotions.length > 0) {
+        if (introPrompt && emotionPrompt) {
             characterContext = `\n\nCharacter Context:
-You are ${character.name}. ${character.introPrompt || ''}
+You are ${introPrompt}. ${emotionPrompt}`;
 
-Available emotions you can express:
-${character.emotions.map(e => `- ${e.emotionCode}: ${e.shortDescription || e.name}`).join('\n')}`;
-
-            characterInstructions = `\n6. As ${character.name}, provide a brief, engaging comment about this content (1-2 sentences)
-7. Select the most appropriate emotion from the available emotions that matches your comment`;
+            characterInstructions = `\n6. As ${characterName}, provide a brief, engaging comment about this content (1-2 sentences)
+7. Select the most appropriate emotion from the available emotions that matches your comment
+8. Your comment must be in the same language as the content you are analyzing`;
         }
 
         const prompt = `You are an expert content analyst. Your task is to generate relevant, specific topics based on the provided content.${characterContext}
@@ -74,11 +74,7 @@ Please provide your response as JSON.`;
                 type: 'string',
                 description: 'Character AI comment about the content',
             };
-            properties.emotion = {
-                type: 'string',
-                description: 'Selected emotion code for the character',
-            };
-            required.push('comment', 'emotion');
+            required.push('comment');
         }
 
         return {

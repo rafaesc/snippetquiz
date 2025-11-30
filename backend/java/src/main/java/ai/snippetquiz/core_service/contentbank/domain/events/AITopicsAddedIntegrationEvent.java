@@ -17,6 +17,7 @@ public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
     private List<String> topics;
     private String characterMessage;
     private String characterSpriteURL;
+    private Integer characterSteps;
     private Integer characterAnimateTo;
     private Integer characterAnimateSeconds;
 
@@ -29,12 +30,14 @@ public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
             List<String> topics,
             String characterMessage,
             String characterSpriteURL,
+            Integer characterSteps,
             Integer characterAnimateTo,
             Integer characterAnimateSeconds) {
         super(aggregateId, userId.getValue(), eventId, occurredOn, version);
         this.topics = topics;
         this.characterMessage = characterMessage;
         this.characterSpriteURL = characterSpriteURL;
+        this.characterSteps = characterSteps;
         this.characterAnimateTo = characterAnimateTo;
         this.characterAnimateSeconds = characterAnimateSeconds;
     }
@@ -60,6 +63,7 @@ public class AITopicsAddedIntegrationEvent extends IntegrationEvent {
                 (List<String>) body.get("topics"),
                 (String) body.get("character_message"),
                 (String) body.get("character_sprite_url"),
+                (Integer) body.get("character_steps"),
                 (Integer) body.get("character_animate_to"),
                 (Integer) body.get("character_animate_seconds"));
     }

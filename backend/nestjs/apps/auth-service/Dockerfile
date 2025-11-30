@@ -34,6 +34,7 @@ COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/auth-service/schema.prisma
+RUN npm run prisma:deploy:auth
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build auth-service

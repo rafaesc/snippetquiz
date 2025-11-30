@@ -70,21 +70,25 @@ export class AiClientService implements OnModuleInit {
         content: string,
         pageTitle: string,
         existingTopics: string[],
-        character?: CharacterEmotionsResponse,
+        characterName?: String | null,
+        introPrompt?: String | null,
+        emotionPrompt?: String | null,
     ): Promise<{ topics: string[]; characterMessage?: string; emotionCode?: string }> {
         // Create the prompt using the template
         const prompt = PromptTemplates.getTopicGenerationPrompt(
             content,
             pageTitle,
             existingTopics,
-            character,
+            characterName,
+            introPrompt,
+            emotionPrompt
         );
 
         const messages: any[] = [
             { role: 'user', content: prompt },
         ];
 
-        const jsonSchema = PromptTemplates.getTopicGenerationJsonSchema(!!character);
+        const jsonSchema = PromptTemplates.getTopicGenerationJsonSchema(!!introPrompt);
 
         const response = await this.generateCompletion(
             messages,
@@ -92,41 +96,71 @@ export class AiClientService implements OnModuleInit {
             jsonSchema,
         );
 
-        if (response) {
-            // Parse the response to extract topics
-            try {
-                const cleanedResponse = this.cleanJsonResponse(response);
-                if (!cleanedResponse) {
-                    // If cleaning failed, try to use raw response as string list
-                    throw new Error('Cleaning returned empty');
-                }
-                this.logger.debug(`Cleaning returned: ${cleanedResponse}`);
-                const result = JSON.parse(cleanedResponse);
+        return this.parseTopicsResponse(response, messages, jsonSchema, 0);
+    }
 
-                if (result && Array.isArray(result)) {
-                    return { topics: result };
-                }
-
-                if (result && Array.isArray(result.topics)) {
-                    return {
-                        topics: result.topics,
-                        characterMessage: result.comment,
-                        emotionCode: result.emotion,
-                    };
-                }
-
-                this.logger.warn(`Unexpected JSON structure: ${JSON.stringify(result)}`);
-                return { topics: [] };
-            } catch (e) {
-                this.logger.warn(`Failed to parse topics as JSON: ${e}. Trying to parse as string list. Response: ${response}`);
-                // Fallback: treat as comma or newline separated string
-                // Remove potential JSON formatting chars if they exist but parsing failed
-                const cleanText = response.replace(/[{}\[\]"]/g, '');
-                return { topics: cleanText.split(/,|\n/).map(t => t.trim()).filter(t => t.length > 0) };
+    /**
+     * Recursively parse topics response with retry logic
+     */
+    private async parseTopicsResponse(
+        response: string | null,
+        messages: any[],
+        jsonSchema: Record<string, any>,
+        retryCount: number,
+        maxRetries: number = 1,
+    ): Promise<{ topics: string[]; characterMessage?: string; emotionCode?: string }> {
+        if (!response) {
+            if (retryCount < maxRetries) {
+                this.logger.warn(`Response was empty, retrying request (attempt ${retryCount + 1}/${maxRetries})...`);
+                const retryResponse = await this.generateCompletion(
+                    messages,
+                    500,
+                    jsonSchema,
+                );
+                return this.parseTopicsResponse(retryResponse, messages, jsonSchema, retryCount + 1, maxRetries);
             }
-        } else {
             this.logger.warn('Failed to generate topics, returning empty list');
             return { topics: [] };
+        }
+
+        try {
+            const cleanedResponse = this.cleanJsonResponse(response);
+            if (!cleanedResponse) {
+                throw new Error('Cleaning returned empty');
+            }
+            this.logger.debug(`Cleaning returned: ${cleanedResponse}`);
+            const result = JSON.parse(cleanedResponse);
+
+            if (result && Array.isArray(result)) {
+                return { topics: result };
+            }
+
+            if (result && (Array.isArray(result.topics) || Array.isArray(result.Topics))) {
+                return {
+                    topics: result.topics || result.Topics,
+                    characterMessage: result.comment || result.Comment,
+                    emotionCode: result.emotion || result.Emotion,
+                };
+            }
+
+            throw new Error(`Unexpected JSON structure: ${JSON.stringify(result)}`);
+        } catch (e) {
+            this.logger.warn(`Failed to parse topics as JSON: ${e}. Response: ${response}`);
+
+            if (retryCount < maxRetries) {
+                this.logger.warn(`JSON parsing failed, retrying request (attempt ${retryCount + 1}/${maxRetries})...`);
+                const retryResponse = await this.generateCompletion(
+                    messages,
+                    500,
+                    jsonSchema,
+                );
+                return this.parseTopicsResponse(retryResponse, messages, jsonSchema, retryCount + 1, maxRetries);
+            }
+
+            // Fallback: treat as comma or newline separated string
+            this.logger.warn('Retries exhausted, attempting fallback string parsing');
+            const cleanText = response.replace(/[{}\[\]"]/g, '');
+            return { topics: cleanText.split(/,|\n/).map(t => t.trim()).filter(t => t.length > 0) };
         }
     }
 

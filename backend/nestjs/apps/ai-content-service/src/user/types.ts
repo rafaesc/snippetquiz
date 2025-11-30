@@ -1,11 +1,19 @@
-export class UserConfigResponse {
+export type UserConfigResponse = {
     userId: string;
     characterEnabled: boolean;
-    defaultCharacterId: number;
+    defaultCharacterCode: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-export class UpdateCharacterEnabledRequest {
+export type UpdateCharacterEnabledRequest = {
     characterEnabled: boolean;
+}
+
+export type UserConfigEmotionOrderRequest = {
+    emotionOrder: string[];
+    userId: string;
+    defaultCharacterCode: string;
+    characterEnabled: boolean;
+    emotionIndex: number;
 }

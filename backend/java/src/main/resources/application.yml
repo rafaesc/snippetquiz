@@ -17,7 +17,7 @@ spring:
         properties:
             hibernate:
                 default_schema: core
-        show-sql: false
+        show-sql: true
     flyway:
         baseline-on-migrate: true
         baseline-version: 0

@@ -91,7 +91,7 @@ public class QuizServiceImpl implements QuizService {
                 quiz.getQuestionsCompleted(),
                 getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
                 quiz.getContentEntriesCount(),
-                new ArrayList<>(quiz.getTopics())));
+                Objects.nonNull(quiz.getTopics()) ? new ArrayList<>(quiz.getTopics()): new ArrayList<>()));
         return new PagedModelResponse<>(quizResponses);
     }
 

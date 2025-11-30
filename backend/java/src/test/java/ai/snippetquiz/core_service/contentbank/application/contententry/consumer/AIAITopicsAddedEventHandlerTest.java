@@ -57,6 +57,7 @@ class AIAITopicsAddedEventHandlerTest {
                 "",
                 "",
                 0,
+                0,
                 0);
 
         ContentEntry entry = new ContentEntry();

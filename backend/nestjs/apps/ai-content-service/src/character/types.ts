@@ -6,6 +6,8 @@ export class CharacterEmotionResponse {
     spriteUrl: string | null;
     seconds: number | null;
     animationTo: number | null;
+    steps: number | null;
+    weighted: number | null;
     isDefault: boolean;
 }
 

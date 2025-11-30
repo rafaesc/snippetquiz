@@ -68,22 +68,26 @@ export class ContentEntryService {
 
             // Fetch user character if enabled
             let character: CharacterEmotionsResponse | undefined = undefined;
-            const characterId = await this.userService.getUserCharacter(userId);
-            if (characterId) {
+            const userConfig = await this.userService.getUserConfigEmotionOrder(userId);
+            if (userConfig?.characterEnabled) {
                 try {
-                    character = await this.characterService.getCharacterById(characterId);
+                    character = await this.characterService.getCharacterByCode(userConfig.defaultCharacterCode);
                     this.logger.log(`Using character ${character?.name} for user ${userId}`);
                 } catch (error) {
-                    this.logger.warn(`Failed to fetch character ${characterId}: ${error.message}`);
+                    this.logger.warn(`Failed to fetch character ${userConfig.defaultCharacterCode}: ${error.message}`);
                 }
             }
-
+            const emotion = character?.emotions?.find((emotion) => emotion.emotionCode === userConfig?.emotionOrder[userConfig?.emotionIndex]);
             const result = await this.aiClientService.generateTopics(
                 event.content,
                 event.pageTitle,
                 existingTopics,
-                character,
+                character?.name,
+                character?.introPrompt,
+                emotion?.shortDescription,
             );
+            await this.userService.refreshUserConfigEmotionOrder(userConfig);
+
 
             this.logger.log(`Generated ${result.topics.length} topics for ${event.aggregateId}`);
 
@@ -91,6 +95,7 @@ export class ContentEntryService {
             let characterSpriteURL: string | null = null;
             let characterAnimateTo: number | null = null;
             let characterAnimateSeconds: number | null = null;
+            let characterSteps: number | null = null;
 
             if (character && result.characterMessage && result.emotionCode) {
                 this.logger.log(`Character message: ${result.characterMessage} (${result.emotionCode})`);
@@ -100,6 +105,7 @@ export class ContentEntryService {
                     characterSpriteURL = emotion.spriteUrl;
                     characterAnimateTo = emotion.animationTo;
                     characterAnimateSeconds = emotion.seconds;
+                    characterSteps = emotion.steps;
                 }
             }
 
@@ -113,6 +119,7 @@ export class ContentEntryService {
                     result.topics,
                     characterMessage,
                     characterSpriteURL,
+                    characterSteps,
                     characterAnimateTo,
                     characterAnimateSeconds
                 );

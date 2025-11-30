@@ -139,7 +139,8 @@ type StreamNotificationResponse = {
   text: string,
   to: number,
   seconds: number,
-  spriteURL: string
+  spriteURL: string,
+  steps: number
 }
 
 
@@ -221,7 +222,7 @@ const connectToStream = async () => {
       background-image: url('${spriteURL}');
       background-repeat: no-repeat;
       background-position: 0 0;
-      animation: play ${data.seconds}s steps(150) infinite, bounce 0.4s ease-in-out;
+      animation: play ${data.seconds}s steps(${data.steps}) infinite, bounce 0.4s ease-in-out;
       cursor: pointer;
     }
 
@@ -297,7 +298,7 @@ const connectToStream = async () => {
         stroke-linecap: round;
         stroke-dasharray: 94; 
         stroke-dashoffset: 0;
-        animation: countdown 15s linear forwards;
+        animation: countdown 30s linear forwards;
     }
 
     .btn-bg {
@@ -397,7 +398,7 @@ const connectToStream = async () => {
                 container.style.opacity = "1";
                 container.style.transform = "translateY(0)";
 
-                setTimeout(closeChar, 15000);
+                setTimeout(closeChar, 30000);
               };
 
               img.onerror = (e) => {

@@ -37,6 +37,7 @@ CREATE TABLE "ai_content_service"."character" (
     "code" VARCHAR(100) NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "image_url" TEXT,
     "intro_prompt" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -52,7 +53,9 @@ CREATE TABLE "ai_content_service"."character_emotion" (
     "name" TEXT NOT NULL,
     "short_description" TEXT,
     "sprite_url" TEXT,
+    "steps" INTEGER,
     "seconds" INTEGER,
+    "weighted" INTEGER DEFAULT 1,
     "animation_to" INTEGER,
     "is_default" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -64,8 +67,10 @@ CREATE TABLE "ai_content_service"."character_emotion" (
 -- CreateTable
 CREATE TABLE "ai_content_service"."user_config" (
     "user_id" UUID NOT NULL,
-    "default_character_id" INTEGER NOT NULL,
+    "default_character_code" VARCHAR(100) NOT NULL,
     "character_enabled" BOOLEAN NOT NULL DEFAULT false,
+    "emotion_order" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "emotion_index" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -86,6 +91,9 @@ CREATE INDEX "event_processed_id_user_id_idx" ON "ai_content_service"."event_pro
 
 -- CreateIndex
 CREATE UNIQUE INDEX "character_code_key" ON "ai_content_service"."character"("code");
+
+-- CreateIndex
+CREATE INDEX "character_code_idx" ON "ai_content_service"."character"("code");
 
 -- CreateIndex
 CREATE INDEX "character_emotion_character_id_idx" ON "ai_content_service"."character_emotion"("character_id");

@@ -34,6 +34,8 @@ COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/ai-content-service/schema.prisma
+RUN npm run prisma:deploy:ai-content-service
+RUN npm run prisma:seed:ai-content-service
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build ai-content-service
