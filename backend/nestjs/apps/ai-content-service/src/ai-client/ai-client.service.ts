@@ -70,9 +70,9 @@ export class AiClientService implements OnModuleInit {
         content: string,
         pageTitle: string,
         existingTopics: string[],
-        characterName?: String | null,
-        introPrompt?: String | null,
-        emotionPrompt?: String | null,
+        characterName?: string | null,
+        introPrompt?: string | null,
+        emotionPrompt?: string | null,
     ): Promise<{ topics: string[]; characterMessage?: string; emotionCode?: string }> {
         // Create the prompt using the template
         const prompt = PromptTemplates.getTopicGenerationPrompt(

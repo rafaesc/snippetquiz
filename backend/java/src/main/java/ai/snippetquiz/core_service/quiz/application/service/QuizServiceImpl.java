@@ -60,410 +60,421 @@ import static java.util.stream.Collectors.toSet;
 @Transactional
 @Slf4j
 public class QuizServiceImpl implements QuizService {
-    private final ContentBankRepository contentBankRepository;
-    private final ContentEntryRepository contentEntryRepository;
-    private final QuizGenerationInstructionRepository quizGenerationInstructionRepository;
-    private final QuestionRepository questionRepository;
-    private final ContentEntryTopicRepository contentEntryTopicRepository;
-    private final TopicRepository topicRepository;
-    private final EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
-    private final QuizProjectionRepository quizProjectionRepository;
+        private final ContentBankRepository contentBankRepository;
+        private final ContentEntryRepository contentEntryRepository;
+        private final QuizGenerationInstructionRepository quizGenerationInstructionRepository;
+        private final QuestionRepository questionRepository;
+        private final ContentEntryTopicRepository contentEntryTopicRepository;
+        private final TopicRepository topicRepository;
+        private final EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
+        private final QuizProjectionRepository quizProjectionRepository;
 
-    private String getFinalStatus(QuizStatus quizStatus, LocalDateTime questionUpdatedAt) {
-        String finalStatus = quizStatus.getValue();
-        if (QuizStatus.IN_PROGRESS.getValue().equals(finalStatus) && questionUpdatedAt != null) {
-            var thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
-            if (questionUpdatedAt.isBefore(thirtyMinutesAgo)) {
-                finalStatus = QuizStatus.READY_WITH_ERROR.getValue();
-            }
-        }
-        return finalStatus;
-    }
-
-    @Transactional(readOnly = true)
-    public PagedModelResponse<QuizResponse> findAll(UserId userId, Pageable pageable) {
-        var quizPage = quizProjectionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-        var quizResponses = quizPage.map(quiz -> new QuizResponse(
-                quiz.getId().toString(),
-                quiz.getBankName(),
-                quiz.getCreatedAt(),
-                quiz.getQuestionsCount(),
-                quiz.getQuestionsCompleted(),
-                getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
-                quiz.getContentEntriesCount(),
-                Objects.nonNull(quiz.getTopics()) ? new ArrayList<>(quiz.getTopics()): new ArrayList<>()));
-        return new PagedModelResponse<>(quizResponses);
-    }
-
-    @Transactional(readOnly = true)
-    public FindOneQuizResponse findOne(UserId userId, QuizId quizId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId.toString()));
-
-        Set<String> topics = quiz.getQuizTopics();
-        var totalQuestionCompleted = quiz.getQuizQuestionResponses().size();
-        var totalQuestions = quiz.getQuizQuestions().size();
-
-        if (totalQuestions == 0) {
-            return new FindOneQuizResponse(
-                    quiz.getId().toString(),
-                    quiz.getBankName(),
-                    quiz.getCreatedAt(),
-                    totalQuestions,
-                    totalQuestionCompleted,
-                    getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
-                    quiz.getContentEntriesCount().getValue(),
-                    topics,
-                    null);
-        }
-
-        QuizQuestionDTOResponse currentQuestionDto = null;
-        if (totalQuestionCompleted < totalQuestions) {
-            var currentQuestion = quiz.getQuizQuestions().get(totalQuestionCompleted);
-            var options = currentQuestion.getQuizQuestionOptions().stream()
-                    .map(option -> new QuizQuestionOptionDTOResponse(
-                            option.getId().toString(),
-                            option.getOptionText()))
-                    .toList();
-
-            currentQuestionDto = new QuizQuestionDTOResponse(
-                    currentQuestion.getId().toString(),
-                    currentQuestion.getQuestion(),
-                    options);
-        }
-
-        return new FindOneQuizResponse(
-                quiz.getId().toString(),
-                quiz.getBankName(),
-                quiz.getCreatedAt(),
-                totalQuestions,
-                totalQuestionCompleted,
-                getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
-                quiz.getContentEntriesCount().getValue(),
-                topics,
-                currentQuestionDto);
-    }
-
-    @Transactional(readOnly = true)
-    public PagedModelResponse<QuizResponseItemDto> findQuizResponses(UserId userId, QuizId quizId, Pageable pageable) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
-        var questionsByQuestionId = quiz.getQuizQuestions().stream()
-                .collect(Collectors.toMap(QuizQuestion::getId, Function.identity()));
-
-        // projection
-        var responsePage = paginateList(pageable, quiz.getQuizQuestionResponses());
-
-        var formattedResponses = responsePage.map(response -> {
-            var question = questionsByQuestionId.get(response.getQuizQuestion());
-
-            if (Objects.isNull(question)) {
-                throw new NotFoundException("Quiz question not found " + quizId);
-            }
-
-            var selectedOption = question.getQuizQuestionOptions().stream().filter(
-                    option -> response.getQuizQuestionOption().equals(option.getId())
-            ).findFirst();
-
-            if (selectedOption.isEmpty()) {
-                throw new NotFoundException("Quiz question option not found " + quizId);
-            }
-
-            return new QuizResponseItemDto(
-                    response.getIsCorrect(),
-                    question.getQuestion(),
-                    selectedOption.get().getOptionText(),
-                    response.getCorrectAnswer(),
-                    selectedOption.get().getOptionExplanation(),
-                    question.getContentEntrySourceUrl());
-        });
-
-        return new PagedModelResponse<>(formattedResponses);
-    }
-
-    @Transactional(readOnly = true)
-    public QuizSummaryResponseDto findQuizSummary(QuizId quizId, UserId userId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
-
-        Set<String> topics = quiz.getQuizTopics();
-
-        var totalCorrectAnswers = quiz.getQuizQuestionResponses().stream().filter(QuizQuestionResponse::getIsCorrect).count();
-
-        return new QuizSummaryResponseDto(
-                topics,
-                quiz.getQuizQuestions().size(),
-                totalCorrectAnswers);
-    }
-
-    private GetContentEntriesResponse getContentEntriesByBankId(ContentBankId bankId, UserId userId) {
-        try {
-            contentBankRepository.findByIdAndUserId(bankId, userId)
-                    .orElseThrow(() -> new RuntimeException(
-                            "Content bank not found or access denied for user " + userId));
-
-            log.info("Content bank {} validated for user {}", bankId, userId);
-
-            var contentEntries = contentEntryRepository.findAllByContentBankId(bankId);
-
-            log.info("Found {} content entries for bankId: {}", contentEntries.size(), bankId);
-
-            if (contentEntries.isEmpty()) {
-                log.warn("No content entries found for bankId: {}", bankId);
-            }
-
-            var entriesToGenerate = new ArrayList<ContentEntryId>();
-            var entriesSkipped = 0;
-
-            for (var entry : contentEntries) {
-                if (entry.getQuestionsGenerated() != null && entry.getQuestionsGenerated()) {
-                    entriesSkipped++;
-                    continue;
+        private String getFinalStatus(QuizStatus quizStatus, LocalDateTime questionUpdatedAt) {
+                String finalStatus = quizStatus.getValue();
+                if (QuizStatus.IN_PROGRESS.getValue().equals(finalStatus) && questionUpdatedAt != null) {
+                        var thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+                        if (questionUpdatedAt.isBefore(thirtyMinutesAgo)) {
+                                finalStatus = QuizStatus.READY_WITH_ERROR.getValue();
+                        }
                 }
-                entriesToGenerate.add(entry.getId());
-            }
-
-            var instruction = quizGenerationInstructionRepository
-                    .findFirstByUserId(userId).orElse(null);
-
-            var request = new GetContentEntriesResponse.GenerateQuizRequest(
-                    instruction != null ? instruction.getInstruction() : "",
-                    entriesToGenerate);
-
-            return new GetContentEntriesResponse(request, entriesSkipped);
-        } catch (Exception error) {
-            log.error("Failed to fetch content entries for bankId: {}", bankId, error);
-            throw error;
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public CheckQuizInProgressResponse checkQuizInProgress(UserId userId) {
-        var inProgressQuizzes = quizProjectionRepository.findAllByUserIdAndStatus(userId,
-                QuizStatus.IN_PROGRESS);
-
-        if (inProgressQuizzes.isEmpty()) {
-            return new CheckQuizInProgressResponse(false, null);
+                return finalStatus;
         }
 
-        QuizInProgressDetails inProgressQuiz = null;
-
-        for (var quizProjection : inProgressQuizzes) {
-            var finalStatus = getFinalStatus(quizProjection.getStatus(), quizProjection.getQuestionUpdatedAt());
-
-            if (QuizStatus.PREPARE.equals(quizProjection.getStatus()) || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
-                inProgressQuiz = new QuizInProgressDetails(
-                        quizProjection.getId().toString(),
-                        quizProjection.getContentBankId() != null ? quizProjection.getContentBankId().toString() : null,
-                        quizProjection.getBankName());
-            }
-
-            if (QuizStatus.READY_WITH_ERROR.getValue().equals(finalStatus)) {
-                var quiz = quizEventSourcingHandler.getById(userId, quizProjection.getId())
-                        .orElseThrow(() -> new NotFoundException("Quiz not found " + quizProjection.getId()));
-                quiz.updateStatus(QuizStatus.READY_WITH_ERROR);
-                quizEventSourcingHandler.save(quiz);
-            }
+        @Transactional(readOnly = true)
+        public PagedModelResponse<QuizResponse> findAll(UserId userId, Pageable pageable) {
+                var quizPage = quizProjectionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+                var quizResponses = quizPage.map(quiz -> new QuizResponse(
+                                quiz.getId().toString(),
+                                quiz.getBankName(),
+                                quiz.getCreatedAt(),
+                                quiz.getQuestionsCount(),
+                                quiz.getQuestionsCompleted(),
+                                getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
+                                quiz.getContentEntriesCount(),
+                                Objects.nonNull(quiz.getTopics()) ? new ArrayList<>(quiz.getTopics())
+                                                : new ArrayList<>()));
+                return new PagedModelResponse<>(quizResponses);
         }
 
-        return new CheckQuizInProgressResponse(Objects.nonNull(inProgressQuiz), inProgressQuiz);
-    }
+        @Transactional(readOnly = true)
+        public FindOneQuizResponse findOne(UserId userId, QuizId quizId) {
+                var quiz = quizEventSourcingHandler.getById(userId, quizId)
+                                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId.toString()));
 
-    @Override
-    public void delete(UserId userId, QuizId quizId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found"));
+                Set<String> topics = quiz.getQuizTopics();
+                var totalQuestionCompleted = quiz.getQuizQuestionResponses().size();
+                var totalQuestions = quiz.getQuizQuestions().size();
 
-        quiz.delete();
-    }
+                if (totalQuestions == 0) {
+                        return new FindOneQuizResponse(
+                                        quiz.getId().toString(),
+                                        quiz.getBankName(),
+                                        quiz.getCreatedAt(),
+                                        totalQuestions,
+                                        totalQuestionCompleted,
+                                        getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
+                                        quiz.getContentEntriesCount().getValue(),
+                                        topics,
+                                        null);
+                }
 
-    @Override
-    @Transactional
-    public void createQuiz(UserId userId, ContentBankId contentBankId, QuizId quizId) {
-        var checkQuizInProgressResponse = checkQuizInProgress(userId);
-        if (checkQuizInProgressResponse.getInProgress()) {
-            throw new ConflictException("Quiz in progress");
+                QuizQuestionDTOResponse currentQuestionDto = null;
+                if (totalQuestionCompleted < totalQuestions) {
+                        var currentQuestion = quiz.getQuizQuestions().get(totalQuestionCompleted);
+                        var options = currentQuestion.getQuizQuestionOptions().stream()
+                                        .map(option -> new QuizQuestionOptionDTOResponse(
+                                                        option.getId().toString(),
+                                                        option.getOptionText()))
+                                        .toList();
+
+                        currentQuestionDto = new QuizQuestionDTOResponse(
+                                        currentQuestion.getId().toString(),
+                                        currentQuestion.getQuestion(),
+                                        options);
+                }
+
+                return new FindOneQuizResponse(
+                                quiz.getId().toString(),
+                                quiz.getBankName(),
+                                quiz.getCreatedAt(),
+                                totalQuestions,
+                                totalQuestionCompleted,
+                                getFinalStatus(quiz.getStatus(), quiz.getQuestionUpdatedAt()),
+                                quiz.getContentEntriesCount().getValue(),
+                                topics,
+                                currentQuestionDto);
         }
 
-        var contentBank = contentBankRepository
-                .findByIdAndUserIdWithContentEntries(contentBankId, userId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Content bank not found or you do not have permission to access it"));
+        @Transactional(readOnly = true)
+        public PagedModelResponse<QuizResponseItemDto> findQuizResponses(UserId userId, QuizId quizId,
+                        Pageable pageable) {
+                var quiz = quizEventSourcingHandler.getById(userId, quizId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Quiz not found or you do not have permission to access it"));
+                var questionsByQuestionId = quiz.getQuizQuestions().stream()
+                                .collect(Collectors.toMap(QuizQuestion::getId, Function.identity()));
 
-        quizEventSourcingHandler.getById(userId, quizId)
-                .ifPresent(quiz -> {
-                    throw new ConflictException("Quiz already exists");
+                // projection
+                var responsePage = paginateList(pageable, quiz.getQuizQuestionResponses());
+
+                var formattedResponses = responsePage.map(response -> {
+                        var question = questionsByQuestionId.get(response.getQuizQuestion());
+
+                        if (Objects.isNull(question)) {
+                                throw new NotFoundException("Quiz question not found " + quizId);
+                        }
+
+                        var selectedOption = question.getQuizQuestionOptions().stream().filter(
+                                        option -> response.getQuizQuestionOption().equals(option.getId())).findFirst();
+
+                        if (selectedOption.isEmpty()) {
+                                throw new NotFoundException("Quiz question option not found " + quizId);
+                        }
+
+                        return new QuizResponseItemDto(
+                                        response.getIsCorrect(),
+                                        question.getQuestion(),
+                                        selectedOption.get().getOptionText(),
+                                        response.getCorrectAnswer(),
+                                        selectedOption.get().getOptionExplanation(),
+                                        question.getContentEntrySourceUrl());
                 });
 
-        var contentEntriesResponse = getContentEntriesByBankId(
-                contentBank.getId(), userId);
-        var quizRequest = contentEntriesResponse.request();
-        var entries = quizRequest.newContentEntries();
-        var isReady = (isNull(entries) || entries.isEmpty());
-
-        var quiz = new Quiz(quizId, userId, contentBank.getId(), contentBank.getName(),
-                quizRequest.instructions(), entries,
-                contentEntriesResponse.entriesSkipped());
-
-        createQuizQuestions(quiz, isReady ? QuizStatus.READY : QuizStatus.PREPARE);
-
-        if (isReady) {
-            log.warn("No content entries found for quizId: {}, bankId: {}, userId: {}", quiz.getId(),
-                    contentBank.getId(), userId);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void processNewQuizQuestions(Quiz quiz, QuizStatus status) {
-        createQuizQuestions(quiz, status);
-    }
-
-    private void createQuizQuestions(Quiz quiz, QuizStatus status) {
-        var contentBankId = quiz.getContentBankId();
-        var contentEntryList = contentEntryRepository.findAllByContentBankId(contentBankId);
-        Map<ContentEntryId, ContentEntry> contentEntryMap = contentEntryList.stream()
-                .collect(toMap(
-                        ContentEntry::getId,
-                        Function.identity()));
-
-        var allQuestions = questionRepository.findByContentEntryIdIn(contentEntryList.stream()
-                .map(ContentEntry::getId).toList());
-
-        if (allQuestions.isEmpty()) {
-            quizEventSourcingHandler.save(quiz);
-            return;
+                return new PagedModelResponse<>(formattedResponses);
         }
 
-        var mapQuizQuestionByChunk = quiz.getQuizQuestions()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        QuizQuestion::getChunkIndex,
-                        toMap(
-                                QuizQuestion::getQuestionIndexInChunk,
-                                q -> Map.of(q.getContentEntryId(), q),
-                                (existing, replacement) -> existing)));
+        @Transactional(readOnly = true)
+        public QuizSummaryResponseDto findQuizSummary(QuizId quizId, UserId userId) {
+                var quiz = quizEventSourcingHandler.getById(userId, quizId)
+                                .orElseThrow(() -> new NotFoundException("Quiz not found " + quizId));
 
-        var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryList.stream()
-                .map(ContentEntry::getId).toList());
+                Set<String> topics = quiz.getQuizTopics();
 
-        List<QuizQuestion> quizQuestions = new ArrayList<>(allQuestions.size());
-        for (var question : allQuestions) {
-            var contentEntryId = question.getContentEntryId();
-            var contentEntry = contentEntryMap.get(contentEntryId);
-            var chunkIndex = question.getChunkIndex();
-            var questionIndexInChunk = question.getQuestionIndexInChunk();
+                var totalCorrectAnswers = quiz.getQuizQuestionResponses().stream()
+                                .filter(QuizQuestionResponse::getIsCorrect).count();
 
-            if (mapQuizQuestionByChunk.containsKey(chunkIndex)
-                    && mapQuizQuestionByChunk.get(chunkIndex).containsKey(questionIndexInChunk)
-                    && mapQuizQuestionByChunk.get(chunkIndex).get(questionIndexInChunk)
-                    .containsKey(contentEntryId)) {
-                continue;
-            }
-
-            var quizQuestion = new QuizQuestion();
-            quizQuestion.setChunkIndex(chunkIndex);
-            quizQuestion.setQuestionIndexInChunk(questionIndexInChunk);
-            quizQuestion.setQuestion(question.getQuestion());
-            quizQuestion.setType(question.getType());
-            quizQuestion.setContentEntryType(
-                    contentEntry != null ? contentEntry.getContentType() : ContentType.SELECTED_TEXT);
-            quizQuestion.setContentEntrySourceUrl(contentEntry != null ? contentEntry.getSourceUrl() : null);
-            quizQuestion.setContentEntryId(contentEntryId);
-
-            for (var option : question.getQuestionOptions()) {
-                var quizOption = new QuizQuestionOption();
-                quizOption.setOptionText(option.getOptionText());
-                quizOption.setOptionExplanation(option.getOptionExplanation());
-                quizOption.setIsCorrect(option.getIsCorrect());
-
-                quizQuestion.getQuizQuestionOptions().add(quizOption);
-            }
-
-            quizQuestions.add(quizQuestion);
+                return new QuizSummaryResponseDto(
+                                topics,
+                                quiz.getQuizQuestions().size(),
+                                totalCorrectAnswers);
         }
 
-        Set<String> quizTopics = topicRepository
-                .findByUserIdAndIdIn(quiz.getUserId(),
-                        contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
-                .stream()
-                .map(Topic::getTopic)
-                .collect(toSet());
+        private GetContentEntriesResponse getContentEntriesByBankId(ContentBankId bankId, UserId userId) {
+                try {
+                        contentBankRepository.findByIdAndUserId(bankId, userId)
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Content bank not found or access denied for user " + userId));
 
-        quiz.addQuestions(status, contentEntryList.size(), quizTopics, quizQuestions);
+                        log.info("Content bank {} validated for user {}", bankId, userId);
 
-        quizEventSourcingHandler.save(quiz);
-    }
+                        var contentEntries = contentEntryRepository.findAllByContentBankId(bankId);
 
-    @Override
-    public UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, QuizQuestionOptionId optionSelectedId) {
-        var quiz = quizEventSourcingHandler.getById(userId, quizId)
-                .orElseThrow(() -> new NotFoundException("Quiz not found or you do not have permission to access it"));
-        var questionsCompleted = quiz.getQuizQuestionResponses().size();
+                        log.info("Found {} content entries for bankId: {}", contentEntries.size(), bankId);
 
-        if (questionsCompleted >= quiz.getQuizQuestions().size()) {
-            return new UpdateQuizResponse(
-                    "Quiz is already completed",
-                    false,
-                    true,
-                    null);
+                        if (contentEntries.isEmpty()) {
+                                log.warn("No content entries found for bankId: {}", bankId);
+                        }
+
+                        var entriesToGenerate = new ArrayList<ContentEntryId>();
+                        var entriesSkipped = 0;
+
+                        for (var entry : contentEntries) {
+                                if (entry.getQuestionsGenerated() != null && entry.getQuestionsGenerated()) {
+                                        entriesSkipped++;
+                                        continue;
+                                }
+                                entriesToGenerate.add(entry.getId());
+                        }
+
+                        var instruction = quizGenerationInstructionRepository
+                                        .findFirstByUserId(userId).orElse(null);
+
+                        var request = new GetContentEntriesResponse.GenerateQuizRequest(
+                                        instruction != null ? instruction.getInstruction() : "",
+                                        entriesToGenerate);
+
+                        return new GetContentEntriesResponse(request, entriesSkipped);
+                } catch (Exception error) {
+                        log.error("Failed to fetch content entries for bankId: {}", bankId, error);
+                        throw error;
+                }
         }
 
-        var currentQuestion = quiz.getQuizQuestions().get(questionsCompleted);
+        @Override
+        @Transactional(readOnly = true)
+        public CheckQuizInProgressResponse checkQuizInProgress(UserId userId) {
+                var inProgressQuizzes = quizProjectionRepository.findAllByUserIdAndStatus(userId,
+                                QuizStatus.IN_PROGRESS);
 
-        if (isNull(currentQuestion)) {
-            return new UpdateQuizResponse(
-                    "No more questions available",
-                    false,
-                    false,
-                    null);
+                if (inProgressQuizzes.isEmpty()) {
+                        return new CheckQuizInProgressResponse(false, null);
+                }
+
+                QuizInProgressDetails inProgressQuiz = null;
+
+                for (var quizProjection : inProgressQuizzes) {
+                        var finalStatus = getFinalStatus(quizProjection.getStatus(),
+                                        quizProjection.getQuestionUpdatedAt());
+
+                        if (QuizStatus.PREPARE.equals(quizProjection.getStatus())
+                                        || QuizStatus.IN_PROGRESS.getValue().equals(finalStatus)) {
+                                inProgressQuiz = new QuizInProgressDetails(
+                                                quizProjection.getId().toString(),
+                                                quizProjection.getContentBankId() != null
+                                                                ? quizProjection.getContentBankId().toString()
+                                                                : null,
+                                                quizProjection.getBankName());
+                        }
+
+                        if (QuizStatus.READY_WITH_ERROR.getValue().equals(finalStatus)) {
+                                var quiz = quizEventSourcingHandler.getById(userId, quizProjection.getId())
+                                                .orElseThrow(() -> new NotFoundException(
+                                                                "Quiz not found " + quizProjection.getId()));
+                                quiz.updateStatus(QuizStatus.READY_WITH_ERROR);
+                                quizEventSourcingHandler.save(quiz);
+                        }
+                }
+
+                return new CheckQuizInProgressResponse(Objects.nonNull(inProgressQuiz), inProgressQuiz);
         }
 
-        var options = currentQuestion.getQuizQuestionOptions();
-        var selectedOption = options.stream()
-                .filter(option -> option.getId().equals(optionSelectedId))
-                .findFirst()
-                .orElse(null);
+        @Override
+        public void delete(UserId userId, QuizId quizId) {
+                var quiz = quizEventSourcingHandler.getById(userId, quizId)
+                                .orElseThrow(() -> new NotFoundException("Quiz not found"));
 
-        if (isNull(selectedOption)) {
-            return new UpdateQuizResponse(
-                    "Invalid question option selected",
-                    false,
-                    false,
-                    null);
+                quiz.delete();
         }
 
-        var correctOption = options.stream()
-                .filter(QuizQuestionOption::getIsCorrect)
-                .findFirst()
-                .orElse(null);
+        @Override
+        @Transactional
+        public void createQuiz(UserId userId, ContentBankId contentBankId, QuizId quizId) {
+                var checkQuizInProgressResponse = checkQuizInProgress(userId);
+                if (checkQuizInProgressResponse.getInProgress()) {
+                        throw new ConflictException("Quiz in progress");
+                }
 
-        if (isNull(correctOption)) {
-            log.error("No correct option found for question {}", currentQuestion.getId());
-            return new UpdateQuizResponse(
-                    "Question configuration error",
-                    false,
-                    false,
-                    null);
+                var contentBank = contentBankRepository
+                                .findByIdAndUserIdWithContentEntries(contentBankId, userId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Content bank not found or you do not have permission to access it"));
+
+                quizEventSourcingHandler.getById(userId, quizId)
+                                .ifPresent(quiz -> {
+                                        throw new ConflictException("Quiz already exists");
+                                });
+
+                var contentEntriesResponse = getContentEntriesByBankId(
+                                contentBank.getId(), userId);
+                var quizRequest = contentEntriesResponse.request();
+                var entries = quizRequest.newContentEntries();
+                var isReady = (isNull(entries) || entries.isEmpty());
+
+                var quiz = new Quiz(quizId, userId, contentBank.getId(), contentBank.getName(),
+                                quizRequest.instructions(), entries,
+                                contentEntriesResponse.entriesSkipped());
+
+                createQuizQuestions(quiz, isReady ? QuizStatus.READY : QuizStatus.PREPARE);
+
+                if (isReady) {
+                        log.warn("No content entries found for quizId: {}, bankId: {}, userId: {}", quiz.getId(),
+                                        contentBank.getId(), userId);
+                }
         }
 
-        // Create a new QuizQuestionResponse
-        var response = new QuizQuestionResponse();
-        response.setQuizQuestion(currentQuestion.getId());
-        response.setQuizQuestionOption(selectedOption.getId());
-        response.setIsCorrect(selectedOption.getIsCorrect());
-        response.setCorrectAnswer(correctOption.getOptionText());
-        response.setResponseTime("0");
+        @Override
+        @Transactional
+        public void processNewQuizQuestions(Quiz quiz, QuizStatus status) {
+                createQuizQuestions(quiz, status);
+        }
 
-        quiz.answerMarked(response);
+        private void createQuizQuestions(Quiz quiz, QuizStatus status) {
+                var contentBankId = quiz.getContentBankId();
+                var contentEntryList = contentEntryRepository.findAllByContentBankId(contentBankId);
+                Map<ContentEntryId, ContentEntry> contentEntryMap = contentEntryList.stream()
+                                .collect(toMap(
+                                                ContentEntry::getId,
+                                                Function.identity()));
 
-        quizEventSourcingHandler.save(quiz);
+                var allQuestions = questionRepository.findByContentEntryIdIn(contentEntryList.stream()
+                                .map(ContentEntry::getId).toList());
 
-        return new UpdateQuizResponse(
-                "Quiz updated successfully",
-                true,
-                quiz.getIsAllQuestionsMarked(),
-                correctOption.getId().toString());
-    }
+                if (allQuestions.isEmpty()) {
+                        quizEventSourcingHandler.save(quiz);
+                        return;
+                }
+
+                var mapQuizQuestionByChunk = quiz.getQuizQuestions()
+                                .stream()
+                                .collect(Collectors.groupingBy(
+                                                QuizQuestion::getChunkIndex,
+                                                toMap(
+                                                                QuizQuestion::getQuestionIndexInChunk,
+                                                                q -> Map.of(q.getContentEntryId(), q),
+                                                                (existing, replacement) -> existing)));
+
+                var contentEntryTopics = contentEntryTopicRepository.findByContentEntryIdIn(contentEntryList.stream()
+                                .map(ContentEntry::getId).toList());
+
+                List<QuizQuestion> quizQuestions = new ArrayList<>(allQuestions.size());
+                for (var question : allQuestions) {
+                        var contentEntryId = question.getContentEntryId();
+                        var contentEntry = contentEntryMap.get(contentEntryId);
+                        var chunkIndex = question.getChunkIndex();
+                        var questionIndexInChunk = question.getQuestionIndexInChunk();
+
+                        if (mapQuizQuestionByChunk.containsKey(chunkIndex)
+                                        && mapQuizQuestionByChunk.get(chunkIndex).containsKey(questionIndexInChunk)
+                                        && mapQuizQuestionByChunk.get(chunkIndex).get(questionIndexInChunk)
+                                                        .containsKey(contentEntryId)) {
+                                continue;
+                        }
+
+                        var quizQuestion = new QuizQuestion();
+                        quizQuestion.setChunkIndex(chunkIndex);
+                        quizQuestion.setQuestionIndexInChunk(questionIndexInChunk);
+                        quizQuestion.setQuestion(question.getQuestion());
+                        quizQuestion.setType(question.getType());
+                        quizQuestion.setContentEntryType(
+                                        contentEntry != null ? contentEntry.getContentType()
+                                                        : ContentType.SELECTED_TEXT);
+                        quizQuestion.setContentEntrySourceUrl(
+                                        contentEntry != null ? contentEntry.getSourceUrl() : null);
+                        quizQuestion.setContentEntryId(contentEntryId);
+
+                        for (var option : question.getQuestionOptions()) {
+                                var quizOption = new QuizQuestionOption();
+                                quizOption.setOptionText(option.getOptionText());
+                                quizOption.setOptionExplanation(option.getOptionExplanation());
+                                quizOption.setIsCorrect(option.getIsCorrect());
+
+                                quizQuestion.getQuizQuestionOptions().add(quizOption);
+                        }
+
+                        quizQuestions.add(quizQuestion);
+                }
+
+                Set<String> quizTopics = topicRepository
+                                .findByUserIdAndIdIn(quiz.getUserId(),
+                                                contentEntryTopics.stream().map(ContentEntryTopic::getTopicId).toList())
+                                .stream()
+                                .map(Topic::getTopic)
+                                .collect(toSet());
+
+                quiz.addQuestions(status, contentEntryList.size(), quizTopics, quizQuestions);
+
+                quizEventSourcingHandler.save(quiz);
+        }
+
+        @Override
+        public UpdateQuizResponse updateQuiz(UserId userId, QuizId quizId, QuizQuestionOptionId optionSelectedId) {
+                var quiz = quizEventSourcingHandler.getById(userId, quizId)
+                                .orElseThrow(() -> new NotFoundException(
+                                                "Quiz not found or you do not have permission to access it"));
+                var questionsCompleted = quiz.getQuizQuestionResponses().size();
+
+                if (questionsCompleted >= quiz.getQuizQuestions().size()) {
+                        return new UpdateQuizResponse(
+                                        "Quiz is already completed",
+                                        false,
+                                        true,
+                                        null);
+                }
+
+                var currentQuestion = quiz.getQuizQuestions().get(questionsCompleted);
+
+                if (isNull(currentQuestion)) {
+                        return new UpdateQuizResponse(
+                                        "No more questions available",
+                                        false,
+                                        false,
+                                        null);
+                }
+
+                var options = currentQuestion.getQuizQuestionOptions();
+                var selectedOption = options.stream()
+                                .filter(option -> option.getId().equals(optionSelectedId))
+                                .findFirst()
+                                .orElse(null);
+
+                if (isNull(selectedOption)) {
+                        return new UpdateQuizResponse(
+                                        "Invalid question option selected",
+                                        false,
+                                        false,
+                                        null);
+                }
+
+                var correctOption = options.stream()
+                                .filter(QuizQuestionOption::getIsCorrect)
+                                .findFirst()
+                                .orElse(null);
+
+                if (isNull(correctOption)) {
+                        log.error("No correct option found for question {}", currentQuestion.getId());
+                        return new UpdateQuizResponse(
+                                        "Question configuration error",
+                                        false,
+                                        false,
+                                        null);
+                }
+
+                // Create a new QuizQuestionResponse
+                var response = new QuizQuestionResponse();
+                response.setQuizQuestion(currentQuestion.getId());
+                response.setQuizQuestionOption(selectedOption.getId());
+                response.setIsCorrect(selectedOption.getIsCorrect());
+                response.setCorrectAnswer(correctOption.getOptionText());
+                response.setResponseTime("0");
+
+                quiz.answerMarked(response);
+
+                quizEventSourcingHandler.save(quiz);
+
+                return new UpdateQuizResponse(
+                                "Quiz updated successfully",
+                                true,
+                                quiz.getIsAllQuestionsMarked(),
+                                correctOption.getId().toString());
+        }
 }

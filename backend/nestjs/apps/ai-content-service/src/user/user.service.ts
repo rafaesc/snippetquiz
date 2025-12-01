@@ -137,6 +137,7 @@ export class UserService {
             for (let i = emotionOrder.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [emotionOrder[i], emotionOrder[j]] = [emotionOrder[j], emotionOrder[i]];
+            }
 
             return emotionOrder;
         } catch (error) {
