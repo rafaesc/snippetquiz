@@ -252,7 +252,7 @@ export const apiService = {
     const data = await response.json();
 
     // Store tokens in chrome storage if provided
-    if (data.tokens.accessToken && data.tokens.refreshToken) {
+    if (data.tokens && data.tokens.accessToken && data.tokens.refreshToken) {
       await tokenService.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
     }
 

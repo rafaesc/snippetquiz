@@ -84,7 +84,9 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         title: "Welcome!",
         description: "Your account has been created successfully.",
       });
-      onLoginSuccess();
+      chrome.tabs.create({
+        url: `${import.meta.env.VITE_FRONTEND_URL}/auth/verify-email`
+      });
     },
     onError: (error: Error) => {
       setError(error.message);

@@ -2,6 +2,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const CONTEXT_SAVE_SELECTED_TEXT = "saveSelectedText";
 const CONNECT_TO_STREAM_NOTIFICATION = "connectToStreamNotification";
 
+let lastActiveTabId: number | undefined | null = null;
 let notificationTimeoutSingleton: number;
 const NOTIFICATION_CONNECTION_TIMEOUT = 30000;
 const reloadTimeoutSingleton = () => setTimeout(() => {
@@ -96,20 +97,28 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
   return response;
 };
 
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    return;
+  }
+
+  const [tab] = await chrome.tabs.query({ active: true, windowId });
+  if (tab) {
+    lastActiveTabId = tab.id;
+  }
+});
+
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === CONTEXT_SAVE_SELECTED_TEXT && info.selectionText) {
     const text = info.selectionText.trim();
 
     try {
-      // Get the current tab information
       const sourceUrl = tab?.url || '';
       const pageTitle = tab?.title || '';
 
-      // Get the default bank ID from storage
       const result = await chrome.storage.local.get('selectedBankId');
       const bankId = result.selectedBankId;
 
-      // Create the content entry using direct API call
       const response = await makeAuthenticatedRequest('/api/core/content-entry', {
         method: 'POST',
         headers: {
@@ -182,29 +191,29 @@ const connectToStream = async () => {
       const data = JSON.parse(event.data) as StreamNotificationResponse;
       console.log("Snippetquiz notification.", data)
       try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        console.log("Snippetquiz TAB.", tab)
-        if (tab?.id) {
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            args: [data],
-            func: (data) => {
-              console.debug("Snippetquiz init.", data)
-              const spriteURL = data.spriteURL;
+        if (!lastActiveTabId) {
+          return;
+        }
+        await chrome.scripting.executeScript({
+          target: { tabId: lastActiveTabId },
+          args: [data],
+          func: (data) => {
+            console.debug("Snippetquiz init.", data)
+            const spriteURL = data.spriteURL;
 
-              const img = new Image();
-              img.src = spriteURL;
-              let container: HTMLDivElement | null = null;
+            const img = new Image();
+            img.src = spriteURL;
+            let container: HTMLDivElement | null = null;
 
-              img.onload = () => {
-                console.log("Snippetquiz img onload.")
+            img.onload = () => {
+              console.log("Snippetquiz img onload.")
 
-                const containerId = "snippetquiz-animated-character-wrapper";
-                const existing = document.getElementById(containerId);
-                if (existing) existing.remove();
+              const containerId = "snippetquiz-animated-character-wrapper";
+              const existing = document.getElementById(containerId);
+              if (existing) existing.remove();
 
-                const style = document.createElement("style");
-                style.textContent = `
+              const style = document.createElement("style");
+              style.textContent = `
     .char-container {
       position: fixed;
       top: 20px;
@@ -332,86 +341,85 @@ const connectToStream = async () => {
       50% { transform: translateY(-10px); }
     }
   `;
-                document.head.appendChild(style);
+              document.head.appendChild(style);
 
-                container = document.createElement("div");
-                container.className = "char-container";
-                container.id = containerId;
+              container = document.createElement("div");
+              container.className = "char-container";
+              container.id = containerId;
 
-                const bubble = document.createElement("div");
-                bubble.className = "speech-bubble";
-                bubble.innerText = data.text
+              const bubble = document.createElement("div");
+              bubble.className = "speech-bubble";
+              bubble.innerText = data.text
 
-                const sprite = document.createElement("div");
-                sprite.className = "sprite";
+              const sprite = document.createElement("div");
+              sprite.className = "sprite";
 
-                const closeWrapper = document.createElement("div");
-                closeWrapper.className = "close-wrapper";
+              const closeWrapper = document.createElement("div");
+              closeWrapper.className = "close-wrapper";
 
-                const svgNS = "http://www.w3.org/2000/svg";
-                const svg = document.createElementNS(svgNS, "svg");
-                svg.classList.add("timer-svg");
-                svg.setAttribute("viewBox", "0 0 34 34");
+              const svgNS = "http://www.w3.org/2000/svg";
+              const svg = document.createElementNS(svgNS, "svg");
+              svg.classList.add("timer-svg");
+              svg.setAttribute("viewBox", "0 0 34 34");
 
-                const circle = document.createElementNS(svgNS, "circle");
-                circle.classList.add("timer-circle");
-                circle.setAttribute("cx", "17");
-                circle.setAttribute("cy", "17");
-                circle.setAttribute("r", "15");
+              const circle = document.createElementNS(svgNS, "circle");
+              circle.classList.add("timer-circle");
+              circle.setAttribute("cx", "17");
+              circle.setAttribute("cy", "17");
+              circle.setAttribute("r", "15");
 
-                svg.appendChild(circle);
+              svg.appendChild(circle);
 
-                const btnBg = document.createElement("div");
-                btnBg.className = "btn-bg";
+              const btnBg = document.createElement("div");
+              btnBg.className = "btn-bg";
 
-                const closeText = document.createElement("span");
-                closeText.className = "close-text";
-                closeText.innerText = "X";
+              const closeText = document.createElement("span");
+              closeText.className = "close-text";
+              closeText.innerText = "X";
 
-                closeWrapper.appendChild(btnBg);
-                closeWrapper.appendChild(svg);
-                closeWrapper.appendChild(closeText);
+              closeWrapper.appendChild(btnBg);
+              closeWrapper.appendChild(svg);
+              closeWrapper.appendChild(closeText);
 
-                const closeChar = () => {
-                  if (container && container.parentNode) {
-                    container.style.opacity = '0';
-                    container.style.transition = 'opacity 0.3s ease';
-                    setTimeout(() => {
-                      if (container && container.parentNode) {
-                        container.parentNode.removeChild(container);
-                      }
-                    }, 300);
-                  }
-                };
-
-                closeWrapper.onclick = closeChar;
-
-                container.appendChild(bubble);
-                container.appendChild(sprite);
-                container.appendChild(closeWrapper);
-
-                document.body.appendChild(container);
-
-                // Force reflow to ensure CSS transitions/animations start properly
-                void container.offsetWidth;
-
-                container.style.opacity = "1";
-                container.style.transform = "translateY(0)";
-
-                setTimeout(closeChar, 30000);
-              };
-
-              img.onerror = (e) => {
-                console.error("Error snippetquiz sprite.", e)
+              const closeChar = () => {
                 if (container && container.parentNode) {
-                  container.parentNode.removeChild(container);
+                  container.style.opacity = '0';
+                  container.style.transition = 'opacity 0.3s ease';
+                  setTimeout(() => {
+                    if (container && container.parentNode) {
+                      container.parentNode.removeChild(container);
+                    }
+                  }, 300);
                 }
               };
-              console.log("Snippetquiz sprite loaded.")
 
-            }
-          });
-        }
+              closeWrapper.onclick = closeChar;
+
+              container.appendChild(bubble);
+              container.appendChild(sprite);
+              container.appendChild(closeWrapper);
+
+              document.body.appendChild(container);
+
+              // Force reflow to ensure CSS transitions/animations start properly
+              void container.offsetWidth;
+
+              container.style.opacity = "1";
+              container.style.transform = "translateY(0)";
+
+              setTimeout(closeChar, 30000);
+            };
+
+            img.onerror = (e) => {
+              console.error("Error snippetquiz sprite.", e)
+              if (container && container.parentNode) {
+                container.parentNode.removeChild(container);
+              }
+            };
+            console.log("Snippetquiz sprite loaded.")
+
+          }
+        });
       } catch (scriptError) {
         console.log('Could not show visual feedback:', scriptError);
       }
