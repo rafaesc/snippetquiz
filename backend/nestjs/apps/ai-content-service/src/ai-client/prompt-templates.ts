@@ -8,9 +8,9 @@ export class PromptTemplates {
         content: string,
         pageTitle: string,
         existingTopics: string[],
-        characterName?: String | null,
-        introPrompt?: String | null,
-        emotionPrompt?: String | null,
+        characterName?: string | null,
+        introPrompt?: string | null,
+        emotionPrompt?: string | null,
     ): string {
         const existingTopicsStr =
             existingTopics && existingTopics.length > 0
