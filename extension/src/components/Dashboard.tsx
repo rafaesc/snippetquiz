@@ -694,7 +694,7 @@ function Dashboard() {
                             try {
                                 const { code } = await apiService.generateCode();
                                 chrome.tabs.create({
-                                    url: `${import.meta.env.VITE_DASHBOARD_URL}?code=${code}`
+                                    url: `${import.meta.env.VITE_FRONTEND_URL}/dashboard/generate?code=${code}`
                                 });
                             } catch (error) {
                                 console.error('Failed to generate code:', error);
