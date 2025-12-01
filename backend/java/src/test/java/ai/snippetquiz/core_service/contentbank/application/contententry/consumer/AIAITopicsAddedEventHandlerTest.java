@@ -6,6 +6,7 @@ import ai.snippetquiz.core_service.contentbank.domain.model.ContentEntryTopic;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryRepository;
 import ai.snippetquiz.core_service.contentbank.domain.port.ContentEntryTopicRepository;
 import ai.snippetquiz.core_service.contentbank.domain.valueobject.ContentEntryId;
+import ai.snippetquiz.core_service.shared.domain.port.repository.EventProcessedRepository;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
@@ -31,6 +32,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AIAITopicsAddedEventHandlerTest {
 
+    @Mock
+    private EventProcessedRepository eventProcessedRepository;
     @Mock
     private TopicRepository topicRepository;
     @Mock
@@ -64,6 +67,8 @@ class AIAITopicsAddedEventHandlerTest {
         entry.setId(new ContentEntryId(contentId));
         entry.setUserId(userId);
 
+        when(eventProcessedRepository.isEventProcessed(event.getEventId())).thenReturn(false);
+
         when(contentEntryRepository.findById(any())).thenReturn(Optional.of(entry));
         when(contentEntryTopicRepository.findByContentEntryId(eq(entry.getId()))).thenReturn(new ArrayList<>());
 
@@ -82,6 +87,7 @@ class AIAITopicsAddedEventHandlerTest {
         verify(topicRepository, times(2)).save(any());
         verify(contentEntryRepository, times(1)).save(any());
         verify(contentEntryTopicRepository, times(2)).save(any(ContentEntryTopic.class));
+        verify(eventProcessedRepository).save(event);
         assertNotNull(entry.getId());
     }
 }

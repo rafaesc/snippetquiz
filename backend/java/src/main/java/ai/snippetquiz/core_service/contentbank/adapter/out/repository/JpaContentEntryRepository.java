@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,11 +25,16 @@ public interface JpaContentEntryRepository extends JpaRepository<ContentEntryEnt
     Optional<ContentEntryEntity> findByIdAndUserId(UUID id, UUID userId);
 
     @Query("SELECT COUNT(ce) FROM ContentEntryEntity ce " +
-            "WHERE ce.contentBankId = :contentBankId")
+            "WHERE ce.contentBank.id = :contentBankId")
     long countByContentBankId(@Param("contentBankId") UUID contentBankId);
 
+    @Modifying
+    @Query("DELETE FROM ContentEntryEntity ce WHERE ce.id = :contentEntryId")
+    void deleteById(@Param("contentEntryId") UUID contentEntryId);
+
     @Query("SELECT ce FROM ContentEntryEntity ce " +
-            "WHERE ce.sourceUrl = :sourceUrl AND ce.contentType = :contentType AND ce.contentBankId = :contentBankId " +
+            "WHERE ce.sourceUrl = :sourceUrl AND ce.contentType = :contentType AND ce.contentBank.id = :contentBankId "
+            +
             "ORDER BY ce.createdAt DESC LIMIT 1")
     Optional<ContentEntryEntity> findBySourceUrlAndContentTypeAndContentBankId(
             @Param("sourceUrl") String sourceUrl,

@@ -50,12 +50,12 @@ export class JwtAuthGuard implements CanActivate {
       return (request.query as any)['token'];
     }
 
-    if (request && request.cookies && request.cookies['accessToken']) {
-      return request.cookies['accessToken'];
-    }
-
     if (request && request.headers && request.headers['authorization']) {
       return request.headers['authorization']?.split(' ')[1];
+    }
+
+    if (request && request.cookies && request.cookies['accessToken']) {
+      return request.cookies['accessToken'];
     }
     return undefined;
   }
