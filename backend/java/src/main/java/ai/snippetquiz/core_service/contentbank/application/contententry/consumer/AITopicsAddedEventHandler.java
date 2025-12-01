@@ -14,6 +14,7 @@ import ai.snippetquiz.core_service.topic.domain.Topic;
 import ai.snippetquiz.core_service.topic.domain.port.TopicRepository;
 import ai.snippetquiz.core_service.shared.domain.bus.event.EventBus;
 import ai.snippetquiz.core_service.contentbank.domain.events.CharacterMessageEphemeralEvent;
+import ai.snippetquiz.core_service.shared.domain.port.repository.EventProcessedRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,11 +33,16 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
     private final ContentEntryRepository contentEntryRepository;
     private final ContentEntryTopicRepository contentEntryTopicRepository;
     private final EventBus eventBus;
+    private final EventProcessedRepository eventProcessedRepository;
 
     @Override
     public void on(IntegrationEvent event) {
         if (!(event instanceof AITopicsAddedIntegrationEvent e)) {
             log.warn("Received unexpected integration event type: {}", event.getClass().getName());
+            return;
+        }
+        if (eventProcessedRepository.isEventProcessed(e.getEventId())) {
+            log.info("Event {} already processed", e.getEventId());
             return;
         }
         log.info("Received AITopicsAddedIntegrationEvent: {}", e.getAggregateId());
@@ -46,12 +52,6 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
             var contentEntry = contentEntryRepository.findById(new ContentEntryId(contentId))
                     .orElseThrow(() -> new NotFoundException(
                             "Content Entry not found or you do not have permission to access it"));
-
-            var existingTopics = contentEntryTopicRepository.findByContentEntryId(contentEntry.getId());
-            if (!existingTopics.isEmpty()) {
-                log.warn("Content entry already has topics: {}", existingTopics);
-                return;
-            }
 
             List<String> generatedTopics = Objects.nonNull(e.getTopics()) ? e.getTopics() : List.of();
             var topicsCreated = 0;
@@ -100,6 +100,8 @@ public class AITopicsAddedEventHandler implements IntegrationEventSubscriber {
                         e.getCharacterAnimateTo(),
                         e.getCharacterAnimateSeconds())));
             }
+
+            eventProcessedRepository.save(e);
 
         } catch (Exception ex) {
             log.error("Error processing TopicsAddedIntegrationEvent: ", ex);

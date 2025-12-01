@@ -6,12 +6,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -25,8 +30,10 @@ public class ContentEntryEntity {
     @Id
     private UUID id;
 
-    @Column(name = "content_bank_id", nullable = false)
-    private UUID contentBankId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "content_bank_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private ContentBankEntity contentBank;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
