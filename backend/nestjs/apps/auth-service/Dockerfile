@@ -33,8 +33,7 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
-RUN npx prisma generate --schema=prisma/auth-service/schema.prisma
-RUN npm run prisma:deploy:auth
+RUN npm run prisma:generate:auth
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build auth-service
@@ -62,6 +61,7 @@ COPY --from=builder /usr/src/app/dist ./dist
 
 # Copy Prisma schema for runtime operations
 COPY --from=builder /usr/src/app/prisma ./prisma
+COPY --from=builder /usr/src/app/generated/prisma ./generated/prisma
 
 # Copy package manifest files for installing production dependencies
 COPY package*.json ./
@@ -78,9 +78,7 @@ RUN chown -R backend:nodejs /usr/src/app
 USER backend
 
 # Set additional environment variables
-ENV PORT=6000
-
-EXPOSE 6000
+EXPOSE 3002
 
 # Use dumb-init as PID 1 to properly handle system signals
 ENTRYPOINT ["dumb-init", "--", "./entrypoint.sh"]

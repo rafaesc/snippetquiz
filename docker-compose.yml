@@ -3,9 +3,7 @@ x-common-environment: &common-env
   POSTGRESQL_PASSWORD: pass
   POSTGRESQL_HOST: db
   POSTGRESQL_PORT: 5432
-  POSTGRESQL_DATABASE: devdb
-  POSTGRESQL_PRISMA_AUTH_URL: "postgresql://user:pass@db:5432/devdb?schema=auth"
-  POSTGRESQL_PRISMA_AI_CONTENT_SERVICE_URL: "postgresql://user:pass@db:5432/devdb?schema=ai_content_service"
+  POSTGRESQL_DATABASE: snippetquiz
   REDIS_HOST: cache
   REDIS_PORT: 6379
   REDIS_PASSWORD: redispass
@@ -16,13 +14,9 @@ x-common-environment: &common-env
   JWT_AUTH_VERIFICATION_SECRET: "your-verification-secret-key"
   JWT_AUTH_VERIFICATION_EXPIRES_IN: "24h"
   COOKIE_SECRET: "your-cookie-secret"
-  API_URL: "http://api-gateway:5000"
-  API_GATEWAY_PORT: 5000
-  AUTH_SERVICE_PORT: 6000
+  API_URL: "http://api-gateway:3001"
   AUTH_SERVICE_HOST: "auth-service"
-  AI_CONTENT_SERVICE_PORT: 50051
   AI_CONTENT_SERVICE_HOST: "ai-content-service"
-  CORE_SERVICE_PORT: 7001
   CORE_SERVICE_HOST: "core-service"
   EMAIL_USERNAME: ${EMAIL_USERNAME}
   EMAIL_PASSWORD: ${EMAIL_PASSWORD}
@@ -37,7 +31,7 @@ services:
     volumes:
       - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
     ports:
-      - "5000:5000"
+      - "3001:3001"
     environment:
       <<: *common-env
 
@@ -49,7 +43,7 @@ services:
       - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
       - ./backend/nestjs/prisma/auth-service:/usr/src/backend/nestjs/prisma/auth-service
     ports:
-      - "6000:6000"
+      - "3002:3002"
     environment:
       <<: *common-env
 
@@ -61,7 +55,7 @@ services:
       - ./backend/nestjs/apps:/usr/src/backend/nestjs/apps
       - ./backend/nestjs/prisma/ai-content-service:/usr/src/backend/nestjs/prisma/ai-content-service
     ports:
-      - "50051:50051"
+      - "3004:3004"
     environment:
       <<: *common-env
 
@@ -70,21 +64,9 @@ services:
       context: ./backend/java
       dockerfile: Dockerfile
     ports:
-      - "7001:7001"
+      - "3003:3003"
     environment:
       <<: *common-env
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./frontend:/usr/src/frontend
-    ports:
-      - "3000:3000"
-    environment:
-      <<: *common-env
-    command: npm run dev
 
 networks:
   default:

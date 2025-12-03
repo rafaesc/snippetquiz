@@ -33,9 +33,8 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
-RUN npx prisma generate --schema=prisma/ai-content-service/schema.prisma
-RUN npm run prisma:deploy:ai-content-service
-RUN npm run prisma:seed:ai-content-service
+RUN npm run prisma:generate:ai-content-service
+RUN npm run build:seed
 
 # Build TypeScript project (outputs to /dist)
 RUN npm run build ai-content-service
@@ -63,6 +62,7 @@ COPY --from=builder /usr/src/app/dist ./dist
 
 # Copy Prisma schema for runtime operations
 COPY --from=builder /usr/src/app/prisma ./prisma
+COPY --from=builder /usr/src/app/generated/prisma ./generated/prisma
 
 # Copy package manifest files for installing production dependencies
 COPY package*.json ./
@@ -79,11 +79,10 @@ RUN chown -R backend:nodejs /usr/src/app
 USER backend
 
 # Set additional environment variables
-ENV PORT=6000
+ENV KAFKA_HOST=broker
+ENV KAFKA_PORT=29092
+ENV OPENROUTER_API_KEY=openrouterapikey
 
-EXPOSE 6000
-
-# Use dumb-init as PID 1 to properly handle system signals
-ENTRYPOINT ["dumb-init", "--", "./entrypoint.sh"]
+EXPOSE 3004
 
 CMD [ "node", "dist/apps/ai-content-service/main.js" ]

@@ -2,12 +2,8 @@ import 'dotenv/config';
 import * as joi from 'joi';
 
 interface EnvVars {
-  API_GATEWAY_PORT: number;
-  CORE_SERVICE_PORT: number;
   CORE_SERVICE_HOST: string;
-  AUTH_SERVICE_PORT: number;
   AUTH_SERVICE_HOST: string;
-  AI_CONTENT_SERVICE_PORT: number;
   AI_CONTENT_SERVICE_HOST: string;
   COOKIE_SECRET: string;
   NODE_ENV: string;
@@ -18,12 +14,8 @@ interface EnvVars {
 
 const envSchema = joi
   .object({
-    API_GATEWAY_PORT: joi.number().required(),
-    CORE_SERVICE_PORT: joi.number().required(),
     CORE_SERVICE_HOST: joi.string().default('localhost'),
-    AUTH_SERVICE_PORT: joi.number().required(),
     AUTH_SERVICE_HOST: joi.string().default('localhost'),
-    AI_CONTENT_SERVICE_PORT: joi.number().required(),
     AI_CONTENT_SERVICE_HOST: joi.string().default('localhost'),
     COOKIE_SECRET: joi.string().required(),
     NODE_ENV: joi.string().default('development'),
@@ -43,17 +35,23 @@ if (error) {
 
 export const envsVars: EnvVars = value;
 
+const envsVarsPorts = {
+  CORE_SERVICE_PORT: 3003,
+  AUTH_SERVICE_PORT: 3002,
+  AI_CONTENT_SERVICE_PORT: 3004,
+}
+
 export const envs = {
-  apiGatewayPort: envsVars.API_GATEWAY_PORT,
-  coreServicePort: envsVars.CORE_SERVICE_PORT,
+  apiGatewayPort: 3001,
+  coreServicePort: envsVarsPorts.CORE_SERVICE_PORT,
+  authServicePort: envsVarsPorts.AUTH_SERVICE_PORT,
+  aiContentServicePort: envsVarsPorts.AI_CONTENT_SERVICE_PORT,
   coreServiceHost: envsVars.CORE_SERVICE_HOST,
-  coreBaseUrl: `http://${envsVars.CORE_SERVICE_HOST}:${envsVars.CORE_SERVICE_PORT}`,
-  authServicePort: envsVars.AUTH_SERVICE_PORT,
+  coreBaseUrl: `http://${envsVars.CORE_SERVICE_HOST}:${envsVarsPorts.CORE_SERVICE_PORT}`,
   authServiceHost: envsVars.AUTH_SERVICE_HOST,
-  authBaseUrl: `http://${envsVars.AUTH_SERVICE_HOST}:${envsVars.AUTH_SERVICE_PORT}`,
-  aiContentServicePort: envsVars.AI_CONTENT_SERVICE_PORT,
+  authBaseUrl: `http://${envsVars.AUTH_SERVICE_HOST}:${envsVarsPorts.AUTH_SERVICE_PORT}`,
   aiContentServiceHost: envsVars.AI_CONTENT_SERVICE_HOST,
-  aiContentServiceBaseUrl: `http://${envsVars.AI_CONTENT_SERVICE_HOST}:${envsVars.AI_CONTENT_SERVICE_PORT}`,
+  aiContentServiceBaseUrl: `http://${envsVars.AI_CONTENT_SERVICE_HOST}:${envsVarsPorts.AI_CONTENT_SERVICE_PORT}`,
   cookieSecret: envsVars.COOKIE_SECRET,
   nodeEnv: envsVars.NODE_ENV,
   isProduction: envsVars.NODE_ENV === 'production',

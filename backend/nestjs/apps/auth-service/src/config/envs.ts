@@ -2,7 +2,6 @@ import 'dotenv/config';
 import * as joi from 'joi';
 
 interface EnvVars {
-  AUTH_SERVICE_PORT: number;
   KAFKA_HOST: string;
   KAFKA_PORT: number;
   POSTGRESQL_PRISMA_AUTH_URL: string;
@@ -21,7 +20,6 @@ interface EnvVars {
 
 const envSchema = joi
   .object({
-    AUTH_SERVICE_PORT: joi.number().required(),
     KAFKA_HOST: joi.string().required(),
     KAFKA_PORT: joi.number().required(),
     POSTGRESQL_PRISMA_AUTH_URL: joi.string().required(),
@@ -48,7 +46,7 @@ if (error) {
 export const envsVars: EnvVars = value;
 
 export const envs = {
-  authServicePort: envsVars.AUTH_SERVICE_PORT,
+  authServicePort: 3002,
   databaseUrlPostgres: envsVars.POSTGRESQL_PRISMA_AUTH_URL,
   jwtAuthSecret: envsVars.JWT_AUTH_SECRET,
   jwtAuthRefreshSecret: envsVars.JWT_AUTH_REFRESH_SECRET,

@@ -1,5 +1,5 @@
 server:
-    port: ${CORE_SERVICE_PORT}
+    port: 3003
     servlet:
         context-path: /api
 spring:

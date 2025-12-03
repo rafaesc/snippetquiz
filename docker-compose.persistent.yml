@@ -2,9 +2,9 @@ services:
   db:
     build: ./infra/postgres
     environment:
-      POSTGRES_USER: ${POSTGRESQL_USER}
-      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
-      POSTGRES_DB: ${POSTGRESQL_DATABASE}
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: snippetquiz
     ports:
       - "5432:5432"
     healthcheck:
@@ -13,8 +13,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    volumes:
-      - ./local/db:/var/lib/postgresql/data
 
   cache:
     image: redis:6.2-alpine
@@ -42,6 +40,14 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 1
+
+  init-kafka:
+    image: apache/kafka:4.0.0
+    depends_on:
+      - broker
+    volumes:
+      - ./infra/broker/entrypoint.sh:/entrypoint.sh
+    command: [ "/entrypoint.sh" ]
 
   kafdrop:
     image: obsidiandynamics/kafdrop

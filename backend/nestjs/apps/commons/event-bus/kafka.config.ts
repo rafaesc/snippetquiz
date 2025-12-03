@@ -13,5 +13,13 @@ export const getKafkaConfig = (envsVars: {
         consumer: {
             groupId,
         },
+        send: {
+            acks: -1,
+        },
+        producer: {
+            allowAutoTopicCreation: false,
+            idempotent: true,
+            maxInFlightRequests: 5,
+        },
     },
 });
