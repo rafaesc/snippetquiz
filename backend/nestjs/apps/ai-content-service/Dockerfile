@@ -85,4 +85,7 @@ ENV OPENROUTER_API_KEY=openrouterapikey
 
 EXPOSE 3004
 
+# Use dumb-init as PID 1 to properly handle system signals
+ENTRYPOINT ["dumb-init", "--", "./entrypoint.sh"]
+
 CMD [ "node", "dist/apps/ai-content-service/main.js" ]
