@@ -216,7 +216,7 @@ const connectToStream = async () => {
               style.textContent = `
     .char-container {
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
       display: flex;
       align-items: center;
