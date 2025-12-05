@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = (typeof window !== 'undefined' && window.__ENV?.API_BASE_URL) || 'http://localhost:3001';
 const TIMEOUT_TO_REFRESH_QUIZ = 500;
 
 

@@ -20,6 +20,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script src="/env-config.js" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
@@ -29,7 +32,7 @@ export default function RootLayout({
         >
           <Suspense fallback={<div>Loading...</div>}>
             <QueryProvider>
-                {children}
+              {children}
             </QueryProvider>
           </Suspense>
         </ThemeProvider>
