@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # Create env-config.js with runtime environment variables
 echo "window.__ENV = {" > ./public/env-config.js
