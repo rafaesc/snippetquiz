@@ -52,10 +52,10 @@ async function bootstrap() {
   // enable only if the env is development
   if (!envs.isProduction) {
     const documentFactory = () => SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, documentFactory);
+    SwaggerModule.setup('api/swagger-ui', app, documentFactory);
   }
 
   await app.listen(envs.apiGatewayPort, '0.0.0.0');
-  logger.log(`API Gateway running on port ${envs.apiGatewayPort}`);
+  logger.log(`API Gateway running on port ${envs.apiGatewayPort}, production: ${envs.isProduction}`);
 }
 bootstrap();

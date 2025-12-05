@@ -78,6 +78,8 @@ RUN chown -R backend:nodejs /usr/src/app
 USER backend
 
 # Set additional environment variables
+ENV NODE_ENV=production
+
 EXPOSE 3002
 
 # Use dumb-init as PID 1 to properly handle system signals

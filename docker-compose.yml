@@ -22,6 +22,7 @@ x-common-environment: &common-env
   EMAIL_PASSWORD: ${EMAIL_PASSWORD}
   KAFKA_HOST: "broker"
   KAFKA_PORT: "29092"
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
 
 services:
   api-gateway:
@@ -65,6 +66,15 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3003:3003"
+    environment:
+      <<: *common-env
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
     environment:
       <<: *common-env
 

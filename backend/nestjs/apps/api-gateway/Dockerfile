@@ -69,6 +69,7 @@ RUN chown -R backend:nodejs /usr/src/app
 USER backend
 
 # Set additional environment variables
+
 EXPOSE 3001
 
 # Define health check to monitor the container

@@ -32,9 +32,6 @@ services:
     build:
       context: ./backend/nestjs
       dockerfile: apps/api-gateway/Dockerfile
-    image: client-gateway-prod
-    ports:
-      - ${API_GATEWAY_PORT}:5000
     environment:
       <<: *common-env
 
@@ -42,9 +39,6 @@ services:
     build:
       context: ./backend/nestjs
       dockerfile: apps/auth-service/Dockerfile
-      args:
-        - POSTGRESQL_PRISMA_AUTH_URL=${POSTGRESQL_PRISMA_AUTH_URL}
-    image: auth-service-prod
     environment:
       <<: *common-env
 
@@ -52,9 +46,6 @@ services:
     build:
       context: ./backend/nestjs
       dockerfile: apps/ai-content-service/Dockerfile
-      args:
-        - POSTGRESQL_PRISMA_AI_CONTENT_SERVICE_URL=${POSTGRESQL_PRISMA_AI_CONTENT_SERVICE_URL}
-    image: ai-content-service-prod
     environment:
       <<: *common-env
 
@@ -62,7 +53,6 @@ services:
     build:
       context: ./backend/java
       dockerfile: Dockerfile
-    image: core-service-prod
     environment:
       <<: *common-env
 
