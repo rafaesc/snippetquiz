@@ -79,9 +79,7 @@ RUN chown -R backend:nodejs /usr/src/app
 USER backend
 
 # Set additional environment variables
-ENV KAFKA_HOST=broker
-ENV KAFKA_PORT=29092
-ENV OPENROUTER_API_KEY=openrouterapikey
+ENV NODE_ENV=production
 
 EXPOSE 3004
 

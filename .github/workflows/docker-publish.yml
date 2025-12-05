@@ -33,8 +33,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    env:
-      API_URL: http://localhost:5000
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

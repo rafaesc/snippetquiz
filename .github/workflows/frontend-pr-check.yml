@@ -15,9 +15,6 @@ jobs:
     defaults:
       run:
         working-directory: frontend
-    
-    env:
-      API_URL: http://localhost:5000
 
     steps:
       - name: Checkout repository
