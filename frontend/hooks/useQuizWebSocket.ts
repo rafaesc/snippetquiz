@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 
-const API_BASE_URL = process.env.API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 const TIMEOUT_TO_REFRESH_QUIZ = 500;
 
 
@@ -174,10 +174,10 @@ export function useQuizWebSocket(): UseQuizWebSocketReturn {
   // Calculate progress percentage based on current progress
   const progressPercentage = progress?.progress
     ? Math.round(
-        (progress.progress.currentChunkIndex /
-          progress.progress.totalChunks) *
-          100
-      )
+      (progress.progress.currentChunkIndex /
+        progress.progress.totalChunks) *
+      100
+    )
     : 0;
 
   return {

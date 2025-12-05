@@ -14,7 +14,7 @@ x-common-environment: &common-env
   JWT_AUTH_VERIFICATION_SECRET: "your-verification-secret-key"
   JWT_AUTH_VERIFICATION_EXPIRES_IN: "24h"
   COOKIE_SECRET: "your-cookie-secret"
-  API_URL: "http://api-gateway:3001"
+  API_BASE_URL: "http://localhost:3001"
   AUTH_SERVICE_HOST: "auth-service"
   AI_CONTENT_SERVICE_HOST: "ai-content-service"
   CORE_SERVICE_HOST: "core-service"
