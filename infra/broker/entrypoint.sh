@@ -46,5 +46,5 @@ done
 
 echo "🎉 All topics created"
 
-# Keep Kafka running
-wait -n
+# Exit successfully
+exit 0

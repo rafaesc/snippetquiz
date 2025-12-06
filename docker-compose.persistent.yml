@@ -60,7 +60,8 @@ services:
       JVM_OPTS: '-Xms32M -Xmx64M'
       SERVER_SERVLET_CONTEXTPATH: '/'
     depends_on:
-      - broker
+      init-kafka:
+        condition: service_completed_successfully
 
 networks:
   default:

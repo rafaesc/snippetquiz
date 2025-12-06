@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthServiceModule } from './auth-service/auth-service.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -13,6 +11,7 @@ import { CoreServiceModule } from './core-service/core-service.module';
 import { AiContentServiceModule } from './ai-content-service/ai-content-service.module';
 import { WebsocketModule } from './ws/websockets.module';
 import { StreamModule } from './stream/stream.module';
+import { HealthModule } from '../../commons/health/health.module';
 
 @Module({
   imports: [
@@ -47,10 +46,10 @@ import { StreamModule } from './stream/stream.module';
     AiContentServiceModule,
     WebsocketModule,
     StreamModule,
+    HealthModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

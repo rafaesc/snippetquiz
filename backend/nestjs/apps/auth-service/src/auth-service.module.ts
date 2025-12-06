@@ -10,6 +10,7 @@ import { TokenService } from './utils/token.service';
 import { envs } from './config/envs';
 import { EventBusModule } from 'apps/commons/event-bus/event-bus.module';
 import { getKafkaConfig } from 'apps/commons/event-bus/kafka.config';
+import { HealthModule } from 'apps/commons/health/health.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { getKafkaConfig } from 'apps/commons/event-bus/kafka.config';
     }),
     CodeModule,
     EventBusModule.register(getKafkaConfig(envs, 'auth-service-producer').options),
+    HealthModule,
   ],
   controllers: [AuthServiceController],
   providers: [AuthServiceService, TokenService],
