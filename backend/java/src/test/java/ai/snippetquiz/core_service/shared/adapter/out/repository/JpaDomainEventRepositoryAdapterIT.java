@@ -11,6 +11,7 @@ import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.UUID;
@@ -111,7 +112,8 @@ class JpaDomainEventRepositoryAdapterIT extends AbstractIntegrationTest {
 
         adapter.save(userId, aggregateId, "quiz", created);
 
-        List<DomainEventEntity> stored = jpaRepository.findAllByUserIdAndAggregateId(userId.getValue(), aggregateId);
+        Sort sort = Sort.by(Sort.Direction.ASC, "version");
+        List<DomainEventEntity> stored = jpaRepository.findAllByUserIdAndAggregateId(userId.getValue(), aggregateId, sort);
         assertFalse(stored.isEmpty());
         var entity = stored.getFirst();
         assertEquals("quiz", entity.getAggregateType());
