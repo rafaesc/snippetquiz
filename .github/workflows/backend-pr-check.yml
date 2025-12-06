@@ -109,18 +109,23 @@ jobs:
       - name: Build application
         run: ./gradlew bootJar --no-daemon
 
-      - name: Build Docker image
-        run: docker build -t snippetquiz-java-service .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      #- name: Test Docker image
-      #  run: |
-      #    docker run --rm -d --name test-java-service \
-      #      -p 8080:8080 \
-      #      -e SPRING_PROFILES_ACTIVE=test \
-      #      snippetquiz-java-service
-      #    sleep 30
-      #    curl -f http://localhost:8080/actuator/health || exit 1
-      #    docker stop test-java-service
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/java
+          push: false
+          tags: snippetquiz-java-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/snippetquiz-java-service.tar
+
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/snippetquiz-java-service.tar
+          docker image ls -a
 
   # NestJS Services
   test-and-build-nestjs:
@@ -128,6 +133,10 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.nestjs == 'true' }}
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service: [api-gateway, auth-service, ai-content-service]
 
     services:
       postgres:
@@ -217,96 +226,62 @@ jobs:
           done
 
       - name: Generate Prisma Client for auth
+        if: matrix.service == 'auth-service'
         run: npm run prisma:generate:auth
 
       - name: Run database migrations for auth
+        if: matrix.service == 'auth-service'
         run: npm run prisma:deploy:auth
 
       - name: Generate Prisma Client for ai-content-service
+        if: matrix.service == 'ai-content-service'
         run: npm run prisma:generate:ai-content-service
 
       - name: Run database migrations for ai-content-service
+        if: matrix.service == 'ai-content-service'
         run: npm run prisma:deploy:ai-content-service
 
-      - name: Build api-gateway
-        run: npm run build
+      - name: Build Seed (AI Content Service)
+        if: matrix.service == 'ai-content-service'
+        run: npm run build:seed
 
-      - name: Build auth-service
-        run: npm run build auth-service
-
-      - name: Build ai-content-service
-        run: npm run build ai-content-service
+      - name: Build ${{ matrix.service }}
+        run: npm run build ${{ matrix.service }}
 
   # Integration Tests
-#  integration-tests:
-#    name: Integration Tests
-#    runs-on: ubuntu-latest
-#    needs: [test-and-build-java, test-and-build-nestjs]
-#    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success')
-#
-#    services:
-#      postgres:
-#        image: postgres:15
-#        env:
-#          POSTGRES_USER: test_user
-#          POSTGRES_PASSWORD: test_pass
-#          POSTGRES_DB: test_db
-#        ports:
-#          - 5432:5432
-#        options: >-
-#          --health-cmd pg_isready
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
-#
-#      redis:
-#        image: redis:6.2-alpine
-#        ports:
-#          - 6379:6379
-#        options: >-
-#          --health-cmd "redis-cli ping"
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
-#
-#      kafka:
-#        image: confluentinc/cp-kafka:latest
-#        env:
-#          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-#          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#        ports:
-#          - 9092:9092
-#
-#      zookeeper:
-#        image: confluentinc/cp-zookeeper:latest
-#        env:
-#          ZOOKEEPER_CLIENT_PORT: 2181
-#          ZOOKEEPER_TICK_TIME: 2000
-#        ports:
-#          - 2181:2181
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Docker Compose
-#        run: |
-#          docker-compose -f docker-compose.yml up -d --build
-#          sleep 60
-#
-#      - name: Run integration tests
-#        run: |
-#          # Test API Gateway health
-#          curl -f http://localhost:5000/health || exit 1
-#          
-#          # Test Auth Service health
-#          curl -f http://localhost:6000/health || exit 1
-#          
-#          # Test Core Service health
-#          curl -f http://localhost:7001/actuator/health || exit 1
-#
-#      - name: Cleanup
-#        if: always()
-#        run: docker-compose -f docker-compose.yml down -v
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [test-and-build-java, test-and-build-nestjs]
+    if: always() && (needs.test-and-build-java.result == 'success' || needs.test-and-build-nestjs.result == 'success')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Compose
+        env:
+          EMAIL_USERNAME: test_email
+          EMAIL_PASSWORD: test_password
+          OPENROUTER_API_KEY: test_key
+        run: |
+          docker compose -f docker-compose.persistent.yml -f docker-compose.yml up -d --build --wait
+
+      - name: Run integration tests
+        run: |
+          # Test API Gateway health
+          curl -f http://localhost:3001/api/health || exit 1
+          
+          # Test Auth Service health
+          curl -f http://localhost:3002/health || exit 1
+          
+          # Test Core Service health
+          curl -f http://localhost:3003/actuator/health || exit 1
+          
+          # Test AI Content Service health
+          curl -f http://localhost:3004/health || exit 1
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.persistent.yml -f docker-compose.yml down -v
 
