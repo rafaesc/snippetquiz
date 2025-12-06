@@ -28,7 +28,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@IntegrationEventSubscriberFor({AIQuestionGeneratedEvent.class})
+@IntegrationEventSubscriberFor({ AIQuestionGeneratedEvent.class })
 public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
 
     private final EventSourcingHandler<Quiz, QuizId> quizEventSourcingHandler;
@@ -87,7 +87,7 @@ public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
                     questionService.createQuestion(questionRequest, userUuid);
                 }
 
-                if (Boolean.FALSE.equals(contentEntry.getQuestionsGenerated())) {
+                if (Boolean.FALSE.equals(contentEntry.getQuestionsGenerated()) && questions.size() > 0) {
                     contentEntry.questionsGenerated();
                 }
 
@@ -99,7 +99,8 @@ public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
             }
 
             QuizStatus status;
-            if ((e.getCurrentChunkIndex() != null && e.getTotalChunks() != null && (e.getCurrentChunkIndex() + 1 == e.getTotalChunks()))
+            if ((e.getCurrentChunkIndex() != null && e.getTotalChunks() != null
+                    && (e.getCurrentChunkIndex() + 1 == e.getTotalChunks()))
                     || e.getContentEntry() == null) {
                 log.info("All content entries processed. Creating quiz for bankId: {}", e.getBankId());
                 status = QuizStatus.READY;
@@ -119,8 +120,7 @@ public class AIQuestionGeneratedHandler implements IntegrationEventSubscriber {
                     e.getQuestionsGeneratedSoFar(),
                     e.getContentEntry(),
                     e.getTotalChunks(),
-                    e.getCurrentChunkIndex()
-            );
+                    e.getCurrentChunkIndex());
 
             eventBus.publish(QuizProgressEphemeralEvent.eventName(), List.of(quizProgressEphemeralEvent));
 
