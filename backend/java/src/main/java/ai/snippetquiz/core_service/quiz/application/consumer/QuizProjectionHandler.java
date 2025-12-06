@@ -15,18 +15,22 @@ import ai.snippetquiz.core_service.shared.domain.bus.event.AggregateEventSubscri
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 
 @AggregateEventSubscriberFor(Quiz.class)
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class QuizProjectionHandler implements AggregateEventSubscriber {
     private final QuizProjectionRepository quizProjectionRepository;
 
     @Override
     public void on(DomainEvent event) {
+        log.info("Received QuizProjectionHandler: {}, eventId {}", event.getAggregateId(), event.getEventId());
+
         var quizId = new QuizId(event.getAggregateId());
         var userId = new UserId(event.getUserId());
         if (event instanceof QuizDeletedDomainEvent) {
@@ -67,8 +71,7 @@ public class QuizProjectionHandler implements AggregateEventSubscriber {
                 quizProjectionBuilder.responses(responses)
                         .questionsCompleted(responses.size());
             }
-            default -> {
-            }
+            default -> log.warn("Unhandled event: {}", event);
         }
         quizProjectionRepository.upsert(quizProjectionBuilder.build());
     }

@@ -3,12 +3,13 @@ package ai.snippetquiz.core_service.shared.adapter.out.repository;
 import ai.snippetquiz.core_service.shared.adapter.out.entities.DomainEventEntity;
 import ai.snippetquiz.core_service.shared.domain.Utils;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEvent;
-import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.bus.event.DomainEventJsonSerializer;
+import ai.snippetquiz.core_service.shared.domain.bus.event.EventJsonDeserializer;
 import ai.snippetquiz.core_service.shared.domain.port.repository.DomainEventRepository;
 import ai.snippetquiz.core_service.shared.domain.valueobject.UserId;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,8 +24,9 @@ public class JpaDomainEventRepositoryAdapter<T extends DomainEvent> implements D
     @Override
     @SneakyThrows
     public List<T> findAllByUserIdAndAggregateIdAndAggregateType(UserId userId, UUID aggregateId) {
+        Sort domainEventSort = Sort.by(Sort.Direction.ASC, "version");
         var domainEventEntities = jpaDomainEventRepository.findAllByUserIdAndAggregateId(userId.getValue(),
-                aggregateId);
+                aggregateId, domainEventSort);
 
         return domainEventEntities.stream()
                 .map(domainEventEntity -> {
