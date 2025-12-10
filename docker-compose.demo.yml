@@ -48,8 +48,6 @@ services:
     environment:
       <<: *common-env
     command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - ./local/cache:/data
 
   broker:
     image: apache/kafka:4.0.0
