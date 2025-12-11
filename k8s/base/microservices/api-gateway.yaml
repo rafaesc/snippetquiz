@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: api-gateway
+  name: api-gateway
+  namespace: snippetquiz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - image: ghcr.io/rafaesc/snippetquiz/snippetquiz-api-gateway:latest
+          name: snippetquiz-api-gateway
+          envFrom:
+            - secretRef:
+                name: common-env
+          ports:
+            - containerPort: 3001
