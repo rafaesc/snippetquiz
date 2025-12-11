@@ -95,8 +95,6 @@ out
 .nuxt
 dist
 
-local/
-
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
@@ -144,3 +142,11 @@ local/
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+### VS Code ###
+.vscode/
+
+### k8s ###
+overlays/local/secrets-local.yaml
+*.local.secret.yaml
+
