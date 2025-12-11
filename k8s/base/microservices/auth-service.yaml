@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: auth-service
+  name: auth-service
+  namespace: snippetquiz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - image: ghcr.io/rafaesc/snippetquiz/snippetquiz-auth-service:latest
+          name: snippetquiz-auth-service
+          envFrom:
+            - secretRef:
+                name: common-env
+          ports:
+            - containerPort: 3002
