@@ -95,8 +95,6 @@ out
 .nuxt
 dist
 
-local/
-
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
@@ -149,4 +147,6 @@ local/
 .vscode/
 
 ### k8s ###
-secret*.yaml
+overlays/local/secrets-local.yaml
+*.local.secret.yaml
+
