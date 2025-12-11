@@ -41,13 +41,10 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 1
 
-  init-kafka:
-    image: apache/kafka:4.0.0
+  init-broker:
+    build: ./infra/init-broker
     depends_on:
       - broker
-    volumes:
-      - ./infra/broker/entrypoint.sh:/entrypoint.sh
-    command: [ "/entrypoint.sh" ]
 
   kafdrop:
     image: obsidiandynamics/kafdrop
@@ -60,7 +57,7 @@ services:
       JVM_OPTS: '-Xms32M -Xmx64M'
       SERVER_SERVLET_CONTEXTPATH: '/'
     depends_on:
-      init-kafka:
+      init-broker:
         condition: service_completed_successfully
 
 networks:

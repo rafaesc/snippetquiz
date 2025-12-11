@@ -67,13 +67,10 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 1
 
-  init-kafka:
-    image: apache/kafka:4.0.0
+  init-broker:
+    build: ./infra/init-broker
     depends_on:
       - broker
-    volumes:
-      - ./infra/broker/entrypoint.sh:/entrypoint.sh
-    command: [ "/entrypoint.sh" ]
 
   api-gateway:
     image: ghcr.io/rafaesc/snippetquiz/snippetquiz-api-gateway:latest
@@ -99,7 +96,7 @@ services:
       retries: 5
       start_period: 30s
     depends_on:
-      init-kafka:
+      init-broker:
         condition: service_completed_successfully
       db:
         condition: service_healthy
@@ -117,7 +114,7 @@ services:
       retries: 10
       start_period: 30s
     depends_on:
-      init-kafka:
+      init-broker:
         condition: service_completed_successfully
       db:
         condition: service_healthy
@@ -135,7 +132,7 @@ services:
       retries: 5
       start_period: 40s
     depends_on:
-      init-kafka:
+      init-broker:
         condition: service_completed_successfully
       db:
         condition: service_healthy
