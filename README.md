@@ -1,14 +1,14 @@
 # SnippetQuiz
 
 ## Overview
-SnippetQuiz turns web content into interactive quizzes. The system includes a web dashboard, a browser extension for capturing content, an API gateway, a core service that manages domain logic and persistence, and an AI worker that generates questions. Messaging coordinates generation events, a cache provides locks and pub/sub, and a real‑time channel streams progress to the UI. Data persists in a relational database, with read‑optimized projections.
+SnippetQuiz turns web content into interactive quizzes. The system includes a web dashboard, a browser extension for capturing content, an API gateway, a core service that manages domain logic and persistence, and an AI content service that generates questions. Messaging coordinates generation events, a cache provides locks and pub/sub, and a real‑time channel streams progress to the UI. Data persists in a relational database, with read‑optimized projections.
 
 ## Architecture
 - Frontend: Web dashboard that renders authenticated pages and subscribes to real‑time quiz generation progress.
 - API Gateway: Authenticates requests, enforces rate limits, proxies traffic to the core service, and hosts the real‑time server.
 - Auth Service: Issues and verifies tokens, manages refresh tokens, and exposes authentication endpoints.
 - Core Service: Owns the domain and persistence, updates state in response to events, and publishes fanout updates for the UI.
-- AI Worker: Listens to generation requests, chunks content, calls an AI, and publishes generated results as events.
+- AI Content Service: Listens to generation requests, chunks content, calls an AI, and publishes generated results as events.
 - Browser Extension: Captures page text and transcripts and submits content to the system.
 - Infra: Container orchestration and database setup.
 
@@ -187,7 +187,7 @@ flowchart TD
   - **Character Animation**: Upon upload, the system analyzes the content to generate topics and a character reaction. This reaction is streamed back to the extension/dashboard in real-time, displaying an animated character with a comment.
 - Generation
   - The UI requests a quiz for a bank. The gateway forwards this to the core service.
-  - The AI worker consumes generation requests, chunks content, calls AI models, and emits generation progress and results as events.
+  - The AI content service consumes generation requests, chunks content, calls AI models, and emits generation progress and results as events.
   - The core service consumes generation events, persists questions, advances quiz status, and fanouts progress to the UI.
 - Real‑time
   - The gateway's real‑time server subscribes to fanout messages and streams progress/completion to the browser.
