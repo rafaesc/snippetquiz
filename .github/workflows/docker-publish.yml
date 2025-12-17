@@ -94,11 +94,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: api-gateway
-          - name: auth-service
-          - name: ai-content-service
-          - name: core-service
-          - name: frontend
+          - name: snippetquiz-api-gateway-chart
+            file: deploy/charts/api-gateway
+          - name: snippetquiz-auth-service-chart
+            file: deploy/charts/auth-service
+          - name: snippetquiz-ai-content-service-chart
+            file: deploy/charts/ai-content-service
+          - name: snippetquiz-core-service-chart
+            file: deploy/charts/core-service
+          - name: snippetquiz-frontend-chart
+            file: deploy/charts/frontend
 
     steps:
       - name: Checkout code
@@ -114,14 +119,6 @@ jobs:
         with:
           version: v3.14.0
 
-      - name: Install yq
-        uses: mikefarah/yq@v4.44.1
-
-      - name: Update chart version
-        run: |
-          yq -i '.version = env(VERSION)' deploy/charts/${{ matrix.name }}/Chart.yaml
-          yq -i '.appVersion = env(VERSION)' deploy/charts/${{ matrix.name }}/Chart.yaml
-
       - name: Login to GHCR (OCI)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
@@ -130,11 +127,11 @@ jobs:
 
       - name: Package Helm chart
         run: |
-          helm package deploy/charts/${{ matrix.name }}
+          helm package ${{ matrix.file }} --version $VERSION --app-version $VERSION
 
       - name: Push Helm chart to GHCR
         run: |
-          helm push ${ matrix.name }-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
+          helm push ${{ matrix.name }}-$VERSION.tgz oci://${{ github.actor }}/${{ matrix.name }}
 
 
   create-release:
