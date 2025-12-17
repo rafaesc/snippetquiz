@@ -2,27 +2,27 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: frontend
-  name: frontend
+    app: ai-content-service
+  name: ai-content-service
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      app: frontend
+      app: ai-content-service
   template:
     metadata:
       labels:
-        app: frontend
+        app: ai-content-service
     spec:
       imagePullSecrets:
         - name: ghcr-secret
       containers:
-        - name: snippetquiz-frontend
-          image: ghcr.io/rafaesc/snippetquiz/snippetquiz-frontend:latest
+        - name: snippetquiz-ai-content-service
+          image: ghcr.io/rafaesc/snippetquiz/snippetquiz-ai-content-service:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 3004
           envFrom:
             - secretRef:
                 name: common-env
@@ -31,11 +31,11 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: frontend
-  name: frontend
+    app: ai-content-service
+  name: ai-content-service
 spec:
   selector:
-    app: frontend
+    app: ai-content-service
   ports:
-    - port: 3000
-      targetPort: 3000
+    - port: 3004
+      targetPort: 3004
