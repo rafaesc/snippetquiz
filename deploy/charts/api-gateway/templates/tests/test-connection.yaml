@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "api-gateway-test-connection"
+  labels:
+    app: api-gateway
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['api-gateway:3001']
+  restartPolicy: Never

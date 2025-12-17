@@ -82,6 +82,61 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  package-and-push-helm:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api-gateway
+          - name: auth-service
+          - name: ai-content-service
+          - name: core-service
+          - name: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Install yq
+        uses: mikefarah/yq@v4.44.1
+
+      - name: Update chart version
+        run: |
+          yq -i '.version = env(VERSION)' deploy/charts/${{ matrix.name }}/Chart.yaml
+          yq -i '.appVersion = env(VERSION)' deploy/charts/${{ matrix.name }}/Chart.yaml
+
+      - name: Login to GHCR (OCI)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username ${{ github.actor }} \
+            --password-stdin
+
+      - name: Package Helm chart
+        run: |
+          helm package deploy/charts/${{ matrix.name }}
+
+      - name: Push Helm chart to GHCR
+        run: |
+          helm push ${ matrix.name }-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/helm
+
+
   create-release:
     needs: build-and-push
     runs-on: ubuntu-latest
