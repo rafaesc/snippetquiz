@@ -1,0 +1,5 @@
+creation_rules:
+  # Encrypt Kubernetes Secret data fields
+  - path_regex: .*.yaml
+    encrypted_regex: ^(data|stringData)$
+    age: age1744p6gzjcmysmyx4lmlmhre9sxqysp68er0ywwahgaqm8q98nd0s6r797v
