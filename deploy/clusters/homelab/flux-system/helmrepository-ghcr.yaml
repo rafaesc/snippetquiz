@@ -5,7 +5,8 @@ metadata:
 spec:
   interval: 5m
   url: oci://ghcr.io/rafaesc
+  secretRef:
+    name: ghcr-secret
   layerSelector:
     mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
     operation: copy
-  type: oci
