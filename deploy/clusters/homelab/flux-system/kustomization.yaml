@@ -5,4 +5,4 @@ resources:
 - gotk-sync.yaml
 - helmrepository-ghcr.yaml
 - ghcr-secret.yaml
-
+- helmrelease.yaml
