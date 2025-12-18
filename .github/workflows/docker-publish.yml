@@ -131,7 +131,7 @@ jobs:
 
       - name: Push Helm chart to GHCR
         run: |
-          helm push ${{ matrix.name }}-$VERSION.tgz oci://${{ github.actor }}/${{ matrix.name }}
+          helm push ${{ matrix.name }}-$VERSION.tgz oci://${{ env.REGISTRY }}/${{ github.actor }}
 
 
   create-release:
