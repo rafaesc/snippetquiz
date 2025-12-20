@@ -6,6 +6,11 @@ metadata:
 resources:
 - gotk-components.yaml
 - gotk-sync.yaml
-- helmrepository-ghcr.yaml
-- ghcr-secret.yaml
-- helmrelease.yaml
+- secret-env.yaml
+- secret-ghcr.yaml
+- ../../../apps/base/frontend
+- ../../../apps/base/core-service
+- ../../../apps/base/api-gateway
+- ../../../apps/base/auth-service
+- ../../../apps/base/ai-content-service
+
