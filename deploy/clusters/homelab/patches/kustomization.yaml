@@ -4,6 +4,6 @@ metadata:
  name: flux-system
  namespace: flux-system
 resources:
-- gotk-components.yaml
-- gotk-sync.yaml
+  - secret-env.yaml
+  - secret-ghcr.yaml
 
