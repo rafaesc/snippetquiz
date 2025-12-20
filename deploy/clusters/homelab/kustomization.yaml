@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - flux-system/kustomization.yaml
   - apps.yaml
+  - patches/secret-env.yaml
+  - patches/secret-ghcr.yaml
