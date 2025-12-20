@@ -8,9 +8,6 @@ spec:
   url: oci://ghcr.io/rafaesc/snippetquiz-core-service-chart
   secretRef:
     name: ghcr-secret
-  layerSelector:
-    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
-    operation: copy
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease

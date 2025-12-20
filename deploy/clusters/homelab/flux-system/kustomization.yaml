@@ -6,4 +6,5 @@ metadata:
 resources:
 - gotk-components.yaml
 - gotk-sync.yaml
+- ../patches/secret-ghcr.yaml
 
