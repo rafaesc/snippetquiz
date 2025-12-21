@@ -1,6 +1,4 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../clusters/homelab/patches/secret-env.yaml
-  - ../../clusters/homelab/patches/secret-ghcr.yaml
   - ../../base/ai-content-service
