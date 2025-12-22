@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  url: oci://ghcr.io/rafaesc/manifests/snippetquiz-frontend-chart
+  url: oci://ghcr.io/rafaesc/charts/snippetquiz-frontend-chart
   ref:
     tag: 0.0.7
   secretRef:

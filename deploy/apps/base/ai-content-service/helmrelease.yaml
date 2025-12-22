@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  url: oci://ghcr.io/rafaesc/snippetquiz-ai-content-service-chart
+  url: oci://ghcr.io/rafaesc/charts/snippetquiz-ai-content-service-chart
   secretRef:
     name: ghcr-secret
 ---
