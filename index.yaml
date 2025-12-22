@@ -1,0 +1,58 @@
+apiVersion: v1
+entries:
+  snippetquiz-ai-content-service-chart:
+  - apiVersion: v2
+    appVersion: 0.0.8
+    created: "2025-12-22T08:20:29.959296723Z"
+    description: An AI Content Service Helm chart for Kubernetes
+    digest: 10fbf6ff33f7ceed2ae675af528a816734347a4de8a274727ef874eac33f9832
+    name: snippetquiz-ai-content-service-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-ai-content-service-chart-0.0.8/snippetquiz-ai-content-service-chart-0.0.8.tgz
+    version: 0.0.8
+  snippetquiz-api-gateway-chart:
+  - apiVersion: v2
+    appVersion: 0.0.8
+    created: "2025-12-22T08:20:30.151630406Z"
+    description: An API Gateway Helm chart for Kubernetes
+    digest: 156f6435e890b30c94897437b130f18e48e493052c8e46a311df89e8e475582f
+    name: snippetquiz-api-gateway-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-api-gateway-chart-0.0.8/snippetquiz-api-gateway-chart-0.0.8.tgz
+    version: 0.0.8
+  snippetquiz-auth-service-chart:
+  - apiVersion: v2
+    appVersion: 0.0.8
+    created: "2025-12-22T08:20:30.360788203Z"
+    description: An Auth Service Helm chart for Kubernetes
+    digest: a9c6ffdf3077da853910c0c711c2c19fa7897f2c3a228253de5399e88ca0450f
+    name: snippetquiz-auth-service-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-auth-service-chart-0.0.8/snippetquiz-auth-service-chart-0.0.8.tgz
+    version: 0.0.8
+  snippetquiz-core-service-chart:
+  - apiVersion: v2
+    appVersion: 0.0.8
+    created: "2025-12-22T08:20:30.578084976Z"
+    description: A Core Service Helm chart for Kubernetes
+    digest: f27acb46d1785e9d17e8edccf6a98b6a0b5b9e5996dd9519115ee65116e547be
+    name: snippetquiz-core-service-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-core-service-chart-0.0.8/snippetquiz-core-service-chart-0.0.8.tgz
+    version: 0.0.8
+  snippetquiz-frontend-chart:
+  - apiVersion: v2
+    appVersion: 0.0.8
+    created: "2025-12-22T08:20:30.793710671Z"
+    description: A Frontend Helm chart for Kubernetes
+    digest: 09dc3ed136466dda95b222b987f63a03c7e6db98c024f717f03582fff1c37bd8
+    name: snippetquiz-frontend-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.8/snippetquiz-frontend-chart-0.0.8.tgz
+    version: 0.0.8
+generated: "2025-12-22T08:20:30.793722423Z"
