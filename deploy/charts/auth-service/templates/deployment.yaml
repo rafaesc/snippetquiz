@@ -19,7 +19,7 @@ spec:
       imagePullSecrets:
         - name: ghcr-secret
       containers:
-        - image: ghcr.io/rafaesc/snippetquiz/snippetquiz-auth-service:latest
+        - image: ghcr.io/rafaesc/snippetquiz/snippetquiz-auth-service:{{ .Chart.AppVersion }}
           name: snippetquiz-auth-service
           ports:
             - containerPort: 3002

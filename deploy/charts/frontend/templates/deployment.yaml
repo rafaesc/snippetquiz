@@ -20,7 +20,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: snippetquiz-frontend
-          image: ghcr.io/rafaesc/snippetquiz/snippetquiz-frontend:latest
+          image: ghcr.io/rafaesc/snippetquiz/snippetquiz-frontend:{{ .Chart.AppVersion }}
           ports:
             - containerPort: 3000
           envFrom:

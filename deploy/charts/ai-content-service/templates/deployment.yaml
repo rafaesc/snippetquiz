@@ -16,11 +16,15 @@ spec:
       labels:
         app: ai-content-service
     spec:
+      securityContext:
+        fsGroup: 2001
+        runAsUser: 1001
+        runAsGroup: 1001
       imagePullSecrets:
         - name: ghcr-secret
       containers:
         - name: snippetquiz-ai-content-service
-          image: ghcr.io/rafaesc/snippetquiz/snippetquiz-ai-content-service:latest
+          image: ghcr.io/rafaesc/snippetquiz/snippetquiz-ai-content-service:{{ .Chart.AppVersion }}
           ports:
             - containerPort: 3004
           envFrom:
