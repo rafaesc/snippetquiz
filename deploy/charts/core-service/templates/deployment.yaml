@@ -16,6 +16,9 @@ spec:
       labels:
         app: core-service
     spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
       imagePullSecrets:
         - name: ghcr-secret
       containers:

@@ -17,7 +17,6 @@ spec:
         app: ai-content-service
     spec:
       securityContext:
-        fsGroup: 2001
         runAsUser: 1001
         runAsGroup: 1001
       imagePullSecrets:

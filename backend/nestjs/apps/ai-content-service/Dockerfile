@@ -55,7 +55,7 @@ RUN apk add --no-cache dumb-init
 
 # Create non-root user and group for security
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S backend -u 1001
+RUN adduser -S backend -u 1001 -G nodejs
 
 # Copy compiled application from build stage
 COPY --from=builder /usr/src/app/dist ./dist
