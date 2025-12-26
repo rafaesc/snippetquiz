@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
     name: tunnel-token
+    namespace: flux-system
 stringData:
     token: ENC[AES256_GCM,data:Bv69MR854QKVdhBBoM+jkUW7uYRgH2myv7rF5hYAcVg8miIbDCgdtNuDBg3LoPfBRJKXmLUbPOrxbq+qC35rufGmdIsRwu+/xPHdmTBBRjfJ1cNvwMOp9u5z/ACr2hMyTSSbNMVuqCEGsdNlWcN22zs/4fqbGzbxhUzy/eKs7A6uie2KplRAL/5OhbREdHnTBCk+/i2XMznMXFPqb1FfqbPg9jnib0W+SxfP/8D2E1A6V7E0ZceySA==,iv:OgFfR1iQhbrjSJfX7doORLfsJTNNCcLGTRanD+aM9vg=,tag:6rAacL8G0dnKy0wBuCN6bQ==,type:str]
 sops:

@@ -9,7 +9,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./infrastructure/homelab
+  path: ./deploy/infrastructure/homelab
 
   decryption:
     provider: sops
