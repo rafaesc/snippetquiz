@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: snippetquiz.rafaescala.com
+    - host: sq.rafaescala.com
       http:
         paths:
           - path: /
