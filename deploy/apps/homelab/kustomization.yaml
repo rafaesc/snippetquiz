@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ../../clusters/homelab/secret-env.yaml
   - ../../clusters/homelab/secret-ghcr.yaml
-  - ../../clusters/homelab/tunnel-credentials.yaml
   - ai-content-service
   - api-gateway
   - auth-service
