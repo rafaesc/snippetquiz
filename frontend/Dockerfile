@@ -52,7 +52,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 
-#USER nextjs
+USER nextjs
 
 EXPOSE 3000
 
