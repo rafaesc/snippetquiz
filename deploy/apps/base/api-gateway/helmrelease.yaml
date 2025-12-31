@@ -2,7 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: snippetquiz-api-gateway-chart
-  namespace: flux-system
+  namespace: kube-system
 spec:
   interval: 5m
   url: oci://ghcr.io/rafaesc/charts/snippetquiz-api-gateway-chart
@@ -15,12 +15,12 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: snippetquiz-api-gateway-chart
-  namespace: flux-system
+  namespace: kube-system
 spec:
   chartRef:
     kind: OCIRepository
     name: snippetquiz-api-gateway-chart
-    namespace: flux-system
+    namespace: kube-system
   interval: 10m
   values:
     replicaCount: 1

@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: frontend
-  namespace: flux-system
+  namespace: kube-system
 spec:
   ingressClassName: traefik
   rules:
