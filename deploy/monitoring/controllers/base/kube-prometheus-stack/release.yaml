@@ -24,3 +24,31 @@ spec:
       - paths: ["/metadata/annotations/prometheus-operator-validated"]
         target:
           kind: PrometheusRule
+  values:
+    grafana:
+      adminPassword: "admin"
+      ingress:
+        ## If true, Grafana Ingress will be created
+        ##
+        enabled: true
+
+        ## IngressClassName for Grafana Ingress.
+        ## Should be provided if Ingress is enable.
+        ##
+        ingressClassName: traefik
+
+        ## Hostnames.
+        ## Must be provided if Ingress is enable.
+        ##
+        # hosts:
+        #   - grafana.domain.com
+        hosts:
+          - grs.rafaescala.com
+
+        ## TLS configuration for grafana Ingress
+        ## Secret must be manually created in the namespace
+        ##
+        tls: []
+        # - secretName: grafana-general-tls
+        #   hosts:
+        #   - grafana.example.com
