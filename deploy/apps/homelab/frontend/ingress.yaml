@@ -5,6 +5,10 @@ metadata:
   namespace: kube-system
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - sq.rafaescala.com
+      secretName: frontend-tls-secret
   rules:
     - host: sq.rafaescala.com
       http:

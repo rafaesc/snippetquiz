@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ../../base/frontend
   - ingress.yaml
+  - frontend-tls-secret.yaml
