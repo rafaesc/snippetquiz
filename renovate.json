@@ -4,5 +4,8 @@
         "fileMatch": [
             "^deploy/.*\\.yaml$"
         ]
-    }
+    },
+    "rangeStrategy": "pin",
+    "dependencyDashboard": true,
+    "prCreation": "immediate"
 }
