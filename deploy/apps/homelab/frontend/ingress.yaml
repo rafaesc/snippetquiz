@@ -1,22 +1,14 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
   name: frontend
   namespace: snippetquiz
 spec:
-  ingressClassName: traefik
-  tls:
-    - hosts:
-        - sq.rafaescala.com
-      secretName: frontend-tls-secret
-  rules:
-    - host: sq.rafaescala.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend
-                port:
-                  number: 3000
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sq.rafaescala.com`)
+      kind: Rule
+      services:
+        - name: frontend
+          port: 3000
