@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: snippetquiz
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: cert-manager
+      version: "1.19.2"
+      sourceRef:
+        kind: HelmRepository
+        name: cert-manager
+        namespace: snippetquiz
+      interval: 12h
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  values:
+    namespace: snippetquiz
+    crds:
+      enabled: true
+    extraArgs:
+      - --dns01-recursive-nameservers-only
+      - --dns01-recursive-nameservers=1.1.1.1:53,8.8.8.8:53

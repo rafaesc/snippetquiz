@@ -12,3 +12,5 @@ spec:
       services:
         - name: frontend
           port: 3000
+  tls:
+    secretName: frontend-certificates-secret
