@@ -2,7 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: snippetquiz-frontend-chart
-  namespace: kube-system
+  namespace: snippetquiz
 spec:
   interval: 5m
   url: oci://ghcr.io/rafaesc/charts/snippetquiz-frontend-chart
@@ -15,12 +15,12 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: snippetquiz-frontend-chart
-  namespace: kube-system
+  namespace: snippetquiz
 spec:
   chartRef:
     kind: OCIRepository
     name: snippetquiz-frontend-chart
-    namespace: kube-system
+    namespace: snippetquiz
   interval: 10m
   values:
     replicaCount: 1
