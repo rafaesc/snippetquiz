@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: cert-manager
-  namespace: snippetquiz
+  namespace: cert-manager
 spec:
   interval: 30m
   chart:
@@ -12,14 +12,14 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: cert-manager
-        namespace: snippetquiz
+        namespace: cert-manager
       interval: 12h
   install:
     crds: Create
   upgrade:
     crds: CreateReplace
   values:
-    namespace: snippetquiz
+    namespace: cert-manager
     crds:
       enabled: true
     extraArgs:

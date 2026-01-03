@@ -9,4 +9,4 @@ spec:
     name: cloudflare-clusterissuer
     kind: ClusterIssuer
   dnsNames:
-    - sq.snippetquiz.com
+    - sq.rafaescala.com
