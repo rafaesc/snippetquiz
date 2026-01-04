@@ -151,3 +151,5 @@ overlays/local/secrets-local.yaml
 *.local.secret.yaml
 
 *.agekey
+.envrc
+kubeconfig
