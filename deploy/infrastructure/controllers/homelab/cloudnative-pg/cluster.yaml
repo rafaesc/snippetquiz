@@ -1,0 +1,16 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: snippetquiz-db-production
+  namespace: database
+spec:
+  description: Postgres cluster for snippetquiz application
+  imageName: quay.io/enterprisedb/postgresql:16.1
+  instances: 2
+  monitoring:
+    enablePodMonitor: true
+  storage:
+    size: 1Gi
+  resources:
+    requests:
+      memory: 320Mi
