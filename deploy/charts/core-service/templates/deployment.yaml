@@ -2,19 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: {{ include "snippetquiz-core-service-chart.fullname" . }}
-  name: {{ include "snippetquiz-core-service-chart.fullname" . }}
+    app: {{ .Chart.Name }}
+  name: {{ .Chart.Name }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      app: {{ include "snippetquiz-core-service-chart.fullname" . }}
+      app: {{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: {{ include "snippetquiz-core-service-chart.fullname" . }}
+        app: {{ .Chart.Name }}
     spec:
       securityContext:
         runAsUser: 1001
@@ -28,19 +28,19 @@ spec:
             - containerPort: 3003
           envFrom:
             - configMapRef:
-                name: {{ include "snippetquiz-core-service-chart.fullname" . }}-config
+                name: {{ .Chart.Name }}-config
             - secretRef:
-                name: {{ include "snippetquiz-core-service-chart.fullname" . }}-secret
+                name: {{ .Chart.Name }}-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: {{ include "snippetquiz-core-service-chart.fullname" . }}
-  name: {{ include "snippetquiz-core-service-chart.fullname" . }}
+    app: {{ .Chart.Name }}
+  name: {{ .Chart.Name }}
 spec:
   selector:
-    app: {{ include "snippetquiz-core-service-chart.fullname" . }}
+    app: {{ .Chart.Name }}
   ports:
     - port: 3003
       targetPort: 3003
