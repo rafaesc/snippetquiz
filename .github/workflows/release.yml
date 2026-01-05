@@ -55,21 +55,24 @@ jobs:
             filter: frontend
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Detect changes
         id: changes
         uses: dorny/paths-filter@v3
         with:
           filters: |
             api-gateway:
-              - backend/nestjs/apps/api-gateway/**
+              - 'backend/nestjs/apps/api-gateway/**'
             auth-service:
-              - backend/nestjs/apps/auth-service/**
+              - 'backend/nestjs/apps/auth-service/**'
             ai-content-service:
-              - backend/nestjs/apps/ai-content-service/**
+              - 'backend/nestjs/apps/ai-content-service/**'
             core-service:
-              - backend/java/**
+              - 'backend/java/**'
             frontend:
-              - frontend/**
+              - 'frontend/**'
 
       - name: Determine version bump
         id: bump
@@ -135,9 +138,6 @@ jobs:
 
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "next=$NEXT" >> $GITHUB_OUTPUT
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
