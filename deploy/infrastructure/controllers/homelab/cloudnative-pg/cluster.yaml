@@ -2,7 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: snippetquiz-db-production
-  namespace: database
+  namespace: snippetquiz
 spec:
   description: Postgres cluster for snippetquiz application
   imageName: quay.io/enterprisedb/postgresql:16.1

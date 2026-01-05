@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "snippetquiz-core-service-chart.fullname" . }}-config
+  name: {{ .Chart.Name }}-config
 data:
-  POSTGRESQL_HOST: {{ .Values.postgresql.host | quote }}
-  POSTGRESQL_PORT: {{ .Values.postgresql.port | quote }}
-  POSTGRESQL_DATABASE: {{ .Values.postgresql.database | quote }}
+  POSTGRESQL_HOST: {{ include "core-service.postgresql.host" . | quote }}
+  POSTGRESQL_PORT: {{ include "core-service.postgresql.port" . | quote }}
+  POSTGRESQL_DATABASE: {{ include "core-service.postgresql.database" . | quote }}
 
   REDIS_HOST: {{ .Values.redis.host | quote }}
   REDIS_PORT: {{ .Values.redis.port | quote }}
