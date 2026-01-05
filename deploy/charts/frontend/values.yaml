@@ -5,3 +5,6 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
+
+api:
+  url: http://core-service:3003

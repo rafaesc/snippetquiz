@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "snippetquiz-core-service-chart.fullname" . }}-config
+data:
+  POSTGRESQL_HOST: {{ .Values.postgresql.host | quote }}
+  POSTGRESQL_PORT: {{ .Values.postgresql.port | quote }}
+  POSTGRESQL_DATABASE: {{ .Values.postgresql.database | quote }}
+
+  REDIS_HOST: {{ .Values.redis.host | quote }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+
+  KAFKA_HOST: {{ .Values.kafka.host | quote }}
+  KAFKA_PORT: {{ .Values.kafka.port | quote }}
