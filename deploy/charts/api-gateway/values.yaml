@@ -5,3 +5,8 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
+
+redis:
+  host: redis
+  port: "6379"
+  password: snippetquiz
