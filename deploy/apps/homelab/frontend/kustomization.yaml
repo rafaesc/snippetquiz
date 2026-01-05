@@ -4,3 +4,6 @@ resources:
   - ../../base/frontend
   - ingress.yaml
   - certificate.yaml
+
+patches:
+  - path: values.yaml
