@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-sessions
+  namespace: snippetquiz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-sessions
+  template:
+    metadata:
+      labels:
+        app: redis-sessions
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.2
+          ports:
+            - containerPort: 6379
+          args:
+            - "redis-server"
+            - "--save"
+            - ""
+            - "--appendonly"
+            - "no"
+            - "--maxmemory"
+            - "512mb"
+            - "--maxmemory-policy"
+            - "allkeys-lru"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "768Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-sessions
+  namespace: snippetquiz
+spec:
+  type: ClusterIP
+  selector:
+    app: redis-sessions
+  ports:
+    - port: 6379
+      targetPort: 6379
