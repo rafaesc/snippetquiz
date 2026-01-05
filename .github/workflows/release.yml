@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - master
-    tags:
-      - 'v*.*.*'
     paths:
       - 'backend/**'
       - 'frontend/**'
       - '.github/workflows/release.yml'
+      - 'deploy/charts/**'
 
 env:
   REGISTRY: ghcr.io
@@ -29,24 +28,114 @@ jobs:
             context: backend/nestjs
             file: backend/nestjs/apps/api-gateway/Dockerfile
             image: snippetquiz-api-gateway
+            filter: api-gateway
+
           - service: auth-service
             context: backend/nestjs
             file: backend/nestjs/apps/auth-service/Dockerfile
             image: snippetquiz-auth-service
+            filter: auth-service
+
           - service: ai-content-service
             context: backend/nestjs
             file: backend/nestjs/apps/ai-content-service/Dockerfile
             image: snippetquiz-ai-content-service
+            filter: ai-content-service
+
           - service: core-service
             context: backend/java
             file: backend/java/Dockerfile
             image: snippetquiz-core-service
+            filter: core-service
+
           - service: frontend
             context: frontend
             file: frontend/Dockerfile
             image: snippetquiz-frontend
+            filter: frontend
 
     steps:
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api-gateway:
+              - backend/nestjs/apps/api-gateway/**
+            auth-service:
+              - backend/nestjs/apps/auth-service/**
+            ai-content-service:
+              - backend/nestjs/apps/ai-content-service/**
+            core-service:
+              - backend/java/**
+            frontend:
+              - frontend/**
+
+      - name: Determine version bump
+        id: bump
+        if: steps.changes.outputs[matrix.filter] == 'true'
+        run: |
+          set -euo pipefail
+
+          COMMITS=$(git log ${{ github.event.before }}..${{ github.sha }} --pretty=%B)
+
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif echo "$COMMITS" | grep -q "^feat:"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Calculate next semver
+        id: semver
+        if: steps.changes.outputs[matrix.filter] == 'true'
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ matrix.image }}
+          TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+          BUMP: ${{ steps.bump.outputs.type }}
+        run: |
+          set -euo pipefail
+
+          API="https://api.github.com/users/$OWNER/packages/container/$IMAGE/versions"
+
+          TAGS=$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $TOKEN" \
+            "$API" \
+            | jq -r '.[].metadata.container.tags[]?' \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)
+
+          if [ -z "$TAGS" ]; then
+            CURRENT="0.0.0"
+          else
+            CURRENT=$(echo "$TAGS" | sort -V | tail -n1)
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          case "$BUMP" in
+            major)
+              MAJOR=$((MAJOR+1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR+1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH+1))
+              ;;
+          esac
+
+          NEXT="$MAJOR.$MINOR.$PATCH"
+
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "next=$NEXT" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -67,10 +156,11 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
-            type=semver,pattern={{version}}
+            type=semver,pattern=${{ steps.semver.outputs.next }}
             type=sha,format=short
 
       - name: Build and push Docker image
+        if: steps.changes.outputs[matrix.filter] == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ${{ matrix.context }}
@@ -84,7 +174,6 @@ jobs:
   package-and-push-helm:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write # to push chart release and create a release (helm/chart-releaser-action)
       packages: write # needed for ghcr access
@@ -136,23 +225,3 @@ jobs:
             fi
             helm push "${pkg}" "oci://${{ env.REGISTRY }}/${{ github.actor }}/charts"
           done
-
-
-  create-release:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
