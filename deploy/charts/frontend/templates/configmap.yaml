@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: {{ .Chart.Name }}-config
 data:
-  API_URL: {{ .Values.api.url | quote }}
+  API_BASE_URL: {{ .Values.api.url }}

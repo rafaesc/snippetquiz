@@ -8,4 +8,4 @@ spec:
     logLevel: debug
 
     api:
-      url: "http://core-service:3003"
+      url: "https://sq.rafaescala.com/api/"
