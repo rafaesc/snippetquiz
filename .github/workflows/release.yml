@@ -171,8 +171,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
           tags: |
-            type=ref,event=branch
-            type=semver,pattern=${{ steps.semver.outputs.next }}
+            type=raw,value=${{ steps.semver.outputs.next }}
             type=sha,format=short
 
       - name: Build and push Docker image
