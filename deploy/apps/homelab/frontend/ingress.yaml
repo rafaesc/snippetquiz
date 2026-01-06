@@ -8,6 +8,11 @@ spec:
     - websecure
     - web
   routes:
+    - match: Host(`sq.rafaescala.com`) && PathPrefix(`/api/`)
+      kind: Rule
+      services:
+        - name: snippetquiz-api-gateway-chart
+          port: 3001
     - match: Host(`sq.rafaescala.com`)
       kind: Rule
       services:
