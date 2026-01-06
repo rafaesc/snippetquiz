@@ -38,8 +38,6 @@ if (redisEnvsVars.REDIS_USER && redisEnvsVars.REDIS_PASSWORD) {
   redisUrl = `redis://${redisEnvsVars.REDIS_HOST}:${redisEnvsVars.REDIS_PORT}`;
 }
 
-console.log('env.redisUrl', redisUrl);
-
 export const redisEnvs = {
   host: redisEnvsVars.REDIS_HOST,
   port: redisEnvsVars.REDIS_PORT,
