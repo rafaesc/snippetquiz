@@ -12,21 +12,21 @@ redis:
   password: snippetquiz
 
 jwt:
-  authExpiresIn: ""
-  authRefreshExpiresIn: ""
-  authRefreshSecret: ""
-  authSecret: ""
-  authVerificationExpiresIn: ""
-  authVerificationSecret: ""
+  authExpiresIn: null
+  authRefreshExpiresIn: null
+  authRefreshSecret: null
+  authSecret: null
+  authVerificationExpiresIn: null
+  authVerificationSecret: null
 
 emailService:
-  username: ""
-  password: ""
+  username: null
+  password: null
 
 routers:
-  aiContentServiceHost: ""
-  authServiceHost: ""
-  coreServiceHost: ""
+  aiContentServiceHost: null
+  authServiceHost: null
+  coreServiceHost: null
 
 cookies:
-  secret: ""
+  secret: null
