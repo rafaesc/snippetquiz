@@ -65,10 +65,13 @@ jobs:
           filters: |
             api-gateway:
               - 'backend/nestjs/apps/api-gateway/**'
+              - 'backend/nestjs/apps/commons/**'
             auth-service:
               - 'backend/nestjs/apps/auth-service/**'
+              - 'backend/nestjs/apps/commons/**'
             ai-content-service:
               - 'backend/nestjs/apps/ai-content-service/**'
+              - 'backend/nestjs/apps/commons/**'
             core-service:
               - 'backend/java/**'
             frontend:
