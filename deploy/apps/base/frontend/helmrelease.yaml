@@ -24,5 +24,3 @@ spec:
   interval: 10m
   values:
     replicaCount: 1
-    api:
-      url: ""

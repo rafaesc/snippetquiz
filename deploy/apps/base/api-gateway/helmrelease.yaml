@@ -24,13 +24,3 @@ spec:
   interval: 10m
   values:
     replicaCount: 1
-    
-    redis:
-      host: ""
-      port: ""
-      password: ""
-
-    routers:
-      aiContentServiceHost: ""
-      authServiceHost: ""
-      coreServiceHost: ""
