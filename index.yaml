@@ -103,6 +103,16 @@ entries:
     version: 0.0.8
   snippetquiz-api-gateway-chart:
   - apiVersion: v2
+    appVersion: 0.0.19
+    created: "2026-01-06T05:34:28.46386802Z"
+    description: An API Gateway Helm chart for Kubernetes
+    digest: 81402e28b1559c1a150ac438a9d08269ce763206e343a5114c6c33395f6230cb
+    name: snippetquiz-api-gateway-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-api-gateway-chart-0.0.24/snippetquiz-api-gateway-chart-0.0.24.tgz
+    version: 0.0.24
+  - apiVersion: v2
     appVersion: 0.0.18
     created: "2026-01-06T03:01:58.012920072Z"
     description: An API Gateway Helm chart for Kubernetes
@@ -615,4 +625,4 @@ entries:
     urls:
     - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.8/snippetquiz-frontend-chart-0.0.8.tgz
     version: 0.0.8
-generated: "2026-01-06T03:01:58.013127749Z"
+generated: "2026-01-06T05:34:28.464070898Z"
