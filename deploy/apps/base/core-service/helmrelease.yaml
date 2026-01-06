@@ -24,20 +24,3 @@ spec:
   interval: 10m
   values:
     replicaCount: 1
-
-    postgresql:
-      host: ""
-      port: ""
-      database: ""
-      user: ""
-      password: ""
-      jdbcUri: ""
-    
-    redis:
-      host: ""
-      port: ""
-      password: ""
-
-    kafka:
-      host: ""
-      port: ""

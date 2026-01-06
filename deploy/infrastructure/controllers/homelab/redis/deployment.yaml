@@ -18,6 +18,12 @@ spec:
           image: redis:7.2
           ports:
             - containerPort: 6379
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-sessions-password
+                  key: password
           args:
             - "redis-server"
             - "--save"
@@ -28,6 +34,8 @@ spec:
             - "512mb"
             - "--maxmemory-policy"
             - "allkeys-lru"
+            - "--requirepass"
+            - "$(REDIS_PASSWORD)"
           resources:
             requests:
               cpu: "50m"
