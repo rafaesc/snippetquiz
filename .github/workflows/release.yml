@@ -84,13 +84,18 @@ jobs:
           set -euo pipefail
 
           COMMITS=$(git log ${{ github.event.before }}..${{ github.sha }} --pretty=%B)
+          echo "Debug: Commits found:"
+          echo "$COMMITS"
 
           if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
             echo "type=major" >> $GITHUB_OUTPUT
+            echo "Debug: Bump type set to major"
           elif echo "$COMMITS" | grep -q "^feat:"; then
             echo "type=minor" >> $GITHUB_OUTPUT
+            echo "Debug: Bump type set to minor"
           else
             echo "type=patch" >> $GITHUB_OUTPUT
+            echo "Debug: Bump type set to patch"
           fi
       
       - name: Calculate next semver
@@ -105,7 +110,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          API="https://api.github.com/users/$OWNER/packages/container/$IMAGE/versions"
+          API="https://api.github.com/users/$OWNER/packages/container/snippetquiz%2F$IMAGE/versions"
+          echo "Debug: API URL: $API"
 
           TAGS=$(curl -fsSL \
             -H "Accept: application/vnd.github+json" \
@@ -113,14 +119,20 @@ jobs:
             "$API" \
             | jq -r '.[].metadata.container.tags[]?' \
             | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          
+          echo "Debug: Tags found:"
+          echo "$TAGS"
 
           if [ -z "$TAGS" ]; then
             CURRENT="0.0.0"
           else
             CURRENT=$(echo "$TAGS" | sort -V | tail -n1)
           fi
+          echo "Debug: Current version identified: $CURRENT"
 
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          echo "Debug: Parsed - Major: $MAJOR, Minor: $MINOR, Patch: $PATCH"
+          echo "Debug: Bump type from previous step: $BUMP"
 
           case "$BUMP" in
             major)
@@ -138,6 +150,7 @@ jobs:
           esac
 
           NEXT="$MAJOR.$MINOR.$PATCH"
+          echo "Debug: Next version calculated: $NEXT"
 
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "next=$NEXT" >> $GITHUB_OUTPUT
