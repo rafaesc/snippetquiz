@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ .Chart.Name }}-config
 data:
-
   REDIS_HOST: {{ .Values.redis.host | quote }}
   REDIS_PORT: {{ .Values.redis.port | quote }}
+  AI_CONTENT_SERVICE_HOST: {{ .Values.routers.aiContentServiceHost | quote }}
+  AUTH_SERVICE_HOST: {{ .Values.routers.authServiceHost | quote }}
+  CORE_SERVICE_HOST: {{ .Values.routers.coreServiceHost | quote }}

@@ -10,3 +10,23 @@ redis:
   host: redis
   port: "6379"
   password: snippetquiz
+
+jwt:
+  authExpiresIn: ""
+  authRefreshExpiresIn: ""
+  authRefreshSecret: ""
+  authSecret: ""
+  authVerificationExpiresIn: ""
+  authVerificationSecret: ""
+
+emailService:
+  username: ""
+  password: ""
+
+routers:
+  aiContentServiceHost: ""
+  authServiceHost: ""
+  coreServiceHost: ""
+
+cookies:
+  secret: ""

@@ -8,3 +8,8 @@ spec:
     redis:
       host: "redis-sessions.snippetquiz.svc.cluster.local"
       port: "6379"
+    
+    routers:
+      aiContentServiceHost: "ai-content.snippetquiz.svc.cluster.local"
+      authServiceHost: "auth.snippetquiz.svc.cluster.local"
+      coreServiceHost: "core.snippetquiz.svc.cluster.local"
