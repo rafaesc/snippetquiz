@@ -36,3 +36,18 @@ spec:
   entityOperator:
     topicOperator: {}
     userOperator: {}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: snippetquiz-brokers
+  namespace: snippetquiz
+  labels:
+    strimzi.io/cluster: snippetquiz-kafka
+spec:
+  replicas: 1
+  roles:
+    - broker
+    - controller
+  storage:
+    type: ephemeral
