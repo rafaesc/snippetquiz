@@ -29,22 +29,8 @@ spec:
       host: ""
       port: ""
       password: ""
-    jwt:
-      authExpiresIn: ""
-      authRefreshExpiresIn: ""
-      authRefreshSecret: ""
-      authSecret: ""
-      authVerificationExpiresIn: ""
-      authVerificationSecret: ""
-
-    emailService:
-      username: ""
-      password: ""
 
     routers:
       aiContentServiceHost: ""
       authServiceHost: ""
       coreServiceHost: ""
-
-    cookies:
-      secret: ""
