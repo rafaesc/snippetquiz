@@ -517,6 +517,16 @@ entries:
   snippetquiz-frontend-chart:
   - apiVersion: v2
     appVersion: 0.0.18
+    created: "2026-01-06T07:01:11.059896001Z"
+    description: A Frontend Helm chart for Kubernetes
+    digest: aac030ed1f933a5276cd7f2f5fb93211d8a3f635f5cb9cbac5123e40b66b62dc
+    name: snippetquiz-frontend-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.23/snippetquiz-frontend-chart-0.0.23.tgz
+    version: 0.0.23
+  - apiVersion: v2
+    appVersion: 0.0.18
     created: "2026-01-05T07:11:14.219679607Z"
     description: A Frontend Helm chart for Kubernetes
     digest: ad7bd9a5ab5bde65220a872e4808f5f3574fa1b2c9b5a875fd6b2c5142491e65
@@ -645,4 +655,4 @@ entries:
     urls:
     - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.8/snippetquiz-frontend-chart-0.0.8.tgz
     version: 0.0.8
-generated: "2026-01-06T06:22:35.796498561Z"
+generated: "2026-01-06T07:01:11.060153397Z"
