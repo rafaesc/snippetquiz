@@ -8,3 +8,7 @@ spec:
     redis:
       host: "redis-sessions.snippetquiz.svc.cluster.local"
       port: "6379"
+    
+    kafka:
+      host: "snippetquiz-kafka-kafka-bootstrap.svc.cluster.local"
+      port: "9092"

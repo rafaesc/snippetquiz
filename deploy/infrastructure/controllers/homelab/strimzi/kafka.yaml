@@ -18,7 +18,7 @@ spec:
         kraftMetadata: shared
         size: 1Gi
 ---
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: snippetquiz-kafka
