@@ -1,3 +1,23 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: snippetquiz-brokers
+  namespace: snippetquiz
+  labels:
+    strimzi.io/cluster: snippetquiz-kafka
+spec:
+  replicas: 1
+  roles:
+    - broker
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: ephemeral
+        kraftMetadata: shared
+        size: 1Gi
+---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
@@ -5,8 +25,8 @@ metadata:
   namespace: snippetquiz
 spec:
   kafka:
-    version: 3.8.0
-    replicas: 1
+    version: 4.1.1
+    metadataVersion: 4.1-IV1
     listeners:
       - name: plain
         port: 9092
@@ -22,32 +42,6 @@ spec:
       transaction.state.log.min.isr: 1
       default.replication.factor: 1
       min.insync.replicas: 1
-      inter.broker.protocol.version: "3.8"
-    storage:
-      type: persistent-claim
-      size: 1Gi
-      deleteClaim: false
-  zookeeper:
-    replicas: 1
-    storage:
-      type: persistent-claim
-      size: 1Gi
-      deleteClaim: false
   entityOperator:
     topicOperator: {}
     userOperator: {}
----
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaNodePool
-metadata:
-  name: snippetquiz-brokers
-  namespace: snippetquiz
-  labels:
-    strimzi.io/cluster: snippetquiz-kafka
-spec:
-  replicas: 1
-  roles:
-    - broker
-    - controller
-  storage:
-    type: ephemeral
