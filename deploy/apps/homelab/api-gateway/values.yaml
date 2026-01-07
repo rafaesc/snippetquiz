@@ -10,6 +10,6 @@ spec:
       port: "6379"
     
     routers:
-      aiContentServiceHost: "ai-content.snippetquiz.svc.cluster.local"
-      authServiceHost: "auth.snippetquiz.svc.cluster.local"
+      aiContentServiceHost: "snippetquiz-ai-content-service-chart"
+      authServiceHost: "snippetquiz-auth-service-chart"
       coreServiceHost: "snippetquiz-core-service-chart"

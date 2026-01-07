@@ -7,7 +7,7 @@ spec:
   interval: 5m
   url: oci://ghcr.io/rafaesc/charts/snippetquiz-ai-content-service-chart
   ref:
-    tag: 0.0.21
+    tag: 0.0.22
   secretRef:
     name: ghcr-secret
 ---
