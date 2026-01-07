@@ -295,6 +295,16 @@ entries:
   snippetquiz-auth-service-chart:
   - apiVersion: v2
     appVersion: 0.0.20
+    created: "2026-01-07T06:46:34.511850756Z"
+    description: An Auth Service Helm chart for Kubernetes
+    digest: c27cf38427ff85373d304560955441d8547bc1dddc152a7635d15c142a548b46
+    name: snippetquiz-auth-service-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-auth-service-chart-0.0.20/snippetquiz-auth-service-chart-0.0.20.tgz
+    version: 0.0.20
+  - apiVersion: v2
+    appVersion: 0.0.20
     created: "2026-01-07T06:32:45.244471144Z"
     description: An Auth Service Helm chart for Kubernetes
     digest: 5af33c71dea9b4026117be7242dca0faed00160ca2086033ea79261be625e240
@@ -705,4 +715,4 @@ entries:
     urls:
     - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.8/snippetquiz-frontend-chart-0.0.8.tgz
     version: 0.0.8
-generated: "2026-01-07T06:32:45.380359492Z"
+generated: "2026-01-07T06:46:34.512046946Z"
