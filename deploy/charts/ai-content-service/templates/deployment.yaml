@@ -27,8 +27,10 @@ spec:
           ports:
             - containerPort: 3004
           envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-config
             - secretRef:
-                name: common-env
+                name: {{ .Chart.Name }}-secret
 ---
 apiVersion: v1
 kind: Service
