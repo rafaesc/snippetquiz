@@ -1,0 +1,10 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: snippetquiz-ai-content-service-chart
+  namespace: snippetquiz
+spec:
+  values:    
+    kafka:
+      host: "snippetquiz-kafka-kafka-bootstrap"
+      port: "9092"
