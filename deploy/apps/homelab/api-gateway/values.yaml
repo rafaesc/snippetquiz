@@ -12,4 +12,4 @@ spec:
     routers:
       aiContentServiceHost: "ai-content.snippetquiz.svc.cluster.local"
       authServiceHost: "auth.snippetquiz.svc.cluster.local"
-      coreServiceHost: "core.snippetquiz.svc.cluster.local"
+      coreServiceHost: "snippetquiz-core-service-chart"

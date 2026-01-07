@@ -2,19 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: auth-service
-  name: auth-service
+    app: {{ .Chart.Name }}
+  name: {{ .Chart.Name }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      app: auth-service
+      app: {{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: auth-service
+        app: {{ .Chart.Name }}
     spec:
       securityContext:
         runAsUser: 1001
@@ -27,18 +27,20 @@ spec:
           ports:
             - containerPort: 3002
           envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-config
             - secretRef:
-                name: common-env
+                name: {{ .Chart.Name }}-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: auth-service
-  name: auth-service
+    app: {{ .Chart.Name }}
+  name: {{ .Chart.Name }}
 spec:
   selector:
-    app: auth-service
+    app: {{ .Chart.Name }}
   ports:
     - port: 3002
       targetPort: 3002

@@ -12,7 +12,7 @@ postgresql:
   database: snippetquiz
   user: snippetquiz
   password: snippetquiz
-  jdbcUri: ""
+  jdbcUri: null
 
 redis:
   host: redis

@@ -7,8 +7,5 @@ data:
   POSTGRESQL_PORT: {{ include "helpers.postgresql.port" . | quote }}
   POSTGRESQL_DATABASE: {{ include "helpers.postgresql.database" . | quote }}
 
-  REDIS_HOST: {{ .Values.redis.host | quote }}
-  REDIS_PORT: {{ .Values.redis.port | quote }}
-
   KAFKA_HOST: {{ .Values.kafka.host | quote }}
   KAFKA_PORT: {{ .Values.kafka.port | quote }}

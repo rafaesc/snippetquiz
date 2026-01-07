@@ -13,15 +13,7 @@ redis:
 
 jwt:
   authExpiresIn: null
-  authRefreshExpiresIn: null
-  authRefreshSecret: null
   authSecret: null
-  authVerificationExpiresIn: null
-  authVerificationSecret: null
-
-emailService:
-  username: null
-  password: null
 
 routers:
   aiContentServiceHost: null

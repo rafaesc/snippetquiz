@@ -5,3 +5,18 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
+
+postgresql:
+  host: postgres
+  port: "5432"
+  database: snippetquiz
+  user: snippetquiz
+  password: snippetquiz
+  jdbcUri: null
+
+kafka:
+  host: kafka
+  port: "9092"
+
+openrouter:
+  apiKey: null
