@@ -13,4 +13,4 @@ data:
   KAFKA_HOST: {{ .Values.kafka.host | quote }}
   KAFKA_PORT: {{ .Values.kafka.port | quote }}
 
-  FRONTEND_URL: {{ .Values.frontend.url | b64enc }}
+  FRONTEND_URL: {{ .Values.frontend.url | quote }}
