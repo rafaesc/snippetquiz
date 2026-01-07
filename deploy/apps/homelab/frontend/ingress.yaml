@@ -10,6 +10,8 @@ spec:
   routes:
     - match: Host(`sq.rafaescala.com`) && PathPrefix(`/api/`)
       kind: Rule
+      middlewares:
+        - name: api-stripprefix
       services:
         - name: snippetquiz-api-gateway-chart
           port: 3001
