@@ -10,5 +10,5 @@ spec:
       port: "6379"
     
     kafka:
-      host: "snippetquiz-kafka-kafka-bootstrap.svc.cluster.local"
+      host: "snippetquiz-kafka-kafka-bootstrap"
       port: "9092"

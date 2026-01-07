@@ -10,5 +10,5 @@ data:
   REDIS_HOST: {{ .Values.redis.host | quote }}
   REDIS_PORT: {{ .Values.redis.port | quote }}
 
-  KAFKA_HOST: {{ .Values.kafka.host }}
-  KAFKA_PORT: {{ .Values.kafka.port }}
+  KAFKA_HOST: {{ .Values.kafka.host | quote }}
+  KAFKA_PORT: {{ .Values.kafka.port | quote }}
