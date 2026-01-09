@@ -8,4 +8,4 @@ spec:
     logLevel: debug
 
     api:
-      url: "https://sq.rafaescala.com/api/"
+      url: "https://sq.rafaescala.com"
