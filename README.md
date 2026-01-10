@@ -214,27 +214,38 @@ flowchart TD
 - When a quiz is requested for a bank, content is chunked and sent to the LLM to generate questions.
 - Generated questions are persisted and quiz status is advanced. Users see progress live via WebSockets and complete the quiz in the UI.
 
-## CI/CD and Deployment
-The project uses GitHub Actions for CI/CD and Flux CD for GitOps-based deployment.
+## Homelab Deployment Architecture
 
-### Continuous Integration (CI)
-- **Backend**: Validates Java and NestJS services on PRs. Runs tests and builds artifacts.
-- **Frontend**: Validates Next.js build on PRs.
-- **Extension**: Validates Chrome Extension build on PRs.
+The system is designed to be deployed in a Kubernetes homelab environment using a **GitOps** approach governed by **Flux CD**. The entire cluster state—including infrastructure, controllers, and applications—is defined declaratively in the `deploy` directory.
 
-### Continuous Deployment (CD) & Release
-- **Docker Images**: Built and pushed to GHCR on pushes to `master` or tags.
-- **Helm Charts**: Packaged and published to GHCR OCI registry on tags.
-- **Releases**: GitHub Releases are automatically created on tags.
+### 1. Infrastructure Stack
+The platform relies on robust cloud-native operators and controllers:
 
-### Deployment (GitOps)
-- **Flux CD**: syncing the cluster state with the `deploy` directory.
+- **Traefik**: Serves as the Ingress Controller and API Gateway, managing external access, routing, and SSL termination.
+- **CloudNativePG**: The PostgreSQL Operator responsible for provisioning and managing high-availability database clusters for the Core, Auth, and AI services.
+- **Strimzi**: The Kafka Operator that manages the Kafka brokers and topics, powering the event-driven architecture.
+- **Redis**: Deployed for caching, token storage, and real-time pub/sub messaging.
+- **Cert-Manager**: Automates the management and issuance of TLS certificates.
+
+### 2. GitOps & Secrets (Flux CD)
+- **Synchronization**: Flux CD monitors the repository and automatically applies changes from the `deploy` directory to the cluster.
 - **Structure**:
     - `deploy/charts`: Local Helm charts.
     - `deploy/apps`: Kustomizations for applications.
     - `deploy/clusters`: Cluster-specific configurations (e.g., `homelab`).
 - **Secret Management**:
     - **SOPS**: Secrets (like `common-env`) are encrypted using [Mozilla SOPS](https://github.com/getsops/sops) and committed to the repository. Flux decrypts them at runtime using configured keys (e.g., AGE keys).
+
+### 3. CI/CD Pipeline
+The project uses limited-scope GitHub Actions for integration and packaging, while Flux handles deployment:
+- **Continuous Integration (CI)**:
+  - Validates code (Java/NestJS/Next.js) on Pull Requests.
+  - Runs unit and integration tests.
+- **Artifact Publishing**:
+  - **Docker Images**: Built and pushed to the GitHub Container Registry (GHCR).
+  - **Helm Charts**: Packaged as OCI artifacts and published to GHCR.
+- **Continuous Deployment (CD)**:
+  - Flux detects new Helm Chart versions or image tags (depending on policy) and reconciles the cluster state.
 
 ## Artifact Registry
 You can download the container images and OCI Helm charts directly from the [GitHub Packages Registry](https://github.com/rafaesc?tab=packages&repo_name=snippetquiz).
@@ -258,35 +269,3 @@ helm pull oci://ghcr.io/rafaesc/charts/snippetquiz-core-service-chart --version 
 # Example for Frontend Chart
 helm pull oci://ghcr.io/rafaesc/charts/snippetquiz-frontend-chart --version <version>
 ```
-
-## Configuration
-The services rely on a Kubernetes Secret named `common-env` to provide necessary environment variables.
-
-### Required Environment Variables
-The following keys are required in the `common-env` secret (or your container environment):
-
-#### Database & Infrastructure
-- `POSTGRESQL_HOST`, `POSTGRESQL_PORT`, `POSTGRESQL_DATABASE`, `POSTGRESQL_USER`, `POSTGRESQL_PASSWORD`: Database connection details.
-- `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`: Redis connection details.
-- `KAFKA_HOST`, `KAFKA_PORT`: Kafka broker connection.
-
-#### Service Discovery
-- `API_BASE_URL`: Public URL of the API Gateway.
-- `AUTH_SERVICE_HOST`: Internal host/URL for Auth Service.
-- `CORE_SERVICE_HOST`: Internal host/URL for Core Service.
-- `AI_CONTENT_SERVICE_HOST`: Internal host/URL for AI Content Service.
-
-#### Security & Auth
-- `JWT_AUTH_SECRET`: Secret key for signing access tokens.
-- `JWT_AUTH_REFRESH_SECRET`: Secret key for signing refresh tokens.
-- `JWT_AUTH_VERIFICATION_SECRET`: Secret key for email verification tokens.
-- `COOKIE_SECRET`: Secret for signing cookies.
-
-#### Token Expiration
-- `JWT_AUTH_EXPIRES_IN`: Access token expiration (e.g., `15m`).
-- `JWT_AUTH_REFRESH_EXPIRES_IN`: Refresh token expiration (e.g., `7d`).
-- `JWT_AUTH_VERIFICATION_EXPIRES_IN`: Verification token expiration (e.g., `24h`).
-
-#### External Services
-- `OPENROUTER_API_KEY`: API Key for AI service (OpenRouter).
-- `EMAIL_USERNAME`, `EMAIL_PASSWORD`: SMTP credentials for sending emails.
