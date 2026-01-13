@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SnippetQuiz",
   "version": "1.0.0",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
+  "description": "SnippetQuiz turns web content into interactive quizzes.",
   "action": {
     "default_popup": "index.html"
   },
@@ -18,8 +18,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*"],
-      "js": ["content-script.js"],
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
       "run_at": "document_end"
     }
   ],
@@ -30,8 +34,7 @@
     "128": "icons/icon128.png"
   },
   "host_permissions": [
-    "*://*.snippetquiz.com/",
-    "*://localhost:*/*",
+    "*://*.rafaescala.com/",
     "*://*.youtube.com/*"
   ]
 }
