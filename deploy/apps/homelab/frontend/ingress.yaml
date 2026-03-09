@@ -18,5 +18,5 @@ spec:
       services:
         - name: snippetquiz-frontend-chart
           port: 3000
-  tls:
-    secretName: frontend-certificates-secret
+            #  tls:
+            #    secretName: frontend-certificates-secret
