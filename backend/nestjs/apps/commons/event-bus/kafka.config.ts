@@ -21,5 +21,8 @@ export const getKafkaConfig = (envsVars: {
             idempotent: true,
             maxInFlightRequests: 5,
         },
+        run: {
+            partitionsConsumedConcurrently: 5,
+        }
     },
 });
