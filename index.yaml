@@ -525,6 +525,16 @@ entries:
     version: 0.0.8
   snippetquiz-core-service-chart:
   - apiVersion: v2
+    appVersion: 0.0.18
+    created: "2026-03-14T06:00:46.416657622Z"
+    description: A Core Service Helm chart for Kubernetes
+    digest: 3bc207f8a60aab6cdb0a74cce265656796e93c5b59cb1e5e6cf5c4a6f3e8131d
+    name: snippetquiz-core-service-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-core-service-chart-0.0.27/snippetquiz-core-service-chart-0.0.27.tgz
+    version: 0.0.27
+  - apiVersion: v2
     appVersion: 0.0.19
     created: "2026-03-14T05:59:50.071590525Z"
     description: A Core Service Helm chart for Kubernetes
@@ -835,4 +845,4 @@ entries:
     urls:
     - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.8/snippetquiz-frontend-chart-0.0.8.tgz
     version: 0.0.8
-generated: "2026-03-14T05:59:50.073422364Z"
+generated: "2026-03-14T06:00:46.416878455Z"
