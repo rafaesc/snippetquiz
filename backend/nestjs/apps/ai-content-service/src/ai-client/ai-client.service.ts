@@ -8,10 +8,10 @@ import { CharacterEmotionsResponse, CharacterResponse } from '../character/types
 export class AiClientService implements OnModuleInit {
     private client: OpenRouter;
     private readonly logger = new Logger(AiClientService.name);
-    private readonly model = 'stepfun/step-3.5-flash:free';
+    private readonly model = 'liquid/lfm-2.5-1.2b-thinking:free';
     private readonly models = [
-        'arcee-ai/trinity-large-preview:free',
-        'nvidia/nemotron-3-super-120b-a12b:free',
+        'openai/gpt-oss-20b:free',
+        'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
         this.model,
     ];
 
