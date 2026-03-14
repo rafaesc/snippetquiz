@@ -8,11 +8,11 @@ import { CharacterEmotionsResponse, CharacterResponse } from '../character/types
 export class AiClientService implements OnModuleInit {
     private client: OpenRouter;
     private readonly logger = new Logger(AiClientService.name);
-    private readonly model = 'mistralai/mistral-7b-instruct:free';
+    private readonly model = 'stepfun/step-3.5-flash:free';
     private readonly models = [
-        'google/gemma-3n-e4b-it:free',
-        'meta-llama/llama-3.2-3b-instruct:free',
-        'mistralai/mistral-7b-instruct:free',
+        'arcee-ai/trinity-large-preview:free',
+        'nvidia/nemotron-3-super-120b-a12b:free',
+        this.model,
     ];
 
     onModuleInit() {
