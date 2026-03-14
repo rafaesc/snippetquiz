@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   snippetquiz-ai-content-service-chart:
   - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-03-14T05:14:35.964889798Z"
+    description: An AI Content Service Helm chart for Kubernetes
+    digest: ba313517e6d14e546c7036f64ba15443f2388eb9123989d8ad92e3ac7ae07bfa
+    name: snippetquiz-ai-content-service-chart
+    type: application
+    urls:
+    - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-ai-content-service-chart-0.0.25/snippetquiz-ai-content-service-chart-0.0.25.tgz
+    version: 0.0.25
+  - apiVersion: v2
     appVersion: 0.0.22
     created: "2026-03-14T05:07:27.828984239Z"
     description: An AI Content Service Helm chart for Kubernetes
@@ -775,4 +785,4 @@ entries:
     urls:
     - https://github.com/rafaesc/snippetquiz/releases/download/snippetquiz-frontend-chart-0.0.8/snippetquiz-frontend-chart-0.0.8.tgz
     version: 0.0.8
-generated: "2026-03-14T05:07:27.8292307Z"
+generated: "2026-03-14T05:14:35.96520906Z"
