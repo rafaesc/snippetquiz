@@ -26,7 +26,7 @@ x-common-environment: &common-env
 
 services:
   db:
-    build: ./infra/postgres
+    build: ./dockerfiles/postgres
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
@@ -68,7 +68,7 @@ services:
       KAFKA_NUM_PARTITIONS: 1
 
   init-broker:
-    build: ./infra/init-broker
+    build: ./dockerfiles/init-broker
     depends_on:
       - broker
 
